@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -12,19 +12,18 @@ defined('_JEXEC') or die('Restricted access');
 		padding: 5px;
 	}
 </style>
-<?php JHTML::_('behavior.modal'); ?>
 <div id="acy_content">
 	<div id="iframedoc"></div>
 	<div id="acybase_filters" style="display:none">
 		<div id="filters_original">
-			<?php echo JHTML::_('select.genericlist', $this->typevaluesFilters, "filter[type][__num__]", 'class="inputbox chzn-done" size="1" onchange="updateFilter(__num__);countresults(__num__);"', 'value', 'text', 'filtertype__num__'); ?>
+			<?php echo acymailing_select($this->typevaluesFilters, "filter[type][__num__]", 'class="inputbox chzn-done" size="1" onchange="updateFilter(__num__);countresults(__num__);"', 'value', 'text', 'filtertype__num__'); ?>
 			<span id="countresult___num__"></span>
 
 			<div class="acyfilterarea" id="filterarea___num__"></div>
 		</div>
 		<?php echo $this->outputFilters; ?>
 		<div id="actions_original">
-			<?php echo JHTML::_('select.genericlist', $this->typevaluesActions, "action[type][__num__]", 'class="inputbox chzn-done" size="1" onchange="updateAction(__num__);"', 'value', 'text', 'actiontype__num__'); ?>
+			<?php echo acymailing_select($this->typevaluesActions, "action[type][__num__]", 'class="inputbox chzn-done" size="1" onchange="updateAction(__num__);"', 'value', 'text', 'actiontype__num__'); ?>
 			<div class="acyfilterarea" id="actionarea___num__"></div>
 		</div>
 		<?php echo $this->outputActions; ?>
@@ -33,16 +32,16 @@ defined('_JEXEC') or die('Restricted access');
 		<div class="acyblockoptions" id="filteredUsers">
 			<span class="acyblocktitle"><?php
 				$usersCount = $this->filteredUsers['countTotal'];
-				echo JText::sprintf('ACY_FILTEREDUSERS', count($this->filteredUsers['users']), $usersCount); ?>
+				echo acymailing_translation_sprintf('ACY_FILTEREDUSERS', count($this->filteredUsers['users']), $usersCount); ?>
 			</span>
 
 			<div id="acyFilteredUsers">
 				<table class="acymailing_table" id="filteredUsersTable">
 					<thead>
 					<tr>
-						<th class="title titlenum"><?php echo JText::_('ACY_ID'); ?></th>
-						<th class="title titlenum"><?php echo JText::_('JOOMEXT_NAME'); ?></th>
-						<th class="title titlenum"><?php echo JText::_('JOOMEXT_EMAIL'); ?></th>
+						<th class="title titlenum"><?php echo acymailing_translation('ACY_ID'); ?></th>
+						<th class="title titlenum"><?php echo acymailing_translation('JOOMEXT_NAME'); ?></th>
+						<th class="title titlenum"><?php echo acymailing_translation('JOOMEXT_EMAIL'); ?></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -64,19 +63,19 @@ defined('_JEXEC') or die('Restricted access');
 		</div>
 	<?php } ?>
 	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=filter" method="post" name="adminForm" id="adminForm" autocomplete="off">
-		<?php if(JRequest::getCmd('tmpl') == 'component'){
+		<?php if(acymailing_getVar('cmd', 'tmpl') == 'component'){
 			if(empty($this->subid)){
-				acymailing_display(JText::_('PLEASE_SELECT_USERS'), 'warning');
+				acymailing_display(acymailing_translation('PLEASE_SELECT_USERS'), 'warning');
 				return;
 			}
-			$acyToolbar = acymailing::get('helper.toolbar');
-			$acyToolbar->custom('process', JText::_('PROCESS'), 'process', false);
-			$acyToolbar->setTitle(JText::_('ACTIONS'), '');
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->custom('process', acymailing_translation('PROCESS'), 'process', false);
+			$acyToolbar->setTitle(acymailing_translation('ACTIONS'), '');
 			$acyToolbar->topfixed = false;
 			$acyToolbar->display();
 
 			$subIds = explode(',', $this->subid);
-			JArrayHelper::toInteger($subIds);
+			acymailing_arrayToInteger($subIds);
 			$this->subid = implode(',', $subIds);
 			?>
 
@@ -84,17 +83,17 @@ defined('_JEXEC') or die('Restricted access');
 			<input type="hidden" name="tmpl" value="component"/>
 		<?php } ?>
 		<div class="acyblockoptions" id="filterinfo" <?php if(empty($this->filter->filid)) echo 'style="display:none"'; ?> >
-			<span class="acyblocktitle"><?php echo JText::_('ACY_FILTER'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_FILTER'); ?></span>
 			<table width="100%" class="paramlist admintable">
 				<tr>
 					<td class="paramlist_key">
-						<label for="title"><?php echo JText::_('ACY_TITLE'); ?></label>
+						<label for="title"><?php echo acymailing_translation('ACY_TITLE'); ?></label>
 					</td>
 					<td class="paramlist_value">
 						<input class="inputbox" id="title" type="text" name="data[filter][name]" style="width:250px" value="<?php echo $this->escape(@$this->filter->name); ?>"/>
 					</td>
 					<td width="50%" rowspan="3" class="acyfiltertriggertitle">
-						<span class="acyblocktitle"><?php echo JText::_('AUTO_TRIGGER_FILTER'); ?></span>
+						<span class="acyblocktitle"><?php echo acymailing_translation('AUTO_TRIGGER_FILTER'); ?></span>
 						<?php foreach($this->triggers as $key => $triggerName){ ?>
 							<?php if(is_object($triggerName)){
 								echo $triggerName->name;
@@ -115,7 +114,7 @@ defined('_JEXEC') or die('Restricted access');
 				</tr>
 				<tr>
 					<td class="paramlist_key" valign="top">
-						<label for="description"><?php echo JText::_('ACY_DESCRIPTION'); ?></label>
+						<label for="description"><?php echo acymailing_translation('ACY_DESCRIPTION'); ?></label>
 					</td>
 					<td class="paramlist_value" valign="top">
 						<textarea id="description" style="width:300px;" rows="5" name="data[filter][description]"><?php echo @$this->filter->description; ?></textarea>
@@ -123,44 +122,39 @@ defined('_JEXEC') or die('Restricted access');
 				</tr>
 				<tr>
 					<td class="paramlist_key">
-						<label for="published"><?php echo JText::_('ACY_PUBLISHED'); ?></label>
+						<label for="published"><?php echo acymailing_translation('ACY_PUBLISHED'); ?></label>
 					</td>
 					<td class="paramlist_value">
-						<?php echo JHTML::_('acyselect.booleanlist', "data[filter][published]", '', @$this->filter->published); ?>
+						<?php echo acymailing_boolean("data[filter][published]", '', @$this->filter->published); ?>
 					</td>
 				</tr>
 			</table>
 		</div>
 		<?php if(empty($this->subid)){ ?>
 			<div class="acyblockoptions" id="filters_block">
-				<span class="acyblocktitle"><?php echo JText::_('ACY_FILTERS'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('ACY_FILTERS'); ?></span>
 
 				<div id="allfilters"></div>
-				<button class="acymailing_button" onclick="addAcyFilter();return false;"><?php echo JText::_('ADD_FILTER'); ?></button>
+				<button class="acymailing_button" onclick="addAcyFilter();return false;"><?php echo acymailing_translation('ADD_FILTER'); ?></button>
 			</div>
 		<?php } ?>
 		<div class="acyblockoptions" id="actions_block">
-			<span class="acyblocktitle"><?php echo JText::_('ACTIONS'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACTIONS'); ?></span>
 
 			<div id="allactions"></div>
-			<button class="acymailing_button" onclick="addAction();return false;"><?php echo JText::_('ADD_ACTION'); ?></button>
+			<button class="acymailing_button" onclick="addAction();return false;"><?php echo acymailing_translation('ADD_ACTION'); ?></button>
 		</div>
 
 		<div class="clr"></div>
 
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value="process"/>
-		<input type="hidden" name="ctrl" value="filter"/>
 		<input type="hidden" name="filid" value="<?php echo @$this->filter->filid; ?>"/>
 		<input type="hidden" name="limitstart" value="0">
-		<input type="hidden" name="filter_order" value="<?php echo $this->pageInfo->filter->order->value; ?>"/>
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $this->pageInfo->filter->order->dir; ?>"/>
 
-		<?php echo JHTML::_('form.token'); ?>
+		<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 		<!--</form>-->
 		<?php if(!empty($this->subid)){ ?>
 			<div class="acyblockoptions" id="selectedUsers">
-				<span class="acyblocktitle"><?php echo JText::_('USERS'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('USERS'); ?></span>
 
 				<div id="allfilters" style="display:none"></div>
 				<table class="acymailing_table" cellpadding="1">
@@ -188,7 +182,7 @@ defined('_JEXEC') or die('Restricted access');
 		<?php if(!(empty($this->filters) && $this->pageInfo->search == "")){ ?>
 			<br/><br/>
 			<div class="acyblockoptions" id="existing_filters">
-				<span class="acyblocktitle"><?php echo JText::_('EXISTING_FILTERS'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('EXISTING_FILTERS'); ?></span>
 				<table class="acymailing_table_options">
 					<tr>
 						<td width="100%">
@@ -200,16 +194,16 @@ defined('_JEXEC') or die('Restricted access');
 					<thead>
 					<tr>
 						<th class="title">
-							<?php echo JHTML::_('grid.sort', JText::_('ACY_FILTER'), 'name', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+							<?php echo acymailing_gridSort(acymailing_translation('ACY_FILTER'), 'name', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 						</th>
 						<th class="title titletoggle">
-							<?php echo JText::_('ACY_PUBLISHED'); ?>
+							<?php echo acymailing_translation('ACY_PUBLISHED'); ?>
 						</th>
 						<th class="title titletoggle">
-							<?php echo JText::_('ACY_DELETE'); ?>
+							<?php echo acymailing_translation('ACY_DELETE'); ?>
 						</th>
 						<th class="title titleid">
-							<?php echo JHTML::_('grid.sort', JText::_('ACY_ID'), 'filid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+							<?php echo acymailing_gridSort(acymailing_translation('ACY_ID'), 'filid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 						</th>
 					</tr>
 					</thead>

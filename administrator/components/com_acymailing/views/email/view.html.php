@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -20,18 +20,14 @@ class EmailViewEmail extends acymailingView{
 	}
 
 	function form(){
-
-		acymailing_loadMootools();
-		$app = JFactory::getApplication();
-
 		$mailid = acymailing_getCID('mailid');
-		if(empty($mailid)) $mailid = JRequest::getString('mailid');
+		if(empty($mailid)) $mailid = acymailing_getVar('string', 'mailid');
 
 		$mailClass = acymailing_get('class.mail');
 		$mail = $mailClass->get($mailid);
 
 		if(empty($mail)){
-			$config =& acymailing_config();
+			$config = acymailing_config();
 
 			$mail = new stdClass();
 			$mail->created = time();
@@ -40,7 +36,7 @@ class EmailViewEmail extends acymailingView{
 			$mail->replyname = $config->get('reply_name');
 			$mail->replyemail = $config->get('reply_email');
 			$mail->subject = '';
-			$mail->type = JRequest::getString('type');
+			$mail->type = acymailing_getVar('string', 'type');
 			$mail->published = 1;
 			$mail->visible = 0;
 			$mail->html = 1;
@@ -57,17 +53,17 @@ class EmailViewEmail extends acymailingView{
 
 		$toggleClass = acymailing_get('helper.toggle');
 
-		JHTML::_('behavior.modal', 'a.modal');
-
-		$acyToolbar = acymailing::get('helper.toolbar');
-		$acyToolbar->custom('', JText::_('ACY_TEMPLATES'), 'template', false, 'displayTemplates(); return false;');
-		$acyToolbar->custom('', JText::_('TAGS'), 'tag', false, 'try{IeCursorFix();}catch(e){}; displayTags(); return false;');
-		$acyToolbar->divider();
-		$acyToolbar->custom('test', JText::_('SEND_TEST'), 'send', false);
-		$acyToolbar->custom('apply', JText::_('ACY_APPLY'), 'apply', false);
-		$acyToolbar->setTitle(JText::_('ACY_EDIT'));
-		$acyToolbar->topfixed = false;
-		$acyToolbar->display();
+		if(acymailing_isAdmin()) {
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->custom('', acymailing_translation('ACY_TEMPLATES'), 'template', false, 'displayTemplates(); return false;');
+			$acyToolbar->custom('', acymailing_translation('TAGS'), 'tag', false, 'try{IeCursorFix();}catch(e){}; displayTags(); return false;');
+			$acyToolbar->divider();
+			$acyToolbar->custom('test', acymailing_translation('SEND_TEST'), 'send', false);
+			$acyToolbar->custom('apply', acymailing_translation('ACY_APPLY'), 'apply', false);
+			$acyToolbar->setTitle(acymailing_translation('ACY_EDIT'));
+			$acyToolbar->topfixed = false;
+			$acyToolbar->display();
+		}
 
 		$editor = acymailing_get('helper.editor');
 		$editor->setTemplate($mail->tempid);
@@ -99,7 +95,7 @@ class EmailViewEmail extends acymailingView{
 							return;
 						}';
 		}
-		$script .= 'if(window.document.getElementById("subject").value.length < 2){alert(\''.JText::_('ENTER_SUBJECT', true).'\'); return false;}';
+		$script .= 'if(window.document.getElementById("subject").value.length < 2){alert(\''.acymailing_translation('ENTER_SUBJECT', true).'\'); return false;}';
 		$script .= $editor->jsCode();
 		if(!ACYMAILING_J16){
 			$script .= 'submitform( pressbutton );} ';
@@ -107,85 +103,144 @@ class EmailViewEmail extends acymailingView{
 			$script .= 'Joomla.submitform(pressbutton,document.adminForm);}; ';
 		}
 
-		$script .= "function insertTag(tag){
-		try{
-			if(window.parent.tinymce){ parentTinymce = window.parent.tinymce; window.parent.tinymce = false; }
-			jInsertEditorText(tag,'editor_body');
-			if(typeof parentTinymce !== 'undefined'){ window.parent.tinymce = parentTinymce; }
-			document.getElementById('iframetag').style.display = 'none';
-			displayTags();
-			return true;
-		}catch(err){alert('Your editor does not enable AcyMailing to automatically insert the tag, please copy/paste it manually in your Newsletter'); return false;}}";
+		$script .= "var zoneToTag = 'editor';
+		function insertTag(tag){
+			if(zoneToTag == 'editor'){
+				try{
+					if(window.parent.tinymce){ parentTinymce = window.parent.tinymce; window.parent.tinymce = false; }
+					jInsertEditorText(tag,'editor_body');
+					if(typeof parentTinymce !== 'undefined'){ window.parent.tinymce = parentTinymce; }
+					document.getElementById('iframetag').style.display = 'none';
+					displayTags();
+					return true;
+				} catch(err){
+					alert('Your editor does not enable AcyMailing to automatically insert the tag, please copy/paste it manually in your Newsletter');
+					return false;
+				}
+			}else{
+				try{
+					simpleInsert(zoneToTag, tag);
+					return true;
+				} catch(err){
+					alert('Error inserting the tag in the '+ zoneToTag + 'zone. Please copy/paste it manually in your Newsletter.');
+					return false;
+				}
+			}
+		}
+
+		function simpleInsert(myField, myValue) {
+			myField = document.getElementById(myField);
+			if (document.selection) {
+				myField.focus();
+				sel = document.selection.createRange();
+				sel.text = myValue;
+			} else if (myField.selectionStart || myField.selectionStart == '0') {
+				var startPos = myField.selectionStart;
+				var endPos = myField.selectionEnd;
+				myField.value = myField.value.substring(0, startPos)
+					+ myValue
+					+ myField.value.substring(endPos, myField.value.length);
+			} else if (myField.tagName == 'DIV') {
+				myField.innerHTML += myValue;
+				document.getElementById('subject').value += myValue;
+			} else {
+				myField.value += myValue;
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', function(){
+			setTimeout(function() {
+				document.getElementById('htmlfieldset').addEventListener('click', function(){
+					zoneToTag = 'editor';
+				});	
+
+				var ediframe = document.getElementById('htmlfieldset').getElementsByTagName('iframe');
+				if(ediframe && ediframe[0]){
+					var children = ediframe[0].contentDocument.getElementsByTagName('*');
+					for (var i = 0; i < children.length; i++) {
+						children[i].addEventListener('click', function(){
+							zoneToTag = 'editor';
+						});			
+					}
+				}		
+			}, 1000);
+		});";
 
 		$typeMail = 'news';
 		if(strpos($mail->alias, 'notification') !== false){
 			$typeMail = 'notification';
 		}
 
-		$iFrame = "'<iframe src=\'index.php?option=com_acymailing&ctrl=tag&task=tag&type=".$typeMail."&tmpl=component\' width=\'100%\' height=\'100%\' scrolling=\'auto\'></iframe>'";
+		$iFrame = "'<iframe src=\'index.php?option=com_acymailing&ctrl=".(acymailing_isAdmin() ? '' : 'front')."tag&task=tag&type=".$typeMail."&tmpl=component\' width=\'100%\' height=\'100%\' scrolling=\'auto\'></iframe>'";
 		$script .= "var openTag = true;
-					function displayTags(){var box=$('iframetag'); if(openTag){box.innerHTML = ".$iFrame."; box.setStyle('display','block');}
-					try{
-						var fx = box.effects({duration: 1500, transition: Fx.Transitions.Quart.easeOut});
-						if(openTag){fx.start({'height': 300});}else{fx.start({'height': 0}).chain(function() {box.innerHTML = '';box.setStyle('display','none');})};
-					}catch(err){
-						box.style.height = '300px';
-						var myVerticalSlide = new Fx.Slide('iframetag');
+					function displayTags(){
+						var box = document.getElementById('iframetag');
 						if(openTag){
-							myVerticalSlide.slideIn();
+							box.innerHTML = ".$iFrame.";
+							box.style.display = 'block';
 						}else{
-							myVerticalSlide.slideOut().chain(function() {
-								box.innerHTML='';
-								box.setStyle('display','none');
-							});
+							box.style.display = 'none';
 						}
-					}
-					openTag = !openTag;}";
 
-		$iFrame = "'<iframe src=\'index.php?option=com_acymailing&ctrl=template&task=theme&tmpl=component\' width=\'100%\' height=\'100%\' scrolling=\'auto\'></iframe>'";
-		$script .= "var openTemplate = true;
-					function displayTemplates(){var box=$('iframetemplate'); if(openTemplate){box.innerHTML = ".$iFrame."; box.setStyle('display','block');}
-					try{
-						var fx = box.effects({duration: 1500, transition: Fx.Transitions.Quart.easeOut});
-						if(openTemplate){fx.start({'height': 300});}else{fx.start({'height': 0}).chain(function() {box.innerHTML = '';box.setStyle('display','none');})};
-					}catch(err){
-						box.style.height = '300px';
-						var myVerticalSlide = new Fx.Slide('iframetemplate');
-						if(openTemplate){
-							myVerticalSlide.slideIn();
+						if(openTag){
+							box.className = 'slide_open';
 						}else{
-							myVerticalSlide.slideOut().chain(function() {
-								box.innerHTML='';
-								box.setStyle('display','none');
-							});
+							box.className = box.className.replace('slide_open', '');
 						}
-					}
-					openTemplate = !openTemplate;}";
+						openTag = !openTag;
+					}";
+
+		$iFrame = "'<iframe src=\'index.php?option=com_acymailing&ctrl=".(acymailing_isAdmin() ? '' : 'front')."template&task=theme&tmpl=component\' width=\'100%\' height=\'100%\' scrolling=\'auto\'></iframe>'";
+		$script .= "var openTemplate = true;
+					function displayTemplates(){
+						var box = document.getElementById('iframetemplate');
+						if(openTemplate){
+							box.innerHTML = ".$iFrame.";
+							box.style.display = 'block';
+						}else{
+							box.style.display = 'none';
+						}
+
+						if(openTemplate){
+							box.className = 'slide_open';
+						}else{
+							box.className = box.className.replace('slide_open', '');
+						}
+						openTemplate = !openTemplate;
+					}";
 
 		$script .= "function changeTemplate(newhtml,newtext,newsubject,stylesheet,fromname,fromemail,replyname,replyemail,tempid){
 			if(newhtml.length>2){".$editor->setContent('newhtml')."}
-			var vartextarea =$('altbody'); if(newtext.length>2) vartextarea.innerHTML = newtext;
+			var vartextarea = document.getElementById('altbody');
+			if(newtext.length>2) vartextarea.innerHTML = newtext;
 			document.getElementById('tempid').value = tempid;
+
 			if(fromname.length>1){document.getElementById('fromname').value = fromname;}
 			if(fromemail.length>1){document.getElementById('fromemail').value = fromemail;}
 			if(replyname.length>1){document.getElementById('replyname').value = replyname;}
 			if(replyemail.length>1){document.getElementById('replyemail').value = replyemail;}
-			if(newsubject.length>1){document.getElementById('subject').value = newsubject;}
+			if(newsubject.length>1){
+				var subjectObj = document.getElementById('subject');
+				if(subjectObj.tagName.toLowerCase() == 'input'){
+					subjectObj.value = newsubject;
+				}else{
+				    subjectObj.innerHTML = newsubject;
+				}
+			}
+
 			".$editor->setEditorStylesheet('tempid')."
-			document.getElementById('iframetemplate').style.display = 'none'; displayTemplates();
-		}
-		";
+			document.getElementById('iframetemplate').style.display = 'none';
+			displayTemplates();
+		}";
 
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($js.$script);
+		acymailing_addScript(true, $js.$script);
 
-		$this->assignRef('toggleClass', $toggleClass);
-		$this->assignRef('editor', $editor);
-		$this->assignRef('values', $values);
-		$this->assignRef('mail', $mail);
+		$this->toggleClass = $toggleClass;
+		$this->editor = $editor;
+		$this->values = $values;
+		$this->mail = $mail;
 		$tabs = acymailing_get('helper.acytabs');
 		$tabs->setOptions(array('useCookie' => true));
-		$this->assignRef('tabs', $tabs);
-		$this->assign('app', $app);
+		$this->tabs = $tabs;
 	}
 }

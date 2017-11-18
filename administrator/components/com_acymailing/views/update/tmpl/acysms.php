@@ -1,16 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="installacysms">
     <div id="iframedoc"></div>
-    <span style="font-weight: bold;"><i class="acyicon-statistic" style="margin-right: 10px;vertical-align:middle;"></i><?php echo JText::_('ACY_SMS_PRESENTATION'); ?></span>
-    <div id="startbutton" class="myacymailingarea"><button onclick="document.getElementById('meter').style.display = '';document.getElementById('startbutton').style.display = 'none';installAcySMS();"><?php echo JText::_('ACY_TRY_IT'); ?></button></div>
+    <span style="font-weight: bold;"><i class="acyicon-statistic" style="margin-right: 10px;vertical-align:middle;"></i><?php echo acymailing_translation('ACY_SMS_PRESENTATION'); ?></span>
+    <div id="startbutton" class="myacymailingarea"><button onclick="document.getElementById('meter').style.display = '';document.getElementById('startbutton').style.display = 'none';installAcySMS();"><?php echo acymailing_translation('ACY_TRY_IT'); ?></button></div>
     <div id="meter" style="display:none;">
         <div>
             <span id="progressbar"></span>
@@ -18,8 +18,8 @@ defined('_JEXEC') or die('Restricted access');
         </div>
     </div>
     <div id="postinstall" style="display:none;font-weight: bold;margin-top: 15px;">
-        <?php echo JText::sprintf('ACY_INSTALLED', '<a href="https://www.acyba.com/member-area/your-subscription.html#acysms-uexpress" target="_blank">', '</a>'); ?>
-        <div class="myacymailingarea"><a href="index.php?option=com_acysms" ><button><?php echo JText::_('ACY_TRY_IT'); ?></button></a></div>
+        <?php echo acymailing_translation_sprintf('ACY_INSTALLED', '<a href="https://www.acyba.com/member-area/your-subscription.html#acysms-uexpress" target="_blank">', '</a>'); ?>
+        <div class="myacymailingarea"><a href="index.php?option=com_acysms" ><button><?php echo acymailing_translation('ACY_TRY_IT'); ?></button></a></div>
     </div>
 
     <div id="acy_main_features" style="max-width: 980px;margin:auto;margin-top:50px;">

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -28,14 +28,14 @@ class listsmailType{
 		}
 
 		$this->values = array();
-		$this->values[] = JHTML::_('select.option', '0', JText::_('ALL_LISTS') );
+		$this->values[] = acymailing_selectOption('0', acymailing_translation('ALL_LISTS'));
 		foreach($allnames as $listid => $oneName){
-			$this->values[] = JHTML::_('select.option', $listid, $oneName->name.' ( '.$alllists[$listid]->total.' )' );
+			$this->values[] = acymailing_selectOption($listid, $oneName->name.' ( '.$alllists[$listid]->total.' )' );
 		}
 	}
 
 	function display($map,$value){
 		$this->load();
-		return JHTML::_('select.genericlist',   $this->values, $map, 'class="inputbox" size="1" onchange="document.adminForm.submit( );"', 'value', 'text', (int) $value );
+		return acymailing_select(  $this->values, $map, 'class="inputbox" size="1" onchange="document.adminForm.submit( );"', 'value', 'text', (int) $value );
 	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -32,37 +32,36 @@ class delayType{
 			$js .= "if(delaytype == 'month'){realValue = realValue*2592000; }";
 			$js .= "delayvar.value = realValue;";
 		$js .= '}';
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration( $js );
+		acymailing_addScript(true, $js);
 
 	}
 
 	function display($map,$value,$type = 1){
 		if($type == 0){
-			$this->values[] = JHTML::_('select.option', 'second',JText::_('ACY_SECONDS'));
-			$this->values[] = JHTML::_('select.option', 'minute',JText::_('ACY_MINUTES'));
+			$this->values[] = acymailing_selectOption('second', acymailing_translation('ACY_SECONDS'));
+			$this->values[] = acymailing_selectOption('minute', acymailing_translation('ACY_MINUTES'));
 		}elseif($type == 1){
-			$this->values[] = JHTML::_('select.option', 'minute',JText::_('ACY_MINUTES'));
-			$this->values[] = JHTML::_('select.option', 'hour',JText::_('HOURS'));
-			$this->values[] = JHTML::_('select.option', 'day',JText::_('DAYS'));
-			$this->values[] = JHTML::_('select.option', 'week',JText::_('WEEKS'));
+			$this->values[] = acymailing_selectOption('minute', acymailing_translation('ACY_MINUTES'));
+			$this->values[] = acymailing_selectOption('hour', acymailing_translation('HOURS'));
+			$this->values[] = acymailing_selectOption('day', acymailing_translation('DAYS'));
+			$this->values[] = acymailing_selectOption('week', acymailing_translation('WEEKS'));
 		}elseif($type == 2){
-			$this->values[] = JHTML::_('select.option', 'minute',JText::_('ACY_MINUTES'));
-			$this->values[] = JHTML::_('select.option', 'hour',JText::_('HOURS'));
+			$this->values[] = acymailing_selectOption('minute', acymailing_translation('ACY_MINUTES'));
+			$this->values[] = acymailing_selectOption('hour', acymailing_translation('HOURS'));
 		}elseif($type == 3){
-			$this->values[] = JHTML::_('select.option', 'hour',JText::_('HOURS'));
-			$this->values[] = JHTML::_('select.option', 'day',JText::_('DAYS'));
-			$this->values[] = JHTML::_('select.option', 'week',JText::_('WEEKS'));
-			$this->values[] = JHTML::_('select.option', 'month',JText::_('MONTHS'));
+			$this->values[] = acymailing_selectOption('hour', acymailing_translation('HOURS'));
+			$this->values[] = acymailing_selectOption('day', acymailing_translation('DAYS'));
+			$this->values[] = acymailing_selectOption('week', acymailing_translation('WEEKS'));
+			$this->values[] = acymailing_selectOption('month', acymailing_translation('MONTHS'));
 		}elseif($type == 4){
-			$this->values[] = JHTML::_('select.option', 'week',JText::_('WEEKS'));
-			$this->values[] = JHTML::_('select.option', 'month',JText::_('MONTHS'));
+			$this->values[] = acymailing_selectOption('week', acymailing_translation('WEEKS'));
+			$this->values[] = acymailing_selectOption('month', acymailing_translation('MONTHS'));
 		}
 
 		$return = $this->get($value,$type);
 		$delayValue = '<input class="inputbox" onchange="updateDelay'.$this->num.'();'.$this->onChange.'" type="text" id="delayvalue'.$this->num.'" style="width:50px" value="'.$return->value.'" /> ';
 		$delayVar = '<input type="hidden" name="'.$map.'" id="delayvar'.$this->num.'" value="'.$value.'"/>';
-		return $delayValue.JHTML::_('select.genericlist',   $this->values, 'delaytype'.$this->num, 'class="inputbox" size="1" style="width:100px" onchange="updateDelay'.$this->num.'();'.$this->onChange.'"', 'value', 'text', $return->type ,'delaytype'.$this->num).$delayVar;
+		return $delayValue.acymailing_select(  $this->values, 'delaytype'.$this->num, 'class="inputbox" size="1" style="width:100px" onchange="updateDelay'.$this->num.'();'.$this->onChange.'"', 'value', 'text', $return->type ,'delaytype'.$this->num).$delayVar;
 	}
 
 	function get($value,$type){

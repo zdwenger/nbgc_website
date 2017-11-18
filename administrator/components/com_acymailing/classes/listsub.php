@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -36,7 +36,7 @@ class listsubClass extends acymailingClass{
 		foreach($lists as $status => $listids){
 			if(empty($listids)) continue;
 
-			JArrayHelper::toInteger($listids);
+			acymailing_arrayToInteger($listids);
 			if($status == '-1'){
 				$column = 'unsubdate';
 			}else $column = 'subdate';
@@ -57,7 +57,7 @@ class listsubClass extends acymailingClass{
 
 	function removeSubscription($subid, $listids){
 
-		JArrayHelper::toInteger($listids);
+		acymailing_arrayToInteger($listids);
 		$query = 'DELETE FROM '.acymailing_table('listsub').' WHERE subid = '.intval($subid).' AND listid IN ('.implode(',', $listids).')';
 		$this->database->setQuery($query);
 		$this->database->query();
@@ -72,9 +72,6 @@ class listsubClass extends acymailingClass{
 	}
 
 	function addSubscription($subid, $lists){
-		$app = JFactory::getApplication();
-
-		$my = JFactory::getUser();
 
 		$result = true;
 		$time = time();
@@ -89,7 +86,7 @@ class listsubClass extends acymailingClass{
 
 		foreach($lists as $status => $listids){
 			$status = intval($status);
-			JArrayHelper::toInteger($listids);
+			acymailing_arrayToInteger($listids);
 
 			$this->database->setQuery('SELECT `listid`,`access_sub` FROM '.acymailing_table('list').' WHERE `listid` IN ('.implode(',', $listids).') AND `type` = \'list\'');
 			$allResults = $this->database->loadObjectList('listid');
@@ -103,7 +100,7 @@ class listsubClass extends acymailingClass{
 			foreach($listids as $listid){
 				if(empty($listid)) continue;
 				if($status > 0 && acymailing_level(3)){
-					if((!$app->isAdmin() || !empty($this->gid)) && $this->checkAccess && $allResults[$listid]->access_sub != 'all'){
+					if((!acymailing_isAdmin() || !empty($this->gid)) && $this->checkAccess && $allResults[$listid]->access_sub != 'all'){
 						if(!acymailing_isAllowed($allResults[$listid]->access_sub, $this->gid)) continue;
 					}
 				}
@@ -136,9 +133,9 @@ class listsubClass extends acymailingClass{
 		if(!empty($usersubscription)){
 			$subscriptionString = '<ul>';
 			foreach($usersubscription as $onesub){
-				$status = ($onesub->status == 1) ? JText::_('SUBSCRIBED') : (($onesub->status == -1) ? JText::_('UNSUBSCRIBED') : JText::_('PENDING_SUBSCRIPTION'));
+				$status = ($onesub->status == 1) ? acymailing_translation('SUBSCRIBED') : (($onesub->status == -1) ? acymailing_translation('UNSUBSCRIBED') : acymailing_translation('PENDING_SUBSCRIPTION'));
 				$subscriptionString .= '<li>['.$onesub->listid.'] '.$onesub->name.' : '.$status;
-				if($dates) $subscriptionString .= ' - '.acymailing_getDate($onesub->status == -1 ? $onesub->unsubdate : $onesub->subdate, JText::_('DATE_FORMAT_LC'));
+				if($dates) $subscriptionString .= ' - '.acymailing_getDate($onesub->status == -1 ? $onesub->unsubdate : $onesub->subdate, acymailing_translation('DATE_FORMAT_LC'));
 				$subscriptionString .= '</li>';
 			}
 			$subscriptionString .= '</ul>';

@@ -1,10 +1,137 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
+@import "acyicon.css";
+@import "frontendedition.css";
+
+
+.acytoolbartitle{
+	font-size: 14px !important;
+	color: #fff;
+	text-align: left;
+	font-weight: bold;
+	margin-top: 10px;
+	white-space: nowrap;
+	text-overflow:ellipsis;
+	overflow: hidden;
+	max-width:1px;
+}
+
+.acytoolbarmenu{
+	background-color: #728fbd;
+	padding: 0px 20px;
+	text-align: right;
+	height: 40px;
+}
+
+.acytoolbarmenu button{
+	background-color: #728fbd;
+	transition: background 0.3s ease;
+	color: #fff;
+	border: none;
+	padding: 0px 10px;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px #5c759f;
+	margin: 0px;
+	height: 40px;
+	font-size: 12px;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.acytoolbarmenu button.acytoolbar_save{
+	padding: 0px 5px 0px 10px;
+}
+
+.acytoolbarmenu .buttonOptions button{
+	white-space: nowrap;
+	height: 35px;
+}
+
+.acytoolbarmenu button:hover{
+	background-color: #b1c7ea;
+	margin: 0px;
+	border: none;
+}
+
+.acytoolbarmenu i{
+	font-size: 14px;
+	margin: 0 6px 0 0;
+}
+
+.acytoolbarmenu i.acyicon-save, .acytoolbarmenu i.acyicon-spamtest{
+	background-color: #ffffff;
+	border-radius: 20px;
+	color: #51a351;
+	border: 2px solid #51a351;
+	padding: 2px;
+	text-shadow: none;
+}
+
+.acytoolbarmenu .acytoolbar_spamtest:hover i.acyicon-spamtest{
+	background-color: #51a351;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+}
+
+.acytoolbarmenu i.acyicon-new{
+	background-color: #ffffff;
+	border-radius: 20px;
+	color: #51a351;
+	border: 2px solid #51a351;
+	padding: 2px;
+	text-shadow: none;
+}
+
+.acytoolbarmenu i.acyicon-edit, .acytoolbarmenu i.acyicon-copy{
+	background-color: #ffffff;
+	border-radius: 20px;
+	color: #63728d;
+	border: 2px solid #63728d;
+	padding: 3px;
+	font-size: 12px;
+	text-shadow: none;
+}
+
+.acytoolbarmenu i.acyicon-cancel{
+	background-color: #ffffff;
+	border-radius: 20px;
+	color: #d75c55;
+	border: 2px solid #d75c55;
+	padding: 2px;
+	text-shadow: none;
+}
+
+.acytoolbarmenu i.acyicon-delete{
+	background-color: #ffffff;
+	border-radius: 20px;
+	color: #d75c55;
+	border: 2px solid #d75c55;
+	padding: 3px;
+	font-size: 12px;
+	text-shadow: none;
+}
+
+.acytoolbarmenu .acytoolbar_save:hover, .acytoolbarmenu .acytoolbar_new:hover, .acytoolbarmenu .acytoolbar_saveastmpl:hover, .acytoolbarmenu .acytoolbar_spamtest:hover, .acytoolbarmenu .acytoolbar_spamtest{
+	background-color: #51a351;
+}
+
+.acytoolbarmenu .acytoolbar_spamtest:hover, .acytoolbarmenu .acytoolbar_spamtest{
+	padding: 0px 20px;
+}
+
+.acytoolbarmenu .acytoolbar_edit:hover, .acytoolbarmenu .acytoolbar_copy:hover{
+	background-color: #63728d;
+}
+
+.acytoolbarmenu .acytoolbar_cancel:hover, .acytoolbarmenu .acytoolbar_delete:hover{
+	background-color: #d75c55;
+}
 
 span.onload{
 	background-image: url(../images/spinner.gif);
@@ -33,10 +160,81 @@ div.onload{
 	font-weight: bold;
 }
 
+.acymailing_table_options .filter-search{
+	color: #666;
+	margin-left: 10px;
+	border-radius: 4px;
+	border: none;
+	white-space: nowrap;
+}
+
+.acymailing_table_options .filter-search input{
+	border: none;
+	padding: 4px 15px;
+}
+
+.tablegroup_options{
+	text-align: right;
+}
+
+.tablegroup_options *{
+	text-align: left;
+}
+
 #acy_content th.titletoggle{
 	width: 65px;
-	white-space: nowrap;
 	text-align: center;
+}
+
+@keyframes deployslide{
+	from{
+		max-height: 0px;
+	}
+	to{
+		max-height: 450px;
+	}
+}
+
+@keyframes retractslide{
+	from{
+		max-height: 450px;
+	}
+	to{
+		max-height: 0px;
+		display: none;
+	}
+}
+
+.slide_close{
+	animation: retractslide 1s forwards;
+	overflow: hidden;
+	background-color: #fff;
+	height: 350px;
+	box-shadow: 0px 1px 5px #eee;
+	padding: 5px;
+	margin-bottom: 20px;
+}
+
+.slide_open{
+	animation: deployslide 2s forwards;
+	overflow: hidden;
+	background-color: #fff;
+	height: 350px;
+	box-shadow: 0px 1px 5px #eee;
+	padding: 5px;
+	margin-bottom: 20px;
+}
+
+.acyslide{
+	overflow-y: auto;
+}
+
+.acyslide .acy_stat_date{
+	margin-left: 0px;
+}
+
+.acyslide .statsubjectsenddate{
+	min-width: 200px;
 }
 
 #acy_content th.titlesender, #acy_content th.titledate{
@@ -630,14 +828,6 @@ body.com_acymailing #acy_content table td.order input{
 	margin-bottom: 0px;
 }
 
-body.com_acymailing div.modal-body iframe{
-	border: 0px;
-}
-
-.modal-body{
-	max-height: none !important;
-}
-
 #acy_content .close{
 	float: right;
 }
@@ -663,10 +853,6 @@ body.com_acymailing #toolbar button{
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
 	border-radius: 4px;
-}
-
-body.com_acymailing .modal-body iframe{
-	max-height: 100%;
 }
 
 body.com_acymailing h1.page-title a{
@@ -825,14 +1011,6 @@ fieldset.fieldCategory{
 
 #acymodifyform fieldset.fieldCategory{
 	border: solid 1px #ccc;
-}
-
-
-#acyarchivelisting a.modal, #acy_content a.modal{
-	position: static !important;
-	margin: 0 !important;
-	width: auto !important;
-	display: inline !important;
 }
 
 
@@ -1123,7 +1301,7 @@ dl.tabs dt{
 	padding: 5px 10px;
 }
 
-.acymailing_table tbody a, .acymailing_table tbody a:link, .acymailing_table tbody a:visited{
+.acymailing_table tbody a:not(.acymailing_button_grey), .acymailing_table tbody a:link, .acymailing_table tbody a:visited{
 	color: #728fbd;
 	border: none;
 	font-weight: bold;
@@ -1164,10 +1342,59 @@ dl.tabs dt{
 	width: 100%;
 }
 
+.acymailing_table_options .btn:hover {
+	background-color: #c9d5e5;
+}
+
+.acymailing_table_options .btn {
+	 background-color: #c9d5e5;
+	 background-image: none;
+	 border: medium none;
+	 border-radius: 25px;
+	 box-shadow: none;
+	 font-size: 11px;
+	 margin: 2px;
+	 padding: 0px;
+ }
+
 #acy_content #search{
 	text-align: left;
 	height: 17px;
 	width: 200px;
+	margin-left: 15px;
+	margin-bottom:0;
+}
+
+.acymailing_table_options .acyicon-search{
+	background-color: #ffffff;
+	border-radius: 25px;
+	color: #51a351;
+	display: block;
+	font-size: 14px;
+	padding: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) inset
+}
+
+.acymailing_table_options button:hover .acyicon-search{
+	background-color: #51a351;
+	color: #ffffff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) inset
+}
+
+.acymailing_table_options .acyicon-cancel{
+	background-color: #ffffff;
+	border-radius: 25px;
+	color: #d75c55;
+	display: block;
+	font-size: 14px;
+	padding: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) inset
+}
+
+.acymailing_table_options button:hover .acyicon-cancel{
+	background-color: #d75c55;
+	color: #ffffff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) inset
 }
 
 #acy_content .acymailing_table .title a{
@@ -1353,7 +1580,7 @@ img.captchaimagemodule{
 	top: 0;
 	right: 0;
 	height: 100%;
-	padding: 25px;
+	padding: 0px 25px;
 	background-color: #ECECEC;
 	border-left: solid 1px #DCDCDC;
 	width: 190px;
@@ -1379,18 +1606,14 @@ img.captchaimagemodule{
 #tagul{
 	position: relative;
 	overflow: hidden;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
-	padding: 0px !important;
 	margin: 0px !important;
+	padding: 0px !important;
 	border: 1px solid #aaa;
 	width: 250px;
 	background-color: white;
-}
-
-.acymailing_table_options #tagul{
-	border-radius: 5px;
+	border-radius: 3px;
+	border: 1px solid #cccccc;
 }
 
 #tagul li{
@@ -1400,17 +1623,13 @@ img.captchaimagemodule{
 
 #tagul li.tagchoice{
 	position: relative;
-	margin: 3px 0px 3px 5px;
+	margin: 1px 0px 1px 2px;
 	padding: 3px 20px 3px 5px;
 	border: 1px solid #aaa;
 	border-radius: 3px;
 	background-color: #e4e4e4;
 	background-image: linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
 	line-height: 13px;
-}
-
-#tagul li.searchtag{
-	margin: 3px 0px 3px 5px;
 }
 
 #tagul li.tagchoice a.choice-close{
@@ -1422,14 +1641,16 @@ img.captchaimagemodule{
 	cursor: pointer;
 }
 
-#tagul li.tagchoice a.choice-close:hover{
-
-}
-
 #tagul #searchbartag{
 	border: none;
 	box-shadow: none;
 	margin-bottom: 0px;
+}
+
+#tagul .searchtag{
+	height: 21px;
+	padding-bottom: 2px;
+	margin-top: -2px;
 }
 
 #tagul #searchbartag:focus{
@@ -1470,11 +1691,15 @@ img.captchaimagemodule{
 	vertical-align: middle;
 }
 
-.acynewsletterlisting .acymailing_table_options tr{
+.onelineblockoptions #tagfilter{
+	vertical-align: middle;
+}
+
+.acynewsletterlisting .acymailing_table_options tr, .acylistlisting .acymailing_table_options tr{
 	height: 30px;
 }
 
-.acynewsletterlisting .acymailing_table_options tr select{
+.acynewsletterlisting .acymailing_table_options tr select, .acylistlisting .acymailing_table_options tr select, .acysubscriberlisting .acymailing_table_options tr select{
 	margin-bottom: 0px;
 	width: 220px;
 }
@@ -1526,4 +1751,161 @@ img.captchaimagemodule{
 	}100%{
 		transform: scale(1);
 	}
+}
+
+.columnclassname {
+	text-overflow: ellipsis;
+	max-width: 250px;
+	overflow: hidden;
+}
+
+.sendingtimebox{
+	margin-top:8px;
+}
+
+.acysendtimecheckbox{
+	width: 60px;
+	height: 33px;
+	background-image: url(../images/checkbox.png);
+	background-repeat: no-repeat;
+	background-position: 25px 8px;
+	cursor: pointer;
+}
+
+.acysendtimecheckbox:hover {
+	background-position: -45px 8px;
+}
+
+.acysendtimecheckbox.selected {
+	background-position: -115px 8px;
+}
+
+.statsBoxRow{
+	height: 5px;
+}
+
+.filldiagram{
+	background-color: #5f78b5;
+}
+
+.underlined td:not(.legend){
+	border-bottom: 1px dotted lightgrey;
+}
+
+.sendingtimebox table{
+	display: inline-block;
+	vertical-align: middle;
+	margin: 20px;
+	padding: 30px;
+	border-width: 1px 1px 3px;
+	border-style: solid;
+	border-color: rgb(238, 238, 238);
+	border-image: initial;
+	border-bottom: 3px solid rgb(238, 238, 238);
+	border-radius: 5px;
+}
+
+#displayPict .acy_attachment_delete{
+	height: 24px;
+	width: 24px;
+	vertical-align: top;
+	position: absolute;
+	right: 15px;
+	top: 15px;
+	z-index: 990;
+}
+
+.acy_attachment_delete{
+	cursor: pointer;
+}
+
+
+.acymailingtooltip {
+	cursor: pointer;
+}
+
+.acymailingtooltiptext{
+    text-align: left;
+	visibility: hidden;
+	position: fixed;
+	z-index: 10000;
+	padding: 4px 8px;
+	max-width: 250px;
+	background-color: hsla(0, 0%, 20%, 0.9);
+	color: #fff;
+	font-size: 12px;
+	font-weight: normal;
+	text-transform: none;
+}
+
+.acymailingtooltip:hover .acymailingtooltiptext{
+	visibility: visible;
+	transform: translateY(-12px);
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+}
+
+
+
+.acytabsystem ul{
+	padding: 0px !important;
+	margin: 0px 0px 9px 0px !important;
+	list-style-type: none !important;
+}
+
+.nav-tabs{
+	border-bottom: 1px solid #ddd;
+	list-style: none;
+}
+
+#acy_content .nav-tabs > li{
+	float: left;
+	margin-bottom: 0px;
+}
+
+.nav-tabs:before, .nav-tabs:after{
+	display: table;
+	content: "";
+	line-height: 0;
+}
+
+.nav-tabs:after{
+	clear: both;
+}
+
+.nav-tabs > li > a{
+	padding: 8px 12px;
+	margin-right: 2px;
+	line-height: 18px;
+	border: 1px solid transparent;
+	border-radius: 4px 4px 0 0;
+	text-decoration: none;
+}
+
+.acytabsystem .nav > li > a:hover, #template_css.nav > li > a:hover{
+	background-color: #b1c7ea !important;
+	color: #fff;
+	border-color: #b1c7ea #b1c7ea #dddddd;
+	text-decoration: none;
+}
+
+.acytabsystem .nav-tabs > .active > a, .acytabsystem .nav-tabs > .active > a:hover, .acytabsystem .nav-tabs > .active > a:focus, #template_css.nav-tabs > .active > a, #template_css.nav-tabs > .active > a:hover, #template_css.nav-tabs > .active > a:focus{
+	border: 1px solid #728fbd;
+	color: #fff;
+	background-color: #4c6da2;
+}
+
+.acytabsystem .nav-tabs > li > a{
+	background-color: #fff;
+}
+
+.acytabsystem .tab-content .tab-pane{
+	display: none;
+}
+
+.acytabsystem .tab-content .tab-pane.active{
+	display: block;
+}
+
+.acytabsystem .nav > li > a {
+	display: block;
 }

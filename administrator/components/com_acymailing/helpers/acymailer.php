@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -54,21 +54,17 @@ class acymailerHelper extends acymailingPHPMailer{
 		static $loaded = false;
 		if(!$loaded){
 			$loaded = true;
-			JPluginHelper::importPlugin('acymailing');
+			acymailing_importPlugin('acymailing');
 		}
 
 		$this->SMTPAutoTLS = false;
-
-		$this->dispatcher = JDispatcher::getInstance();
-
-		$this->app = JFactory::getApplication();
 
 		$this->subscriberClass = acymailing_get('class.subscriber');
 		$this->encodingHelper = acymailing_get('helper.encoding');
 		$this->userHelper = acymailing_get('helper.user');
 
 
-		$this->config =& acymailing_config();
+		$this->config = acymailing_config();
 		$this->setFrom($this->config->get('from_email'), $this->config->get('from_name'));
 
 		$this->Sender = $this->cleanText($this->config->get('bounce_email'));
@@ -141,7 +137,7 @@ class acymailerHelper extends acymailingPHPMailer{
 
 	public function send(){
 		if(empty($this->ReplyTo) && empty($this->ReplyToQueue)){
-			$this->_addReplyTo($this->config->get('reply_email'), $this->config->get('reply_name'));
+			$this->_addReplyTo(empty($this->replyemail) ? $this->config->get('reply_email') : $this->replyemail, empty($this->replyname) ? $this->config->get('reply_name') : $this->replyname);
 		}
 
 		if((bool)$this->config->get('embed_images', 0) && $this->Mailer != 'elasticemail'){
@@ -149,7 +145,7 @@ class acymailerHelper extends acymailingPHPMailer{
 		}
 
 		if(empty($this->Subject) OR empty($this->Body)){
-			$this->reportMessage = JText::_('SEND_EMPTY');
+			$this->reportMessage = acymailing_translation('SEND_EMPTY');
 			$this->errorNumber = 8;
 			if($this->report){
 				acymailing_enqueueMessage($this->reportMessage, 'error');
@@ -170,7 +166,7 @@ class acymailerHelper extends acymailingPHPMailer{
 			}
 
 			if(empty($replyToTmp) || !$this->userHelper->validEmail($replyToTmp)){
-				$this->reportMessage = JText::_('VALID_EMAIL').' ( '.JText::_('REPLYTO_ADDRESS').' : '.(empty($this->ReplyTo) ? '' : $replyToTmp).' ) ';
+				$this->reportMessage = acymailing_translation('VALID_EMAIL').' ( '.acymailing_translation('REPLYTO_ADDRESS').' : '.(empty($this->ReplyTo) ? '' : $replyToTmp).' ) ';
 				$this->errorNumber = 9;
 				if($this->report){
 					acymailing_enqueueMessage($this->reportMessage, 'error');
@@ -179,7 +175,7 @@ class acymailerHelper extends acymailingPHPMailer{
 			}
 
 			if(empty($this->From) || !$this->userHelper->validEmail($this->From)){
-				$this->reportMessage = JText::_('VALID_EMAIL').' ( '.JText::_('FROM_ADDRESS').' : '.$this->From.' ) ';
+				$this->reportMessage = acymailing_translation('VALID_EMAIL').' ( '.acymailing_translation('FROM_ADDRESS').' : '.$this->From.' ) ';
 				$this->errorNumber = 9;
 				if($this->report){
 					acymailing_enqueueMessage($this->reportMessage, 'error');
@@ -188,7 +184,7 @@ class acymailerHelper extends acymailingPHPMailer{
 			}
 
 			if(!empty($this->Sender) && !$this->userHelper->validEmail($this->Sender)){
-				$this->reportMessage = JText::_('VALID_EMAIL').' ( '.JText::_('BOUNCE_ADDRESS').' : '.$this->Sender.' ) ';
+				$this->reportMessage = acymailing_translation('VALID_EMAIL').' ( '.acymailing_translation('BOUNCE_ADDRESS').' : '.$this->Sender.' ) ';
 				$this->errorNumber = 9;
 				if($this->report){
 					acymailing_enqueueMessage($this->reportMessage, 'error');
@@ -234,16 +230,16 @@ class acymailerHelper extends acymailingPHPMailer{
 			$receivers[] = $oneReceiver[0];
 		}
 		if(!$result){
-			$this->reportMessage = JText::sprintf('SEND_ERROR', '<b><i>'.$this->Subject.'</i></b>', '<b><i>'.implode(' , ', $receivers).'</i></b>');
+			$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR', '<b><i>'.$this->Subject.'</i></b>', '<b><i>'.implode(' , ', $receivers).'</i></b>');
 			if(!empty($this->ErrorInfo)) $this->reportMessage .= ' | '.$this->ErrorInfo;
 			if(!empty($warnings)) $this->reportMessage .= ' | '.$warnings;
 			$this->errorNumber = 1;
 			if($this->report){
-				$this->reportMessage = str_replace('Could not instantiate mail function', '<a target="_blank" href="'.ACYMAILING_REDIRECT.'could-not-instantiate-mail-function" title="'.JText::_('TELL_ME_MORE').'">Could not instantiate mail function</a>', $this->reportMessage);
+				$this->reportMessage = str_replace('Could not instantiate mail function', '<a target="_blank" href="'.ACYMAILING_REDIRECT.'could-not-instantiate-mail-function" title="'.acymailing_translation('TELL_ME_MORE').'">Could not instantiate mail function</a>', $this->reportMessage);
 				acymailing_enqueueMessage(nl2br($this->reportMessage), 'error');
 			}
 		}else{
-			$this->reportMessage = JText::sprintf('SEND_SUCCESS', '<b><i>'.$this->Subject.'</i></b>', '<b><i>'.implode(' , ', $receivers).'</i></b>');
+			$this->reportMessage = acymailing_translation_sprintf('SEND_SUCCESS', '<b><i>'.$this->Subject.'</i></b>', '<b><i>'.implode(' , ', $receivers).'</i></b>');
 			if(!empty($warnings)) $this->reportMessage .= ' | '.$warnings;
 			if($this->report){
 				acymailing_enqueueMessage(nl2br($this->reportMessage), 'message');
@@ -325,7 +321,7 @@ class acymailerHelper extends acymailingPHPMailer{
 
 
 		if(!isset($this->forceVersion) AND $this->checkPublished AND empty($this->defaultMail[$mailid]->published)){
-			$this->reportMessage = JText::sprintf('SEND_ERROR_PUBLISHED', htmlspecialchars($mailid, ENT_COMPAT, 'UTF-8'));
+			$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR_PUBLISHED', htmlspecialchars($mailid, ENT_COMPAT, 'UTF-8'));
 			$this->errorNumber = 3;
 			if($this->report){
 				acymailing_enqueueMessage($this->reportMessage, 'error');
@@ -350,7 +346,7 @@ class acymailerHelper extends acymailingPHPMailer{
 		}
 
 		if(empty($receiver->email)){
-			$this->reportMessage = JText::sprintf('SEND_ERROR_USER', '<b><i>'.(isset($receiver->subid) ? $receiver->subid : htmlspecialchars($receiverid, ENT_COMPAT, 'UTF-8')).'</i></b>');
+			$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR_USER', '<b><i>'.(isset($receiver->subid) ? $receiver->subid : htmlspecialchars($receiverid, ENT_COMPAT, 'UTF-8')).'</i></b>');
 			if($this->report){
 				acymailing_enqueueMessage($this->reportMessage, 'error');
 			}
@@ -367,7 +363,7 @@ class acymailerHelper extends acymailingPHPMailer{
 
 		if(!isset($this->forceVersion)){
 			if($this->checkConfirmField AND empty($receiver->confirmed) AND $this->config->get('require_confirmation', 0) AND strpos($this->defaultMail[$mailid]->alias, 'confirm') === false){
-				$this->reportMessage = JText::sprintf('SEND_ERROR_CONFIRMED', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
+				$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR_CONFIRMED', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
 				if($this->report){
 					acymailing_enqueueMessage($this->reportMessage, 'error');
 				}
@@ -376,7 +372,7 @@ class acymailerHelper extends acymailingPHPMailer{
 			}
 
 			if($this->checkEnabled AND empty($receiver->enabled) AND strpos($this->defaultMail[$mailid]->alias, 'enable') === false){
-				$this->reportMessage = JText::sprintf('SEND_ERROR_APPROVED', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
+				$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR_APPROVED', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
 				if($this->report){
 					acymailing_enqueueMessage($this->reportMessage, 'error');
 				}
@@ -387,7 +383,7 @@ class acymailerHelper extends acymailingPHPMailer{
 
 
 		if($this->checkAccept AND empty($receiver->accept)){
-			$this->reportMessage = JText::sprintf('SEND_ERROR_ACCEPT', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
+			$this->reportMessage = acymailing_translation_sprintf('SEND_ERROR_ACCEPT', '<b><i>'.htmlspecialchars($receiver->email, ENT_COMPAT, 'UTF-8').'</i></b>');
 			if($this->report){
 				acymailing_enqueueMessage($this->reportMessage, 'error');
 			}
@@ -397,7 +393,7 @@ class acymailerHelper extends acymailingPHPMailer{
 
 		$addedName = '';
 		if($this->config->get('add_names', true)){
-			$nameTmp = JText::_('ACY_TO_NAME');
+			$nameTmp = acymailing_translation('ACY_TO_NAME');
 			$testTag = preg_match_all('/\[(.*)\]/U', $nameTmp, $matches);
 			if($testTag != 0){
 				foreach($matches[0] as $i => $oneMatch){
@@ -447,8 +443,8 @@ class acymailerHelper extends acymailingPHPMailer{
 					$this->addAttachment($attachment->filename);
 				}
 			}else{
-				$attachStringHTML = '<br /><fieldset><legend>'.JText::_('ATTACHMENTS').'</legend><table>';
-				$attachStringText = "\n"."\n".'------- '.JText::_('ATTACHMENTS').' -------';
+				$attachStringHTML = '<br /><fieldset><legend>'.acymailing_translation('ATTACHMENTS').'</legend><table>';
+				$attachStringText = "\n"."\n".'------- '.acymailing_translation('ATTACHMENTS').' -------';
 				foreach($this->defaultMail[$mailid]->attachments as $attachment){
 					$attachStringHTML .= '<tr><td><a href="'.$attachment->url.'" target="_blank">'.$attachment->name.'</a></td></tr>';
 					$attachStringText .= "\n".'-- '.$attachment->name.' ( '.$attachment->url.' )';
@@ -510,17 +506,16 @@ class acymailerHelper extends acymailingPHPMailer{
 		if(empty($receiver->key) && !empty($receiver->subid)){
 			$receiver->key = acymailing_generateKey(14);
 			$db = JFactory::getDBO();
-			$db->setQuery('UPDATE '.acymailing_table('subscriber').' SET `key`= '.$db->Quote($receiver->key).' WHERE subid = '.(int)$receiver->subid.' LIMIT 1');
+			$db->setQuery('UPDATE '.acymailing_table('subscriber').' SET `key`= '.acymailing_escapeDB($receiver->key).' WHERE subid = '.(int)$receiver->subid.' LIMIT 1');
 			$db->query();
 		}
 
 		if(strpos($receiver->email, '@mail-tester.com') !== false){
-			$my = JFactory::getUser();
-			$currentUser = $this->subscriberClass->get($my->email);
+			$currentUser = $this->subscriberClass->get(acymailing_currentUserEmail());
 			if(empty($currentUser)) $currentUser = $receiver;
-			$this->dispatcher->trigger('acymailing_replaceusertags', array(&$this, &$currentUser, true));
+			acymailing_trigger('acymailing_replaceusertags', array(&$this, &$currentUser, true));
 		}else{
-			$this->dispatcher->trigger('acymailing_replaceusertags', array(&$this, &$receiver, true));
+			acymailing_trigger('acymailing_replaceusertags', array(&$this, &$receiver, true));
 		}
 
 		if($this->sendHTML){
@@ -752,27 +747,25 @@ class acymailerHelper extends acymailingPHPMailer{
 
 	function triggerTagsWithRightLanguage(&$mail, $loadedToSend){
 		if(!empty($mail->language)){
-			$lang = JFactory::getLanguage();
-			if(!in_array($mail->language, $lang->getLocale())){
+
+			if(!in_array($mail->language, acymailing_getLanguageLocale())){
 				$db = JFactory::getDBO();
-				$db->setQuery('SELECT lang_code FROM #__languages WHERE sef = '.$db->quote($mail->language).' LIMIT 1');
-				$emaillangcode = $db->loadResult();
+				$emaillangcode = acymailing_loadResult('SELECT lang_code FROM #__languages WHERE sef = '.acymailing_escapeDB($mail->language).' LIMIT 1');
 				if(!empty($emaillangcode)){
-					$previousLanguage = $lang->setLanguage($emaillangcode);
-					$lang->load(ACYMAILING_COMPONENT, JPATH_SITE, $emaillangcode, true);
-					$lang->load(ACYMAILING_COMPONENT.'_custom', JPATH_SITE, $emaillangcode, true);
-					$lang->load('joomla', JPATH_BASE, $emaillangcode, true);
+					$previousLanguage = acymailing_setLanguage($emaillangcode);
+					acymailing_loadLanguageFile(ACYMAILING_COMPONENT, JPATH_SITE, $emaillangcode, true);
+					acymailing_loadLanguageFile(ACYMAILING_COMPONENT.'_custom', JPATH_SITE, $emaillangcode, true);
+					acymailing_loadLanguageFile('joomla', JPATH_BASE, $emaillangcode, true);
 				}
 			}
 		}
 
-		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('acymailing_replacetags', array(&$mail, $loadedToSend));
+		acymailing_trigger('acymailing_replacetags', array(&$mail, &$loadedToSend));
 
 		if(empty($previousLanguage)) return;
-		$lang->setLanguage($previousLanguage);
-		$lang->load(ACYMAILING_COMPONENT, JPATH_SITE, $previousLanguage, true);
-		$lang->load(ACYMAILING_COMPONENT.'_custom', JPATH_SITE, $previousLanguage, true);
-		$lang->load('joomla', JPATH_BASE, $previousLanguage, true);
+		acymailing_setLanguage($previousLanguage);
+		acymailing_loadLanguageFile(ACYMAILING_COMPONENT, JPATH_SITE, $previousLanguage, true);
+		acymailing_loadLanguageFile(ACYMAILING_COMPONENT.'_custom', JPATH_SITE, $previousLanguage, true);
+		acymailing_loadLanguageFile('joomla', JPATH_BASE, $previousLanguage, true);
 	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -15,7 +15,7 @@ $postFields = (array)@unserialize($config->get('import_db_fields', ''));
 ?>
 <table <?php echo $this->isAdmin ? '' : 'class="admintable table" cellspacing="1"' ?>>
 	<tr>
-		<td class="acykey"><?php echo JText::_('TABLENAME'); ?></td>
+		<td class="acykey"><?php echo acymailing_translation('TABLENAME'); ?></td>
 		<td><input type="text" name="tablename" style="width:200px" size="80" value="<?php echo $this->escape($config->get('import_db_table', '')); ?>"/></td>
 	</tr>
 	<?php
@@ -28,10 +28,10 @@ $postFields = (array)@unserialize($config->get('import_db_fields', ''));
 	if($this->config->get('require_confirmation')){ ?>
 		<tr id="trdbconfirm">
 			<td class="acykey">
-				<?php echo JText::_('IMPORT_CONFIRMED'); ?>
+				<?php echo acymailing_translation('IMPORT_CONFIRMED'); ?>
 			</td>
 			<td>
-				<?php echo JHTML::_('acyselect.booleanlist', "import_confirmed_database", '', JRequest::getInt('import_confirmed_database', 1), JText::_('JOOMEXT_YES'), JTEXT::_('JOOMEXT_NO')); ?>
+				<?php echo acymailing_boolean("import_confirmed_database", '', acymailing_getVar('int', 'import_confirmed_database', 1), acymailing_translation('JOOMEXT_YES'), acymailing_translation('JOOMEXT_NO')); ?>
 			</td>
 		</tr>
 	<?php }

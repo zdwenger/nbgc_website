@@ -282,3 +282,8 @@ tr.ui-sortable-helper{
 	height: 60px;
 }
 
+div[name="emojipopup"] .cke_dialog_ui_vbox_child div.cke_dialog_ui_html{
+	height: 250px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}

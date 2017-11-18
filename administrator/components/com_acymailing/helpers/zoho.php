@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -165,7 +165,7 @@ class acyzohoHelper {
 		}
 
 		if(empty($xml->section)){
-			$this->error = JText::_('ACY_NOFIELD');
+			$this->error = acymailing_translation('ACY_NOFIELD');
 			return false;
 		}
 
@@ -194,7 +194,7 @@ class acyzohoHelper {
 		$db = JFactory::getDBO();
 		$subscriberClass= acymailing_get('class.subscriber');
 		$IdArray = array();
-		foreach($allSubid as $oneID)	$IdArray[] = $db->Quote($oneID);
+		foreach($allSubid as $oneID)	$IdArray[] = acymailing_escapeDB($oneID);
 		$query = 'SELECT subid FROM  #__acymailing_subscriber WHERE zoholist LIKE "'.$userList[0].'" AND zohoid IS NOT NULL AND subid NOT IN ('.implode(',',$IdArray).')';
 			$db->setQuery($query);
 			$subidToDelete = acymailing_loadResultArray($db);

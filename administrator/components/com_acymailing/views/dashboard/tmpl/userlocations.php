@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 			<?php
 			$myData = array();
 			foreach($this->geoloc_city as $key => $city){
-				$toolTipTxt = str_replace("'", "\'", JText::_('GEOLOC_NB_USERS')) . ': ' . $this->geoloc_details[$key];
+				$toolTipTxt = str_replace("'", "\'", acymailing_translation('GEOLOC_NB_USERS')) . ': ' . $this->geoloc_details[$key];
 				$lineData = "['" . str_replace("'", "\'",$this->geoloc_addresses[$key]).  "', 1, " . $this->geoloc_details[$key] . ", '" . $toolTipTxt . "']";
 				array_push($myData, $lineData);
 			}
@@ -45,6 +45,6 @@ defined('_JEXEC') or die('Restricted access');
 		;
 
 	</script>
-	<h1 class="acy_graphtitle"> <?php echo JText::sprintf('ACY_SUBSCRIBERS_LOCATIONS', $this->nbUsersToGet) ?> </h1>
+	<h1 class="acy_graphtitle"> <?php echo acymailing_translation_sprintf('ACY_SUBSCRIBERS_LOCATIONS', $this->nbUsersToGet) ?> </h1>
 	<div id="mapGeoloc_div"></div>
 <?php } ?>

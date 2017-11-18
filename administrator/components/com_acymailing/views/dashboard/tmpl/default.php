@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -43,7 +43,7 @@ defined('_JEXEC') or die('Restricted access');
 		<?php
 		if(!empty($this->contentToDisplay) && $this->config->get('dashboardnews', 0) < strtotime($this->contentToDisplay->date)){
 			$toggleHelper = acymailing_get('helper.toggle');
-			$notremind = '<small style="float:right;margin-right:30px;position:relative;">' . $toggleHelper->delete('acydashboard_specialcontent', 'dashboardnews_'.strtotime($this->contentToDisplay->date), 'config', false, JText::_('DONT_REMIND')) . '</small>';
+			$notremind = '<small style="float:right;margin-right:30px;position:relative;">' . $toggleHelper->delete('acydashboard_specialcontent', 'dashboardnews_'.strtotime($this->contentToDisplay->date), 'config', false, acymailing_translation('DONT_REMIND')) . '</small>';
 
 			echo '<div class="acydashboard_specialcontent onelineblockoptions" id="acydashboard_specialcontent">'.$notremind;
 			if(!empty($this->contentToDisplay->title)) echo '<span class="acyblocktitle">'.$this->contentToDisplay->title.'</span>';
@@ -85,39 +85,39 @@ defined('_JEXEC') or die('Restricted access');
 				<a href="index.php?option=com_acymailing&ctrl=list">
 					<div class="acydashboard_progress_block acydashboard_step1">
 						<div class="step_image"></div>
-						<div class="step_info"><span class="step_title"><?php echo JText::_('MAILING_LISTS'); ?></span><?php echo JText::_('ACY_MAILING_LIST_STEP_DESC'); ?></div>
+						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('MAILING_LISTS'); ?></span><?php echo acymailing_translation('ACY_MAILING_LIST_STEP_DESC'); ?></div>
 					</div>
 				</a>
 
 				<a href="index.php?option=com_acymailing&ctrl=subscriber">
 					<div class="acydashboard_progress_block acydashboard_step2">
 						<div class="step_image"></div>
-						<div class="step_info"><span class="step_title"><?php echo JText::_('ACY_CONTACTS'); ?></span><?php echo JText::_('ACY_MAILING_CONTACT_STEP_DESC'); ?>                        </div>
+						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('ACY_CONTACTS'); ?></span><?php echo acymailing_translation('ACY_MAILING_CONTACT_STEP_DESC'); ?>                        </div>
 					</div>
 				</a>
 
 				<a href="index.php?option=com_acymailing&ctrl=newsletter">
 					<div class="acydashboard_progress_block acydashboard_step3">
 						<div class="step_image"></div>
-						<div class="step_info"><span class="step_title"><?php echo JText::_('NEWSLETTERS'); ?></span><?php echo JText::_('ACY_MAILING_NEWSLETTER_STEP_DESC'); ?>                        </div>
+						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('NEWSLETTERS'); ?></span><?php echo acymailing_translation('ACY_MAILING_NEWSLETTER_STEP_DESC'); ?>                        </div>
 					</div>
 				</a>
 
 				<a href="index.php?option=com_acymailing&ctrl=queue">
 					<div class="acydashboard_progress_block acydashboard_step4">
 						<div class="step_image"></div>
-						<div class="step_info"><span class="step_title"><?php echo JText::_('SEND_PROCESS'); ?></span><?php echo JText::_('ACY_MAILING_SEND_PROCESS_STEP_DESC'); ?></div>
+						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('SEND_PROCESS'); ?></span><?php echo acymailing_translation('ACY_MAILING_SEND_PROCESS_STEP_DESC'); ?></div>
 					</div>
 				</a>
 			</div>
 
-			<div id="acy_stepbystep"><?php echo JText::_('ACY_STEP_BY_STEP_DESC1').'<br />'.JText::_('ACY_STEP_BY_STEP_DESC2').' '.JText::_('ACY_STEP_BY_STEP_DESC3').'<br />'.JText::_('ACY_STEP_BY_STEP_DESC4'); ?><br/>
+			<div id="acy_stepbystep"><?php echo acymailing_translation('ACY_STEP_BY_STEP_DESC1').'<br />'.acymailing_translation('ACY_STEP_BY_STEP_DESC2').' '.acymailing_translation('ACY_STEP_BY_STEP_DESC3').'<br />'.acymailing_translation('ACY_STEP_BY_STEP_DESC4'); ?><br/>
 
 				<form target="_blank" action="https://www.acyba.com/index.php?option=com_acymailing&ctrl=sub" method="post">
-					<input id="user_name" type="text" name="user[name]" value="" placeholder="<?php echo JText::_('NAMECAPTION'); ?>"/>
-					<input id="user_email" type="text" name="user[email]" value="" placeholder="<?php echo JText::_('EMAILCAPTION'); ?>"/>
+					<input id="user_name" type="text" name="user[name]" value="" placeholder="<?php echo acymailing_translation('NAMECAPTION'); ?>"/>
+					<input id="user_email" type="text" name="user[email]" value="" placeholder="<?php echo acymailing_translation('EMAILCAPTION'); ?>"/>
 					<br/>
-					<input class="acymailing_button" type="submit" value="<?php echo JText::_('SUBSCRIBE'); ?>" name="Submit"/>
+					<input class="acymailing_button" type="submit" value="<?php echo acymailing_translation('SUBSCRIBE'); ?>" name="Submit"/>
 					<input type="hidden" name="acyformname" value="formAcymailing1"/>
 					<input type="hidden" name="ctrl" value="sub"/>
 					<input type="hidden" name="task" value="optin"/>

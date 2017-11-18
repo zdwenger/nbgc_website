@@ -18,7 +18,7 @@ class JConfig {
 	public $db = 'nbgc';
 	public $dbprefix = 'nbgc_';
 	public $live_site = '';
-	public $secret = 'DZVva5LGX6iIOmm3';
+	public $secret = 'PSodrc18TddzjowJ';
 	public $gzip = '0';
 	public $error_reporting = 'default';
 	public $helpurl = 'https://help.joomla.org/proxy/index.php?keyref=Help{major}{minor}:{keyref}';

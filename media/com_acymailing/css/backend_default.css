@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -196,11 +196,11 @@
 	margin: 0px 10px;
 }
 
-.acyallcontent.iconsonly .acyaffix span.acytoolbartitle{
+.acyallcontent.iconsonly .acyaffix .acytoolbartitle{
 	padding-left: 90px;
 }
 
-.acyallcontent .acyaffix span.acytoolbartitle{
+.acyallcontent .acyaffix .acytoolbartitle{
 	padding-left: 270px;
 }
 
@@ -382,10 +382,6 @@
 	width: 600px;
 }
 
-#acystylesheettextarea{
-	width: 650px !important
-}
-
 
 .acymailing_table{
 	width: 100%;
@@ -428,7 +424,7 @@
 	background-color: #fff;
 }
 
-.acymailing_table thead tr, .acymailing_table thead tr:hover{
+.acymailing_table thead:not(.calendar-header) tr, .acymailing_table thead:not(.calendar-header) tr:hover{
 	background-color: #91acd7;
 	color: #fff;
 	font-style: normal;
@@ -471,7 +467,6 @@
 	display: block;
 	font-size: 14px;
 	padding: 6px;
-	margin-right: 2px;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) inset
 }
 
@@ -526,17 +521,24 @@
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
 }
 
-.acymailing_table_options.filter-search{
+.acymailing_table_options .filter-search{
 	color: #666;
-	margin-left: 10px;
 	border-radius: 4px;
 	border: none;
+	white-space: nowrap;
 }
 
 .acymailing_table_options .filter-search input{
-	margin: 8px 0px;
 	border: none;
 	padding: 4px 15px;
+}
+
+.tablegroup_options{
+	text-align: right;
+}
+
+.tablegroup_options *{
+	text-align: left;
 }
 
 .acymailing_table_options #subscriberfilter input{
@@ -615,10 +617,6 @@
 	font-size: 13px !important;
 	font-weight: normal;
 	color: #555555;
-}
-
-#acy_content .acymailing_table_options input[type="text"], #acy_content .acymailing_table_options select{
-	margin: 0px 0px 0px 15px;
 }
 
 #acy_content .acymailing_table_options .chzn-search input[type="text"]{
@@ -870,8 +868,9 @@
 
 
 .acytabsystem ul{
-	padding: 0px;
-	margin: 0px 0px 9px 0px;
+	padding: 0px !important;
+	margin: 0px 0px 9px 0px !important;
+	list-style-type: none !important;
 }
 
 .nav-tabs{
@@ -900,10 +899,11 @@
 	line-height: 18px;
 	border: 1px solid transparent;
 	border-radius: 4px 4px 0 0;
+	text-decoration: none;
 }
 
-.acytabsystem .nav > li > a:hover, .acytabsystem .nav > li > a:focus, #template_css.nav > li > a:hover, #template_css.nav > li > a:focus{
-	background-color: #b1c7ea;
+.acytabsystem .nav > li > a:hover, #template_css.nav > li > a:hover{
+	background-color: #b1c7ea !important;
 	color: #fff;
 	border-color: #b1c7ea #b1c7ea #dddddd;
 	text-decoration: none;
@@ -917,6 +917,18 @@
 
 .acytabsystem .nav-tabs > li > a{
 	background-color: #fff;
+}
+
+.acytabsystem .tab-content .tab-pane, #template_css .tab-content .tab-pane{
+	display: none;
+}
+
+.acytabsystem .tab-content .tab-pane.active, #template_css .tab-content .tab-pane.active{
+	display: block;
+}
+
+.acytabsystem .nav > li > a {
+	display: block;
 }
 
 #template_css.nav-tabs > li > a{
@@ -1203,42 +1215,6 @@
 
 }
 
-@-webkit-keyframes stepcomplete{
-	0%{
-		width: 0;
-	}
-	100%{
-		width: 100%;
-	}
-}
-
-@-moz-keyframes stepcomplete{
-	0%{
-		width: 0;
-	}
-	100%{
-		width: 100%;
-	}
-}
-
-@-ms-keyframes stepcomplete{
-	0%{
-		width: 0;
-	}
-	100%{
-		width: 100%;
-	}
-}
-
-@-o-keyframes stepcomplete{
-	0%{
-		width: 0;
-	}
-	100%{
-		width: 100%;
-	}
-}
-
 @keyframes stepcomplete{
 	0%{
 		width: 0;
@@ -1458,52 +1434,7 @@
 	}
 }
 
-@-moz-keyframes deploy{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 800px;
-	}
-}
-
-@-webkit-keyframes deploy{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 800px;
-	}
-}
-
-@-ms-keyframess deploy{
-	from{
-		max-height: 0px;
-	}
-
-	to{
-		max-height: 800px;
-	}
-}
-
-@-o-keyframes deploy{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 800px;
-	}
-}
-
 .acygraph #userStatisticDetails, .acygraph #listStatisticDetails, .acygraph #newsletterStatisticDetails, .acymailing_deploy{
-	-moz-animation-duration: 2s;
-	-moz-animation-name: deploy;
-	-ms-animation-name: deploy;
-	-ms-animation-duration: 2s;
-	-o-animation-name: deploy;
-	-o-animation-duration: 2s;
-	-webkit-animation-name: deploy;
-	-webkit-animation-duration: 2s;
 	animation-name: deploy;
 	animation-duration: 2s;
 	overflow: hidden;
@@ -1527,7 +1458,7 @@ h1.acy_graphtitle:after{
 
 
 
-@keyframes deployhelp{
+@keyframes deployslide{
 	from{
 		max-height: 0px;
 	}
@@ -1536,53 +1467,28 @@ h1.acy_graphtitle:after{
 	}
 }
 
-@-moz-keyframes deployhelp{
+@keyframes retractslide{
 	from{
-		max-height: 0px;
+		max-height: 450px;
 	}
 	to{
-		max-height: 450px;
+		max-height: 0px;
+		display: none;
 	}
 }
 
-@-webkit-keyframes deployhelp{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 450px;
-	}
+.slide_close{
+	animation: retractslide 1s forwards;
+	overflow: hidden;
+	background-color: #fff;
+	height: 350px;
+	box-shadow: 0px 1px 5px #eee;
+	padding: 5px;
+	margin-bottom: 20px;
 }
 
-@-ms-keyframes deployhelp{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 450px;
-	}
-}
-
-@-o-keyframes deployhelp{
-	from{
-		max-height: 0px;
-	}
-	to{
-		max-height: 450px;
-	}
-}
-
-.help_open{
-	-ms-animation-name: deployhelp;
-	-ms-animation-duration: 2s;
-	-o-animation-name: deployhelp;
-	-o-animation-duration: 2s;
-	-moz-animation-name: deployhelp;
-	-moz-animation-duration: 2s;
-	-webkit-animation-name: deployhelp;
-	-webkit-animation-duration: 2s;
-	animation-name: deployhelp;
-	animation-duration: 2s;
+.slide_open{
+	animation: deployslide 2s forwards;
 	overflow: hidden;
 	background-color: #fff;
 	height: 350px;
@@ -1688,7 +1594,8 @@ ul.buttonOptions{
 	border-bottom-right-radius: 4px !important;
 	border-bottom-left-radius: 4px !important;
 	list-style: none;
-	padding-bottom: 10px !important;
+	padding-bottom: 2px;
+	padding-left: 0px;
 	min-width: 120px;
 }
 
@@ -1752,11 +1659,11 @@ ul.buttonOptions{
 	background-color: #51a351;
 }
 
-.subbuttonactions:hover .acytoolbar_hover{
+.subbuttonactions:hover .acybuttongroup_save{
 	background-color: #419141;
 }
 
-.subbuttonactions:hover .acytoolbar_hover:hover{
+.subbuttonactions:hover .acybuttongroup_save:hover{
 	box-shadow: 0px 3px 5px #2c752c inset
 }
 
@@ -1804,6 +1711,10 @@ ul.buttonOptions{
 	display: none;
 }
 
+
+#acymailing_messages_error, #acymailing_messages_success, #acymailing_messages_message, #acymailing_messages_info, #acymailing_messages_warning {
+   margin: 10px 10px 0px 10px;
+}
 
 #acymailing_messages_warning a{
 	color: #c4872f;
@@ -1874,7 +1785,7 @@ ul.buttonOptions{
 
 
 .acymailing_table .titleorder{
-	width: 140px
+	width: 18px
 }
 
 .acymailing_table .titleorder i{
@@ -1988,12 +1899,15 @@ ul.buttonOptions{
 }
 
 .acytoolbartitle{
-	float: left;
 	font-size: 14px !important;
 	color: #fff;
 	text-align: left;
 	font-weight: bold;
 	margin-top: 10px;
+	white-space: nowrap;
+	text-overflow:ellipsis;
+	overflow: hidden;
+	max-width:1px;
 }
 
 .titleorder img{
@@ -2151,6 +2065,10 @@ div.acytagpopup table.acymailing_table tr.selectedrow td, div.acytagpopup table.
 .acytagpopup #inserttagdiv #tagstring{
 	margin-bottom: 4px;
 	padding: 5px;
+}
+
+.contentpane{
+	padding: 0px !important;
 }
 
 
@@ -2421,10 +2339,6 @@ div.onload{
 	clear: none;
 }
 
-#modal-action iframe.iframe{
-	width: 100%;
-}
-
 #acy_content .clr{
 	display: block;
 	clear: both;
@@ -2674,7 +2588,7 @@ span.acy_stat_date{
 	top: 0;
 	right: 0;
 	height: 100%;
-	padding: 25px;
+	padding: 0px 25px;
 	background-color: #ECECEC;
 	border-left: solid 1px #DCDCDC;
 	width: 190px;
@@ -2698,7 +2612,7 @@ span.acy_stat_date{
 #tagfieldcontainer{
 	display: inline-block;
 	position: relative;
-	width: 300px;
+	width: 250px;
 }
 
 #tagul{
@@ -2708,8 +2622,10 @@ span.acy_stat_date{
 	margin: 0px;
 	padding: 0px;
 	border: 1px solid #aaa;
-	width: 300px;
+	width: 250px;
 	background-color: white;
+	border-radius: 3px;
+	border: 1px solid #cccccc;
 }
 
 .acymailing_table_options #tagul{
@@ -2723,7 +2639,7 @@ span.acy_stat_date{
 
 #tagul li.tagchoice{
 	position: relative;
-	margin: 3px 0px 3px 5px;
+	margin: 1px 0px 1px 2px;
 	padding: 3px 20px 3px 5px;
 	border: 1px solid #aaa;
 	border-radius: 3px;
@@ -2746,6 +2662,12 @@ span.acy_stat_date{
 	box-shadow: none;
 }
 
+#tagul .searchtag{
+	height: 21px;
+	padding-bottom: 2px;
+	margin-top: -2px;
+}
+
 #existingtags{
 	position: absolute;
 	z-index: 1060;
@@ -2753,7 +2675,7 @@ span.acy_stat_date{
 	border-top: 0;
 	background: #fff;
 	box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
-	width: 298px;
+	width: 248px;
 }
 #existingtags ul{
 	margin: 0px;
@@ -2773,6 +2695,10 @@ span.acy_stat_date{
 }
 
 .acymailing_table_options #tagfilter{
+	vertical-align: top;
+}
+
+.onelineblockoptions #tagfilter{
 	vertical-align: middle;
 }
 
@@ -2875,4 +2801,68 @@ span.acy_stat_date{
 	100% {
 		background-position: 50px 50px;
 	}
+}
+
+.subbuttonactions:hover .acytoolbar_compare{
+	background-color: #5d7bab;
+	box-shadow: 0 5px 6px #516890 inset;
+	color: #a5c6e8;
+	width: 100%;
+}
+
+.subbuttonactions:hover .acytoolbar_compare:hover{
+	color: #fff;
+}
+
+.acybuttongroup_addcompare .acytoolbar_hover_display{
+	z-index: 1;
+}
+
+.subbuttonactions:hover .acybuttongroup_addcompare{
+	background-color: #94b3e4;
+}
+
+.subbuttonactions:hover .acybuttongroup_addcompare:hover{
+	background-color: #5d7bab;
+	box-shadow: 0 5px 6px #516890 inset;
+}
+
+.columnclassname {
+	text-overflow: ellipsis;
+	max-width: 350px;
+	overflow: hidden;
+}
+
+.icon-16-refuse{
+	 background-image: url(../images/icons/icon-16-refuse.png);
+	 background-repeat: no-repeat;
+	 width: 16px !important;
+	 height: 16px !important;
+	 float: left;
+	 margin: 3px;
+}
+
+
+.acymailingtooltip {
+	cursor: pointer;
+}
+
+.acymailingtooltiptext{
+    text-align: left;
+	visibility: hidden;
+	position: fixed;
+	z-index: 10000;
+	padding: 4px 8px;
+	max-width: 250px;
+	background-color: hsla(0, 0%, 20%, 0.9);
+	color: #fff;
+	font-size: 12px;
+	font-weight: normal;
+	text-transform: none;
+}
+
+.acymailingtooltip:hover .acymailingtooltiptext{
+	visibility: visible;
+	transform: translateY(-12px);
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
 }

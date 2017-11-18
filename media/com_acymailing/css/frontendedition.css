@@ -1,12 +1,10 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
-@import "acyicon.css";
 
 div.toolbar { float: right; text-align: right; padding: 0; }
 div.toolbar span { float: none; width: 32px; height: 32px; margin: 0 auto; display: block; background-repeat:no-repeat;}

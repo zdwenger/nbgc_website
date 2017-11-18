@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -53,54 +53,28 @@ class acytabsHelper{
 	}
 
 	function start($name, $options = array()){
-		$ret = '';
-		if($this->mode == 'pane'){
-			jimport('joomla.html.pane');
-			if(!empty($this->options)){
-				$options = array_merge($options, $this->options);
-			}
-			$this->tabs = JPane::getInstance('tabs', $options);
-			$ret .= $this->tabs->startPane($name);
-		}elseif($this->mode == 'tabs'){
-			if(!empty($this->options)){
-				$options = array_merge($options, $this->options);
-			}
-			$ret .= JHtml::_('tabs.start', $name, $options);
+		$this->name = $name;
+		if($this->options == null){
+			$this->options = $options;
 		}else{
-			$this->name = $name;
-			if($this->options == null){
-				$this->options = $options;
-			}else{
-				$this->options = array_merge($this->options, $options);
-			}
+			$this->options = array_merge($this->options, $options);
 		}
-		return $ret;
+		return '';
 	}
 
 	function panel($text, $id){
-		$ret = '';
-		if($this->mode == 'pane'){
-			if($this->openPanel){
-				$ret .= $this->tabs->endPanel();
-			}
-			$ret .= $this->tabs->startPanel($text, $id);
-			$this->openPanel = true;
-		}elseif($this->mode == 'tabs'){
-			$ret .= JHtml::_('tabs.panel', JText::_($text), $id);
-		}else{
-			if($this->openPanel){
-				$this->_closePanel();
-			}
-
-			$obj = new stdClass();
-			$obj->text = $text;
-			$obj->id = $id;
-			$obj->data = '';
-			$this->data[] = $obj;
-			ob_start();
-			$this->openPanel = true;
+		if($this->openPanel){
+			$this->_closePanel();
 		}
-		return $ret;
+
+		$obj = new stdClass();
+		$obj->text = $text;
+		$obj->id = $id;
+		$obj->data = '';
+		$this->data[] = $obj;
+		ob_start();
+		$this->openPanel = true;
+		return '';
 	}
 
 	function _closePanel(){
@@ -114,76 +88,45 @@ class acytabsHelper{
 
 	function end(){
 		$ret = '';
-		if($this->mode == 'pane'){
-			if($this->openPanel){
-				$ret .= $this->tabs->endPanel();
-			}
-			$ret .= $this->tabs->endPane();
-		}elseif($this->mode == 'tabs'){
-			$ret .= JHtml::_('tabs.end');
-		}else{
-			static $jsInit = false;
+		static $jsInit = false;
 
-			if($this->openPanel){
-				$this->_closePanel();
-			}
-
-			$classes = '';
-			if(isset($this->options['useCookie']) && $this->options['useCookie']){
-				$classes .= ' nav-remember';
-			}
-
-			$ret .= '<div style="margin-left:10px;"><ul class="nav nav-tabs'.$classes.'" id="'.$this->name.'" style="width:100%;">'."\r\n";
-			foreach($this->data as $k => $data){
-				$active = '';
-				if((isset($this->options['startOffset']) && $this->options['startOffset'] == $k) || $k == 0){
-					$active = ' class="active"';
-				}
-				$ret .= '	<li'.$active.'><a href="#'.$data->id.'" id="'.$data->id.'_tablink" data-toggle="tab">'.JText::_($data->text).'</a></li>'."\r\n";
-			}
-			$ret .= '</ul>'."\r\n".'<div class="tab-content">'."\r\n";
-			foreach($this->data as $k => $data){
-				$active = '';
-				if((isset($this->options['startOffset']) && $this->options['startOffset'] == $k) || $k == 0){
-					$active = ' active';
-				}
-				$ret .= '	<div class="tab-pane'.$active.'" id="'.$data->id.'">'."\r\n".$data->data."\r\n".'	</div>'."\r\n";
-				unset($data->data);
-			}
-			$ret .= '</div></div>';
-			unset($this->data);
-
-			if(!$jsInit){
-				$jsInit = true;
-				$js = 'jQuery(document).ready(function (){
-	jQuery("ul.nav-remember").each(function(nav){
-		var id = jQuery(this).attr("id");
-		jQuery("#" + id + " a[data-toggle=\"tab\"]").on("shown", function (e) {
-			if(localStorage) {
-				localStorage.setItem("acymailing-lastTab-"+id, jQuery(e.target).attr("id"));
-			} else {
-				var expire = new Date(); expire.setDate(expire.getDate() + 5);
-				document.cookie = "acymailing-lastTab-"+id+"="+escape(jQuery(e.target).attr("id"))+"; expires="+expire;
-			}
-		});
-		var lastTab = null;
-		if(localStorage) {
-			lastTab = localStorage.getItem("acymailing-lastTab-"+id);
-		} else {
-			if(document.cookie.length > 0 && document.cookie.indexOf("acymailing-lastTab-"+id+"=") != -1) {
-				var s = "acymailing-lastTab-"+id+"=", o = document.cookie.indexOf(s) + s.length, e = document.cookie.indexOf(";",o);
-				if(e == -1) e = document.cookie.length;
-				lastTab = unescape(document.cookie.substring(o, e));
-			}
+		if($this->openPanel){
+			$this->_closePanel();
 		}
-		if (lastTab) {
-			jQuery("#"+lastTab).tab("show");
+
+		$ret .= '<div style="margin-left:10px;"><ul class="nav nav-tabs" id="'.$this->name.'" style="width:100%;">'."\r\n";
+		foreach($this->data as $k => $data){
+			$active = '';
+			if($k == 0) $active = ' class="active"';
+			$ret .= '	<li'.$active.'><a href="#'.$data->id.'" id="'.$data->id.'_tablink" onclick="toggleTab(\''.$this->name.'\', \''.$data->id.'\');return false;">'.acymailing_translation($data->text).'</a></li>'."\r\n";
 		}
-	});
-});';
-				$doc = JFactory::getDocument();
-				$doc->addScriptDeclaration($js);
-			}
+		$ret .= '</ul>'."\r\n".'<div class="tab-content" id="'.$this->name.'_content">'."\r\n";
+		foreach($this->data as $k => $data){
+			$active = '';
+			if($k == 0) $active = ' active';
+			$ret .= '	<div class="tab-pane'.$active.'" id="'.$data->id.'">'."\r\n".$data->data."\r\n".'	</div>'."\r\n";
+			unset($data->data);
+		}
+		$ret .= '</div></div>';
+		unset($this->data);
+
+		if(!$jsInit){
+			$jsInit = true;
+			$js = '
+			function toggleTab(group, id){
+				var contentTabs = document.querySelectorAll("#"+group+"_content > div");
+				for (i = 0; i < contentTabs.length; i++) {
+					contentTabs[i].className = contentTabs[i].className.replace("active", "");
+				}
+				document.getElementById(id).className += " active";
+				var groupTabs = document.querySelectorAll("#"+group+" > li");
+				for (i = 0; i < groupTabs.length; i++) {
+					groupTabs[i].className = groupTabs[i].className.replace("active", "");
+				}
+				document.getElementById(id+"_tablink").parentElement.className += " active";
+
+			}';
+			acymailing_addScript(true, $js);
 		}
 		return $ret;
 	}

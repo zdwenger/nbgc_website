@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -19,7 +19,6 @@ class ListViewList extends acymailingView{
 	}
 
 	function listing(){
-		$app = JFactory::getApplication();
 		$config = acymailing_config();
 		$pageInfo = new stdClass();
 		$pageInfo->filter = new stdClass();
@@ -29,16 +28,16 @@ class ListViewList extends acymailingView{
 
 		$paramBase = ACYMAILING_COMPONENT.'.'.$this->getName();
 
-		$pageInfo->filter->order->value = $app->getUserStateFromRequest($paramBase.".filter_order", 'filter_order', 'a.ordering', 'cmd');
-		$pageInfo->filter->order->dir = $app->getUserStateFromRequest($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
+		$pageInfo->filter->order->value = acymailing_getUserVar($paramBase.".filter_order", 'filter_order', 'a.ordering', 'cmd');
+		$pageInfo->filter->order->dir = acymailing_getUserVar($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
 		if(strtolower($pageInfo->filter->order->dir) !== 'desc') $pageInfo->filter->order->dir = 'asc';
-		$pageInfo->search = $app->getUserStateFromRequest($paramBase.".search", 'search', '', 'string');
-		$pageInfo->search = JString::strtolower(trim($pageInfo->search));
-		$selectedCreator = $app->getUserStateFromRequest($paramBase."filter_creator", 'filter_creator', 0, 'int');
-		$selectedCategory = $app->getUserStateFromRequest($paramBase."filter_category", 'filter_category', 0, 'string');
+		$pageInfo->search = acymailing_getUserVar($paramBase.".search", 'search', '', 'string');
+		$pageInfo->search = strtolower(trim($pageInfo->search));
+		$selectedCreator = acymailing_getUserVar($paramBase."filter_creator", 'filter_creator', 0, 'int');
+		$selectedCategory = acymailing_getUserVar($paramBase."filter_category", 'filter_category', 0, 'string');
 
-		$pageInfo->limit->value = $app->getUserStateFromRequest($paramBase.'.list_limit', 'limit', $app->getCfg('list_limit'), 'int');
-		$pageInfo->limit->start = $app->getUserStateFromRequest($paramBase.'.limitstart', 'limitstart', 0, 'int');
+		$pageInfo->limit->value = acymailing_getUserVar($paramBase.'.list_limit', 'limit', acymailing_getCMSConfig('list_limit'), 'int');
+		$pageInfo->limit->start = acymailing_getUserVar($paramBase.'.limitstart', 'limitstart', 0, 'int');
 
 		$database = JFactory::getDBO();
 
@@ -50,6 +49,13 @@ class ListViewList extends acymailingView{
 		$filters[] = "a.type = 'list'";
 		if(!empty($selectedCreator)) $filters[] = 'a.userid = '.$selectedCreator;
 		if(!empty($selectedCategory)) $filters[] = 'a.category = '.$database->Quote($selectedCategory);
+
+		if(!acymailing_isAdmin()) {
+			$listClass = acymailing_get('class.list');
+			$lists = $listClass->getFrontendLists('listid');
+
+			$filters[] = 'listid IN ('.implode(',', array_keys($lists)).')';
+		}
 
 		$query = 'SELECT a.*, d.name as creatorname, d.username, d.email';
 		$query .= ' FROM '.acymailing_table('list').' as a';
@@ -67,8 +73,7 @@ class ListViewList extends acymailingView{
 
 		$queryCount .= ' WHERE ('.implode(') AND (', $filters).')';
 
-		$database->setQuery($queryCount);
-		$pageInfo->elements->total = $database->loadResult();
+		$pageInfo->elements->total = acymailing_loadResult($queryCount);
 
 		$listids = array();
 		foreach($rows as $oneRow){
@@ -97,20 +102,21 @@ class ListViewList extends acymailingView{
 		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 
+		if(acymailing_isAdmin()) {
+			$acyToolbar = acymailing_get('helper.toolbar');
+			if (acymailing_isAllowed($config->get('acl_lists_filter', 'all'))) {
+				$acyToolbar->link(acymailing_completeLink('filter'), acymailing_translation('ACY_FILTERS'), 'filter');
+				$acyToolbar->divider();
+			}
 
-		$acyToolbar = acymailing::get('helper.toolbar');
-		if(acymailing_isAllowed($config->get('acl_lists_filter', 'all'))){
-			$acyToolbar->link(acymailing_completeLink('filter'), JText::_('ACY_FILTERS'), 'filter');
-			$acyToolbar->divider();
+			if (acymailing_isAllowed($config->get('acl_lists_manage', 'all'))) $acyToolbar->add();
+			if (acymailing_isAllowed($config->get('acl_lists_manage', 'all'))) $acyToolbar->edit();
+			if (acymailing_isAllowed($config->get('acl_lists_delete', 'all'))) $acyToolbar->delete();
+			if (acymailing_isAllowed($config->get('acl_lists_manage', 'all')) || acymailing_isAllowed($config->get('acl_lists_manage', 'all')) || acymailing_isAllowed($config->get('acl_lists_delete', 'all'))) $acyToolbar->divider();
+			$acyToolbar->help('list-listing');
+			$acyToolbar->setTitle(acymailing_translation('LISTS'), 'list');
+			$acyToolbar->display();
 		}
-
-		if(acymailing_isAllowed($config->get('acl_lists_manage', 'all'))) $acyToolbar->add();
-		if(acymailing_isAllowed($config->get('acl_lists_manage', 'all'))) $acyToolbar->edit();
-		if(acymailing_isAllowed($config->get('acl_lists_delete', 'all'))) $acyToolbar->delete();
-		if(acymailing_isAllowed($config->get('acl_lists_manage', 'all')) || acymailing_isAllowed($config->get('acl_lists_manage', 'all')) || acymailing_isAllowed($config->get('acl_lists_delete', 'all'))) $acyToolbar->divider();
-		$acyToolbar->help('list-listing');
-		$acyToolbar->setTitle(JText::_('LISTS'), 'list');
-		$acyToolbar->display();
 
 		$order = new stdClass();
 		$order->ordering = false;
@@ -133,19 +139,20 @@ class ListViewList extends acymailingView{
 		$listcategoryType = acymailing_get('type.categoryfield');
 		$filters->category = $listcategoryType->getFilter('list', 'filter_category', $selectedCategory, ' onchange="document.adminForm.submit();"');
 
-		$this->assignRef('filters', $filters);
-		$this->assignRef('order', $order);
+		$this->config = $config;
+		$this->filters = $filters;
+		$this->order = $order;
 		$toggleClass = acymailing_get('helper.toggle');
-		$this->assignRef('toggleClass', $toggleClass);
-		$this->assignRef('rows', $rows);
-		$this->assignRef('pageInfo', $pageInfo);
-		$this->assignRef('pagination', $pagination);
+		$this->toggleClass = $toggleClass;
+		$this->rows = $rows;
+		$this->pageInfo = $pageInfo;
+		$this->pagination = $pagination;
 	}
 
 	function form(){
+		$listClass = acymailing_get('class.list');
 		$listid = acymailing_getCID('listid');
 
-		$listClass = acymailing_get('class.list');
 		if(!empty($listid)){
 			$list = $listClass->get($listid);
 
@@ -161,8 +168,7 @@ class ListViewList extends acymailingView{
 			$list->description = '';
 			$list->category = '';
 			$list->published = 1;
-			$user = JFactory::getUser();
-			$list->creatorname = $user->name;
+			$list->creatorname = acymailing_currentUserName();
 			$list->access_manage = 'none';
 			$list->access_sub = 'all';
 			$list->languages = 'all';
@@ -188,7 +194,7 @@ class ListViewList extends acymailingView{
 							return;
 						}';
 		}
-		$script .= 'if(window.document.getElementById("name").value.length < 2){alert(\''.JText::_('ENTER_TITLE', true).'\'); return false;}';
+		$script .= 'if(window.document.getElementById("name").value.length < 2){alert(\''.acymailing_translation('ENTER_TITLE', true).'\'); return false;}';
 		$script .= $editor->jsCode();
 		if(!ACYMAILING_J16){
 			$script .= 'submitform( pressbutton );}';
@@ -201,31 +207,28 @@ class ListViewList extends acymailingView{
 		}';
 
 
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($script);
+		acymailing_addScript(true, $script);
+
+		if(acymailing_isAdmin()) {
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->addButtonOption('apply', acymailing_translation('ACY_APPLY'), 'apply', false);
+			$acyToolbar->save();
+			$acyToolbar->cancel();
+			$acyToolbar->divider();
+			$acyToolbar->help('list-form');
+			$acyToolbar->setTitle(acymailing_translation('LIST'), 'list&task=edit&listid=' . $listid);
+			$acyToolbar->display();
+		}
 
 		$colorBox = acymailing_get('type.color');
-
-
-
-		$acyToolbar = acymailing::get('helper.toolbar');
-		$acyToolbar->addButtonOption('apply', JText::_('ACY_APPLY'), 'apply', false);
-		$acyToolbar->save();
-		$acyToolbar->cancel();
-		$acyToolbar->divider();
-		$acyToolbar->help('list-form');
-		$acyToolbar->setTitle(JText::_('LIST'), 'list&task=edit&listid='.$listid);
-		$acyToolbar->display();
-
-
-		$this->assignRef('colorBox', $colorBox);
+		$this->colorBox = $colorBox;
 		if(acymailing_level(1)){
-			$this->assign('welcomeMsg', acymailing_get('type.welcome'));
-			$this->assign('languages', acymailing_get('type.listslanguages'));
+			$this->welcomeMsg = acymailing_get('type.welcome');
+			$this->languages = acymailing_get('type.listslanguages');
 		}
 		$unsubMsg = acymailing_get('type.unsub');
-		$this->assignRef('unsubMsg', $unsubMsg);
-		$this->assignRef('list', $list);
-		$this->assignRef('editor', $editor);
+		$this->unsubMsg = $unsubMsg;
+		$this->list = $list;
+		$this->editor = $editor;
 	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -30,9 +30,9 @@ class jflanguagesType{
 			}
 			$jfManager = JoomFishManager::getInstance();
 			$langActive = $jfManager->getActiveLanguages();
-			$this->values[] = JHTML::_('select.option', '', JText::_('DEFAULT_LANGUAGE'));
+			$this->values[] = acymailing_selectOption('', acymailing_translation('DEFAULT_LANGUAGE'));
 			foreach($langActive as $oneLanguage){
-				$this->values[] = JHTML::_('select.option', $oneLanguage->shortcode.','.$oneLanguage->id, $oneLanguage->name);
+				$this->values[] = acymailing_selectOption($oneLanguage->shortcode.', '.$oneLanguage->id, $oneLanguage->name);
 			}
 			$this->found = true;
 		}
@@ -41,9 +41,9 @@ class jflanguagesType{
 			JLoader::register('FalangManager', FALANG_ADMINPATH.'/classes/FalangManager.class.php');
 			$fManager = FalangManager::getInstance();
 			$langActive = $fManager->getActiveLanguages();
-			$this->values[] = JHTML::_('select.option', '', JText::_('DEFAULT_LANGUAGE'));
+			$this->values[] = acymailing_selectOption('', acymailing_translation('DEFAULT_LANGUAGE'));
 			foreach($langActive as $oneLanguage){
-				$this->values[] = JHTML::_('select.option', $oneLanguage->lang_code.','.$oneLanguage->lang_id, $oneLanguage->title);
+				$this->values[] = acymailing_selectOption($oneLanguage->lang_code.', '.$oneLanguage->lang_id, $oneLanguage->title);
 			}
 			$this->found = true;
 		}
@@ -58,7 +58,7 @@ class jflanguagesType{
 
 	function display($map, $value = ''){
 		if(empty($this->values)) return '';
-		return JHTML::_('select.genericlist', $this->values, $map, 'size="1" style="max-width:150px" '.$this->onclick, 'value', 'text', $value, $this->id);
+		return acymailing_select($this->values, $map, 'size="1" style="max-width:150px" '.$this->onclick, 'value', 'text', $value, $this->id);
 	}
 
 	function displayJLanguages($map, $value = ''){
@@ -72,6 +72,6 @@ class jflanguagesType{
 
 		array_unshift($this->languages, $default);
 
-		return JHTML::_('select.genericlist', $this->languages, $map, 'size="1" style="width:150px;" '.$this->onclick, $this->sef ? 'sef' : 'lang_code', 'title', $value, $this->jid);
+		return acymailing_select($this->languages, $map, 'size="1" style="width:150px;" '.$this->onclick, $this->sef ? 'sef' : 'lang_code', 'title', $value, $this->jid);
 	}
 }

@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -192,236 +192,79 @@ function submitacymailingform(task, formName, allowSpecialChars){
 		return false;
 	}
 
-	if(window.jQuery){
-		var form = jQuery('#' + formName);
-		form.addClass('acymailing_module_loading');
-		form.css("filter:", "alpha(opacity=50)");
-		form.css("-moz-opacity", "0.5");
-		form.css("-khtml-opacity", "0.5");
-		form.css("opacity", "0.5");
-		data = new FormData(form[0]);
+	var form = document.getElementById(formName);
 
-		jQuery.ajax({
-			url: document.getElementById(formName).action,
-			data: data,
-			type: 'POST',
-			async: true,
-			success: function(response){
-				response = JSON.parse(response);
-				acymailingDisplayAjaxResponseJQuery(unescape(response.message), response.type, formName);
-			},
-			error: function(){
-				acymailingDisplayAjaxResponseJQuery('Ajax Request Failure', 'error', formName);
-			},
-			cache: false,
-			contentType: false,
-			processData: false
-		});
-	}else{
-		try{
-			var form = document.id(formName);
-		}catch(err){
-			var form = $(formName);
+	var formData = new FormData(form);
+	form.className += ' acymailing_module_loading';
+	form.style.filter = "alpha(opacity=50)";
+	form.style.opacity = "0.5";
+
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', form.action);
+	xhr.onload = function(){
+		var message = 'Ajax Request Failure';
+		var type = 'error';
+
+		if (xhr.status === 200){
+			var response = JSON.parse(xhr.responseText);
+			message = response.message;
+			type = response.type;
 		}
-		data = form.toQueryString();
-
-		if(typeof Ajax == 'function'){
-			new Ajax(form.action, {
-				data: data, method: 'post', onRequest: function(){
-					form.addClass('acymailing_module_loading');
-					form.setStyle("filter:", "alpha(opacity=50)");
-					form.setStyle("-moz-opacity", "0.5");
-					form.setStyle("-khtml-opacity", "0.5");
-					form.setStyle("opacity", "0.5");
-				}, onSuccess: function(response){
-					response = Json.evaluate(response);
-					acymailingDisplayAjaxResponseMootools(unescape(response.message), response.type, formName);
-				}, onFailure: function(){
-					acymailingDisplayAjaxResponseMootools('Ajax Request Failure', 'error', formName);
-				}
-			}).request();
-		}else{
-			var formData = new FormData(form);
-
-			form.addClass('acymailing_module_loading');
-			form.setStyle("filter:", "alpha(opacity=50)");
-			form.setStyle("-moz-opacity", "0.5");
-			form.setStyle("-khtml-opacity", "0.5");
-			form.setStyle("opacity", "0.5");
-
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', document.id(formName).action);
-			xhr.onload = function(){
-				if (xhr.status === 200){
-					var response = JSON.parse(xhr.responseText);
-					acymailingDisplayAjaxResponseMootools(unescape(response.message), response.type, formName);
-				}else{
-					acymailingDisplayAjaxResponseMootools('Ajax Request Failure', 'error', formName);
-				}
-			};
-			xhr.send(formData);
-		}
-	}
+		acymailingDisplayAjaxResponse(decodeURIComponent(message), type, formName);
+	};
+	xhr.send(formData);
 
 	return false;
 }
 
-function acymailingDisplayAjaxResponseJQuery(message, type, formName){
-	var toggleButton = jQuery('#acymailing_togglemodule_' + formName);
+function acymailingDisplayAjaxResponse(message, type, formName){
+	var toggleButton = document.getElementById('acymailing_togglemodule_' + formName);
 
-	if(toggleButton && toggleButton.hasClass('acyactive')){
-		var wrapper = toggleButton.parent().parent().children()[1];
-		jQuery(wrapper).css('height', '');
+	if(toggleButton && toggleButton.className.indexOf('acyactive') > -1){
+		var wrapper = toggleButton.parentElement.parentElement.childNodes[1];
+		wrapper.style.height = '';
 	}
-	;
 
-	var responseContainer = jQuery('#acymailing_fulldiv_' + formName + ' .responseContainer')[0];
+	var responseContainer = document.querySelectorAll('#acymailing_fulldiv_' + formName + ' .responseContainer')[0];
 
 	if(typeof responseContainer == 'undefined'){
 		responseContainer = document.createElement('div');
-		var fulldiv = jQuery('#acymailing_fulldiv_' + formName);
-		fulldiv.prepend(responseContainer);
+		var fulldiv = document.getElementById('acymailing_fulldiv_' + formName);
+
+		if(fulldiv.firstChild){
+			fulldiv.insertBefore(responseContainer, fulldiv.firstChild);
+		}else{
+			fulldiv.appendChild(responseContainer);
+		}
+
 		oldContainerHeight = '0px';
 	}else{
-		oldContainerHeight = jQuery(responseContainer).css('height');
+		oldContainerHeight = responseContainer.style.height;
 	}
 
 	responseContainer.className = 'responseContainer';
 
-	var form = jQuery('#' + formName);
+	var form = document.getElementById(formName);
 
-	form.removeClass('acymailing_module_loading');
-
-	responseContainer.innerHTML = message;
-
-	if(type == 'success'){
-		jQuery(responseContainer).addClass('acymailing_module_success');
-	}else{
-		jQuery(responseContainer).addClass('acymailing_module_error');
-		form.css("filter:", "alpha(opacity=100)");
-		form.css("-moz-opacity", "1");
-		form.css("-khtml-opacity", "1");
-		form.css("opacity", "1");
-	}
-
-	newContainerHeight = jQuery(responseContainer).css('height');
-
-	if(type == 'success'){
-		form.animate({
-						 'height': 0, 'opacity': 0
-					 });
-	}
-
-	jQuery(responseContainer).css({
-									  'height': oldContainerHeight, 'filter:': "alpha(opacity=0)", '-moz-opacity': 0, '-khtml-opacity': 0, 'opacity': 0
-								  });
-
-	jQuery(responseContainer).animate({
-										  'height': newContainerHeight, 'opacity': 1
-									  });
-}
-
-function acymailingDisplayAjaxResponseMootools(message, type, formName){
-	try{
-		var toggleButton = document.id('acymailing_togglemodule_' + formName);
-	}catch(err){
-		var toggleButton = $('acymailing_togglemodule_' + formName);
-	}
-
-	if(toggleButton && toggleButton.hasClass('acyactive')){
-		var wrapper = toggleButton.getParent().getParent().getChildren()[1];
-		wrapper.setStyle('height', '');
-	}
-	;
-
-	try{
-		var responseContainer = document.getElements('#acymailing_fulldiv_' + formName + ' .responseContainer')[0];
-	}catch(err){
-		var responseContainer = $$('#acymailing_fulldiv_' + formName + ' .responseContainer')[0];
-	}
-
-	if(typeof responseContainer == 'undefined'){
-		responseContainer = new Element('div');
-		try{
-			var fulldiv = document.id('acymailing_fulldiv_' + formName);
-		}catch(err){
-			var fulldiv = $('acymailing_fulldiv_' + formName);
-		}
-		responseContainer.inject(fulldiv, 'top');
-		oldContainerHeight = '0px';
-	}else{
-		oldContainerHeight = responseContainer.getStyle('height');
-	}
-
-	responseContainer.className = 'responseContainer';
-
-	try{
-		var form = document.id(formName);
-	}catch(err){
-		var form = $(formName);
-	}
-	form.removeClass('acymailing_module_loading');
+	var elclass = form.className;
+	var rmclass = 'acymailing_module_loading';
+	var res = elclass.replace(' '+rmclass, '', elclass);
+	if(res == elclass) res = elclass.replace(rmclass+' ', '', elclass);
+	if(res == elclass) res = elclass.replace(rmclass, '', elclass);
+	form.className = res;
 
 	responseContainer.innerHTML = message;
 
 	if(type == 'success'){
-		responseContainer.addClass('acymailing_module_success');
+		responseContainer.className += ' acymailing_module_success';
 	}else{
-		responseContainer.addClass('acymailing_module_error');
-		form.setStyle("filter:", "alpha(opacity=100)");
-		form.setStyle("-moz-opacity", "1");
-		form.setStyle("-khtml-opacity", "1");
-		form.setStyle("opacity", "1");
+		responseContainer.className += ' acymailing_module_error';
+		form.style.opacity = "1";
 	}
 
-	newContainerHeight = responseContainer.getStyle('height');
+	newContainerHeight = responseContainer.style.height;
 
-	if(typeof Ajax == 'function'){
-		if(type == 'success'){
-			var myEffect = new Fx.Styles(form, {duration: 500, transition: Fx.Transitions.linear});
-			myEffect.start({
-							   'height': [form.getSize().size.y, 0], 'opacity': [1, 0]
-						   });
-		}
-
-		try{
-			responseContainer.setStyle('height', oldContainerHeight + 'px');
-			responseContainer.setStyle("filter:", "alpha(opacity=0)");
-			responseContainer.setStyle("-moz-opacity", "0");
-			responseContainer.setStyle("-khtml-opacity", "0");
-			responseContainer.setStyle("opacity", "0");
-		}
-		catch(e){
-		}
-
-		var myEffect2 = new Fx.Styles(responseContainer, {duration: 500, transition: Fx.Transitions.linear});
-		myEffect2.start({
-							'height': [oldContainerHeight, newContainerHeight], 'opacity': [0, 1]
-						});
-
-	}else // Mootools >= 1.2
-	{
-		if(type == 'success'){
-			form.set('morph');
-			form.morph({
-						   'height': '0px', 'opacity': 0
-					   });
-
-			form.setStyles({
-							   'display': 'none'
-						   });
-		}
-
-		if(newContainerHeight != 'auto'){
-			responseContainer.setStyles({
-											'height': oldContainerHeight, 'opacity': 0
-										});
-
-			responseContainer.set('morph');
-			responseContainer.morph({
-										'height': newContainerHeight, 'opacity': 1
-									});
-		}
-	}
+	form.style.display = 'none';
+	responseContainer.className += ' slide_open';
 }
 

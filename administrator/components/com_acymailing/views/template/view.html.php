@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -26,7 +26,6 @@ class TemplateViewTemplate extends acymailingView{
 	}
 
 	function listing(){
-		$app = JFactory::getApplication();
 		$pageInfo = new stdClass();
 		$pageInfo->filter = new stdClass();
 		$pageInfo->filter->order = new stdClass();
@@ -35,15 +34,15 @@ class TemplateViewTemplate extends acymailingView{
 		$config = acymailing_config();
 
 		$paramBase = ACYMAILING_COMPONENT.'.'.$this->getName().$this->getLayout();
-		$pageInfo->filter->order->value = $app->getUserStateFromRequest($paramBase.".filter_order", 'filter_order', 'a.ordering', 'cmd');
-		$pageInfo->filter->order->dir = $app->getUserStateFromRequest($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
+		$pageInfo->filter->order->value = acymailing_getUserVar($paramBase.".filter_order", 'filter_order', 'a.ordering', 'cmd');
+		$pageInfo->filter->order->dir = acymailing_getUserVar($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
 		if(strtolower($pageInfo->filter->order->dir) !== 'desc') $pageInfo->filter->order->dir = 'asc';
-		$pageInfo->search = $app->getUserStateFromRequest($paramBase.".search", 'search', '', 'string');
-		$pageInfo->search = JString::strtolower(trim($pageInfo->search));
-		$pageInfo->category = $app->getUserStateFromRequest($paramBase.".category", 'category', '0', 'string');
+		$pageInfo->search = acymailing_getUserVar($paramBase.".search", 'search', '', 'string');
+		$pageInfo->search = strtolower(trim($pageInfo->search));
+		$pageInfo->category = acymailing_getUserVar($paramBase.".category", 'category', '0', 'string');
 
-		$pageInfo->limit->value = $app->getUserStateFromRequest($paramBase.'.list_limit', 'limit', $app->getCfg('list_limit'), 'int');
-		$pageInfo->limit->start = $app->getUserStateFromRequest($paramBase.'.limitstart', 'limitstart', 0, 'int');
+		$pageInfo->limit->value = acymailing_getUserVar($paramBase.'.list_limit', 'limit', acymailing_getCMSConfig('list_limit'), 'int');
+		$pageInfo->limit->start = acymailing_getUserVar($paramBase.'.limitstart', 'limitstart', 0, 'int');
 
 		$database = JFactory::getDBO();
 
@@ -52,7 +51,7 @@ class TemplateViewTemplate extends acymailingView{
 			$this->filters[] = "a.name LIKE $searchVal OR a.description LIKE $searchVal OR a.tempid LIKE $searchVal";
 		}
 
-		if(!empty($pageInfo->category) && $pageInfo->category != JText::_('ACY_ALL_CATEGORIES')){
+		if(!empty($pageInfo->category) && $pageInfo->category != acymailing_translation('ACY_ALL_CATEGORIES')){
 			$this->filters[] = 'a.category LIKE '.$database->Quote($pageInfo->category);
 		}
 
@@ -86,8 +85,7 @@ class TemplateViewTemplate extends acymailingView{
 		if(!empty($this->filters)){
 			$queryCount .= ' WHERE ('.implode(') AND (', $this->filters).')';
 		}
-		$database->setQuery($queryCount);
-		$pageInfo->elements->total = $database->loadResult();
+		$pageInfo->elements->total = acymailing_loadResult($queryCount);
 
 		$pageInfo->elements->page = count($this->rows);
 
@@ -95,10 +93,10 @@ class TemplateViewTemplate extends acymailingView{
 		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 		if($this->button){
-			$acyToolbar = acymailing::get('helper.toolbar');
-			$acyToolbar->popup('import', JText::_('IMPORT'), "index.php?option=com_acymailing&ctrl=template&task=upload&tmpl=component");
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->popup('import', acymailing_translation('IMPORT'), "index.php?option=com_acymailing&ctrl=template&task=upload&tmpl=component", 450, 250);
 
-			$acyToolbar->custom('export', JText::_('ACY_EXPORT'), 'export', true);
+			$acyToolbar->custom('export', acymailing_translation('ACY_EXPORT'), 'export', true);
 			$acyToolbar->divider();
 			$acyToolbar->add();
 			$acyToolbar->edit();
@@ -109,7 +107,7 @@ class TemplateViewTemplate extends acymailingView{
 
 			$acyToolbar->divider();
 			$acyToolbar->help('template', 'listing');
-			$acyToolbar->setTitle(JText::_('ACY_TEMPLATES'), 'template');
+			$acyToolbar->setTitle(acymailing_translation('ACY_TEMPLATES'), 'template');
 			$acyToolbar->display();
 		}
 
@@ -133,18 +131,16 @@ class TemplateViewTemplate extends acymailingView{
 		$filters = new stdClass();
 
 
-		$this->assignRef('filters', $filters);
-		$this->assignRef('order', $order);
-		$this->assignRef('toggleClass', $toggleClass);
-		$this->assignRef('rows', $this->rows);
-		$this->assignRef('pageInfo', $pageInfo);
-		$this->assignRef('pagination', $pagination);
+		$this->filters = $filters;
+		$this->order = $order;
+		$this->toggleClass = $toggleClass;
+		$this->rows = $this->rows;
+		$this->pageInfo = $pageInfo;
+		$this->pagination = $pagination;
 	}
 
 	function form(){
-		JHTML::_('behavior.modal', 'a.modal');
 		$tempid = acymailing_getCID('tempid');
-		$app = JFactory::getApplication();
 		$config = acymailing_config();
 
 		if(!empty($tempid)){
@@ -199,7 +195,7 @@ class TemplateViewTemplate extends acymailingView{
 							}
 						}
 					}';
-		$script .= 'if(window.document.getElementById("name").value.length < 2){alert(\''.JText::_('ENTER_TITLE', true).'\'); return false;}';
+		$script .= 'if(window.document.getElementById("name").value.length < 2){alert(\''.acymailing_translation('ENTER_TITLE', true).'\'); return false;}';
 		$script .= "if(pressbutton == 'test' && window.document.getElementById('sendtest') && window.document.getElementById('sendtest').style.display == 'none'){ window.document.getElementById('sendtest').style.display = 'block'; return false;}";
 		$script .= $editor->jsCode();
 		if(!ACYMAILING_J16){
@@ -208,7 +204,62 @@ class TemplateViewTemplate extends acymailingView{
 			$script .= 'Joomla.submitform(pressbutton,document.adminForm);}; ';
 		}
 
-		$script .= "function insertTag(tag){ try{jInsertEditorText(tag,'editor_body'); return true;} catch(err){alert('Your editor does not enable AcyMailing to automatically insert the tag, please copy/paste it manually in your Newsletter'); return false;}}";
+		$script .= "var zoneToTag = 'editor';
+			function insertTag(tag){
+				if(zoneToTag == 'editor'){
+					try{
+						jInsertEditorText(tag,'editor_body');
+						return true;
+					} catch(err){
+						alert('Your editor does not enable AcyMailing to automatically insert the tag, please copy/paste it manually in your Newsletter');
+						return false;
+					}
+				}else{
+					try{
+						simpleInsert(zoneToTag, tag);
+						return true;
+					} catch(err){
+						alert('Error inserting the tag in the '+ zoneToTag + 'zone. Please copy/paste it manually in your Newsletter.');
+						return false;
+					}
+				}
+			}
+			function simpleInsert(myField, myValue) {
+				myField = document.getElementById(myField);
+				if (document.selection) {
+					myField.focus();
+					sel = document.selection.createRange();
+					sel.text = myValue;
+				} else if (myField.selectionStart || myField.selectionStart == '0') {
+					var startPos = myField.selectionStart;
+					var endPos = myField.selectionEnd;
+					myField.value = myField.value.substring(0, startPos)
+						+ myValue
+						+ myField.value.substring(endPos, myField.value.length);
+				} else if (myField.tagName == 'DIV') {
+					myField.innerHTML += myValue;
+					document.getElementById('subject').value += myValue;
+				} else {
+					myField.value += myValue;
+				}
+			}
+			document.addEventListener('DOMContentLoaded', function(){
+				setTimeout(function() {
+					document.getElementById('htmlfieldset').addEventListener('click', function(){
+						zoneToTag = 'editor';
+					});	
+
+					var ediframe = document.getElementById('htmlfieldset').getElementsByTagName('iframe');
+					if(ediframe && ediframe[0]){
+						var children = ediframe[0].contentDocument.getElementsByTagName('*');
+						for (var i = 0; i < children.length; i++) {
+							children[i].addEventListener('click', function(){
+								zoneToTag = 'editor';
+							});			
+						}
+					}		
+				}, 1000);
+			});";
 
 		$script .= 'function addStyle(){
 			var myTable=window.document.getElementById("classtable");
@@ -223,8 +274,8 @@ class TemplateViewTemplate extends acymailingView{
 			input2.style.width = \'200px\';
 			input.name = \'otherstyles[classname][]\';
 			input2.name = \'otherstyles[style][]\';
-			input.placeholder = "'.str_replace('"', '\"', JText::_('CLASS_NAME', true)).'";
-			input2.placeholder = "'.str_replace('"', '\"', JText::_('CSS_STYLE', true)).'";
+			input.placeholder = "'.str_replace('"', '\"', acymailing_translation('CLASS_NAME', true)).'";
+			input2.placeholder = "'.str_replace('"', '\"', acymailing_translation('CSS_STYLE', true)).'";
 			column.appendChild(input);
 			column2.appendChild(input2);
 			newline.appendChild(column);
@@ -348,40 +399,62 @@ class TemplateViewTemplate extends acymailingView{
 					}
 				}';
 
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($script);
+		acymailing_addScript(true, $script);
+
+		$installedPlugin = JPluginHelper::getPlugin('acymailing', 'emojis');
+		if(!empty($installedPlugin)){
+			$params = new acyParameter($installedPlugin->params);
+			if(JPluginHelper::isEnabled('acymailing', 'emojis') && $params->get('subject', 1) == 1) {
+				if (!ACYMAILING_J30) {
+					acymailing_addScript(false, ACYMAILING_JS . 'jquery/jquery-1.9.1.min.js?v=' . filemtime(ACYMAILING_ROOT . 'media' . DS . 'com_acymailing' . DS . 'js' . DS . 'jquery' . DS . 'jquery-1.9.1.min.js'));
+					acymailing_addScript(false, ACYMAILING_JS . 'jquery/jquery-ui.min.js?v=' . filemtime(ACYMAILING_ROOT . 'media' . DS . 'com_acymailing' . DS . 'js' . DS . 'jquery' . DS . 'jquery-ui.min.js'));
+				}
+				acymailing_addScript(false, acymailing_rootURI().'plugins/editors/acyeditor/acyeditor/ckeditor/plugins/smiley/emojionearea.js?v=' . filemtime(ACYMAILING_ROOT . 'plugins' . DS . 'editors' . DS . 'acyeditor' . DS . 'acyeditor' . DS . 'ckeditor' . DS . 'plugins' . DS . 'smiley' . DS . 'emojionearea.js'));
+				acymailing_addScript(false, acymailing_rootURI().'plugins/editors/acyeditor/acyeditor/ckeditor/plugins/smiley/dialogs/emojimap.js?v=' . filemtime(ACYMAILING_ROOT . 'plugins' . DS . 'editors' . DS . 'acyeditor' . DS . 'acyeditor' . DS . 'ckeditor' . DS . 'plugins' . DS . 'smiley' . DS . 'dialogs' . DS . 'emojimap.js'));
+				acymailing_addStyle(false, acymailing_rootURI().'plugins/editors/acyeditor/acyeditor/ckeditor/plugins/smiley/emojionearea.css?v=' . filemtime(ACYMAILING_ROOT . 'plugins' . DS . 'editors' . DS . 'acyeditor' . DS . 'acyeditor' . DS . 'ckeditor' . DS . 'plugins' . DS . 'smiley' . DS . 'emojionearea.css'));
+
+				acymailing_addScript(true, '
+					jQuery(document).ready(function() {
+						jQuery("#subject").emojioneArea({
+							pickerPosition: "bottom",
+							shortnames: true
+						});
+					});
+				');
+			}
+		}
 
 		$paramBase = ACYMAILING_COMPONENT.'.'.$this->getName();
 		$infos = new stdClass();
-		$infos->test_selection = $app->getUserStateFromRequest($paramBase.".test_selection", 'test_selection', '', 'string');
-		$infos->test_group = $app->getUserStateFromRequest($paramBase.".test_group", 'test_group', '', 'string');
-		$infos->test_emails = $app->getUserStateFromRequest($paramBase.".test_emails", 'test_emails', '', 'string');
+		$infos->test_selection = acymailing_getUserVar($paramBase.".test_selection", 'test_selection', '', 'string');
+		$infos->test_group = acymailing_getUserVar($paramBase.".test_group", 'test_group', '', 'string');
+		$infos->test_emails = acymailing_getUserVar($paramBase.".test_emails", 'test_emails', '', 'string');
 
 
-		$acyToolbar = acymailing::get('helper.toolbar');
-		if(acymailing_isAllowed($config->get('acl_tags_view', 'all'))) $acyToolbar->popup('tag', JText::_('TAGS'), JURI::base()."index.php?option=com_acymailing&ctrl=tag&task=tag&tmpl=component&type=news", 780, 550);
-		$acyToolbar->custom('test', JText::_('SEND_TEST'), 'send', false);
+		$acyToolbar = acymailing_get('helper.toolbar');
+		if(acymailing_isAllowed($config->get('acl_tags_view', 'all'))) $acyToolbar->popup('tag', acymailing_translation('TAGS'), acymailing_baseURI()."index.php?option=com_acymailing&ctrl=tag&task=tag&tmpl=component&type=news", 780, 550);
+		$acyToolbar->custom('test', acymailing_translation('SEND_TEST'), 'send', false);
 		$acyToolbar->divider();
-		$acyToolbar->addButtonOption('apply', JText::_('ACY_APPLY'), 'apply', false);
+		$acyToolbar->addButtonOption('apply', acymailing_translation('ACY_APPLY'), 'apply', false);
 		$acyToolbar->save();
 		$acyToolbar->cancel();
 		$acyToolbar->divider();
 		$acyToolbar->help('template', 'templatecreation');
-		$acyToolbar->setTitle(JText::_('ACY_TEMPLATE'), 'template&task=edit&tempid='.$tempid);
+		$acyToolbar->setTitle(acymailing_translation('ACY_TEMPLATE'), 'template&task=edit&tempid='.$tempid);
 		$acyToolbar->display();
 
 
-		$this->assignRef('editor', $editor);
+		$this->editor = $editor;
 		$testreceiverType = acymailing_get('type.testreceiver');
-		$this->assignRef('testreceiverType', $testreceiverType);
-		$this->assignRef('template', $template);
+		$this->testreceiverType = $testreceiverType;
+		$this->template = $template;
 		$colorBox = acymailing_get('type.color');
-		$this->assignRef('colorBox', $colorBox);
-		$this->assignRef('infos', $infos);
+		$this->colorBox = $colorBox;
+		$this->infos = $infos;
 
 		$tabs = acymailing_get('helper.acytabs');
 		$tabs->setOptions(array('useCookie' => true));
-		$this->assignRef('tabs', $tabs);
+		$this->tabs = $tabs;
 	}
 
 	function theme(){
@@ -389,39 +462,39 @@ class TemplateViewTemplate extends acymailingView{
 		$this->filters[] = 'a.published = 1';
 
 		if(acymailing_level(3)){
-			$my = JFactory::getUser();
-			if(!ACYMAILING_J16){
-				$groups = $my->gid;
-				$condGroup = ' OR a.access LIKE (\'%,'.$groups.',%\')';
-			}else{
-				jimport('joomla.access.access');
-				$groups = JAccess::getGroupsByUser($my->id, false);
-				$condGroup = '';
-				foreach($groups as $group){
-					$condGroup .= ' OR a.access LIKE (\'%,'.$group.',%\')';
-				}
+			$groups = acymailing_getGroupsByUser(acymailing_currentUserId(), false);
+			$condGroup = '';
+			foreach($groups as $group){
+				$condGroup .= ' OR a.access LIKE (\'%,'.$group.',%\')';
 			}
 			$this->filters[] = 'a.access = \'all\''.$condGroup;
 		}
 
 		$this->button = false;
-		acymailing_display(JText::_('CHANGE_TEMPLATE'), 'warning', false);
+		acymailing_display(acymailing_translation('CHANGE_TEMPLATE'), 'warning', false);
 		$this->listing();
 
 		$js = "function applyTemplate(tempid){
-			window.parent.changeTemplate(window.document.getElementById('htmlcontent_'+tempid).innerHTML,window.document.getElementById('textcontent_'+tempid).innerHTML,window.document.getElementById('subject_'+tempid).innerHTML,window.document.getElementById('stylesheet_'+tempid).innerHTML,window.document.getElementById('fromname_'+tempid).innerHTML,window.document.getElementById('fromemail_'+tempid).innerHTML,window.document.getElementById('replyname_'+tempid).innerHTML,window.document.getElementById('replyemail_'+tempid).innerHTML,tempid);
-			acymailing_js.closeBox(true); }";
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($js);
+			window.parent.changeTemplate(window.document.getElementById('htmlcontent_'+tempid).innerHTML,
+										window.document.getElementById('textcontent_'+tempid).innerHTML,
+										window.document.getElementById('subject_'+tempid).innerHTML,
+										window.document.getElementById('stylesheet_'+tempid).innerHTML,
+										window.document.getElementById('fromname_'+tempid).innerHTML,
+										window.document.getElementById('fromemail_'+tempid).innerHTML,
+										window.document.getElementById('replyname_'+tempid).innerHTML,
+										window.document.getElementById('replyemail_'+tempid).innerHTML,
+										tempid);
+			acymailing.closeBox(true); }";
+		acymailing_addScript(true, $js);
 	}
 
 	function upload(){
-		if(JRequest::getString('tmpl') == 'component'){
-			$acyToolbar = acymailing::get('helper.toolbar');
-			$acyToolbar->custom('doupload', JText::_('IMPORT'), 'import', false);
+		if(acymailing_getVar('string', 'tmpl') == 'component'){
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->custom('doupload', acymailing_translation('IMPORT'), 'import', false);
 			$acyToolbar->divider();
 			$acyToolbar->help('template-upload');
-			$acyToolbar->setTitle(JText::_('ACY_TEMPLATE'));
+			$acyToolbar->setTitle(acymailing_translation('ACY_TEMPLATE'));
 			$acyToolbar->topfixed = false;
 			$acyToolbar->display();
 		}

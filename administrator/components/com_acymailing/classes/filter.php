@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -22,12 +22,12 @@ class filterClass extends acymailingClass{
 		if(!acymailing_level(3)) return;
 
 		$config = acymailing_config();
-		if(!$config->get('triggerfilter_'.$triggerName)) return;
+		if($triggerName != 'daycron' && !$config->get('triggerfilter_'.$triggerName)) return;
 
-		$this->database->setQuery("SELECT * FROM `#__acymailing_filter` WHERE `trigger` LIKE '%".acymailing_getEscaped($triggerName, true)."%' ORDER BY filid ASC");
+		$this->database->setQuery("SELECT * FROM `#__acymailing_filter` WHERE `trigger` LIKE '%".acymailing_getEscaped($triggerName, true)."%' ORDER BY `filid` ASC");
 		$filters = $this->database->loadObjectList();
 
-		if(empty($filters)){
+		if(empty($filters) && $triggerName != 'daycron'){
 			$newconfig = new stdClass();
 			$name = 'triggerfilter_'.$triggerName;
 			$newconfig->$name = 0;
@@ -36,9 +36,16 @@ class filterClass extends acymailingClass{
 		}
 		foreach($filters as $oneFilter){
 			if(empty($oneFilter->published)) continue;
+			if($triggerName == 'daycron' && $oneFilter->daycron > time()) continue;
 			if(!empty($oneFilter->filter)) $oneFilter->filter = unserialize($oneFilter->filter);
 			if(!empty($oneFilter->action)) $oneFilter->action = unserialize($oneFilter->action);
 			$this->execute($oneFilter->filter, $oneFilter->action);
+			if($triggerName == 'daycron'){
+				$newDaycron = $oneFilter->daycron+86400;
+				while($newDaycron < time())	$newDaycron += 86400;
+				$this->database->setQuery('UPDATE #__acymailing_filter SET `daycron` = '.intval($newDaycron).' WHERE `filid` = '.intval($oneFilter->filid));
+				$this->database->query();
+			}
 		}
 	}
 
@@ -46,23 +53,21 @@ class filterClass extends acymailingClass{
 	function displayFilters($filters){
 		$resultFilters = array();
 		if(empty($filters['type'])) return $resultFilters;
-		JPluginHelper::importPlugin('acymailing');
-		$dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 		foreach($filters['type'] as $num => $oneType){
 			if(empty($oneType)) continue;
-			$resultFilters = array_merge($resultFilters, $dispatcher->trigger('onAcyDisplayFilter_'.$oneType, array($filters[$num][$oneType])));
+			$resultFilters = array_merge($resultFilters, acymailing_trigger('onAcyDisplayFilter_'.$oneType, array($filters[$num][$oneType])));
 		}
 		return $resultFilters;
 	}
 
 	function execute($filters, $actions){
-		JPluginHelper::importPlugin('acymailing');
-		$this->dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 		$query = new acyQuery();
 
 		if(!empty($this->subid)){
 			$subArray = explode(',', trim($this->subid, ','));
-			JArrayHelper::toInteger($subArray);
+			acymailing_arrayToInteger($subArray);
 			$query->where[] = 'sub.subid IN ('.implode(',', $subArray).')';
 		}
 
@@ -70,7 +75,7 @@ class filterClass extends acymailingClass{
 			foreach($filters['type'] as $num => $oneType){
 				if(empty($oneType)) continue;
 				$oldObject = (count($query->where) + count($query->leftjoin) + count($query->join)).'_'.$query->limit.$query->orderBy;
-				$res = $this->dispatcher->trigger('onAcyProcessFilter_'.$oneType, array(&$query, $filters[$num][$oneType], $num));
+				$res = acymailing_trigger('onAcyProcessFilter_'.$oneType, array(&$query, $filters[$num][$oneType], $num));
 				$newObject = (count($query->where) + count($query->leftjoin) + count($query->join)).'_'.$query->limit.$query->orderBy;
 				if(count($res) == 0 && $newObject == $oldObject){
 					$query->where[] = '0 = 1';
@@ -83,7 +88,7 @@ class filterClass extends acymailingClass{
 			$this->didAnAction = $this->didAnAction || $query->count() > 0;
 			foreach($actions['type'] as $num => $oneType){
 				if(empty($oneType) || !isset($actions[$num][$oneType])) continue;
-				$this->report = array_merge($this->report, $this->dispatcher->trigger('onAcyProcessAction_'.$oneType, array(&$query, $actions[$num][$oneType], $num)));
+				$this->report = array_merge($this->report, acymailing_trigger('onAcyProcessAction_'.$oneType, array(&$query, $actions[$num][$oneType], $num)));
 			}
 		}
 	}
@@ -93,14 +98,14 @@ class filterClass extends acymailingClass{
 		$filter = new stdClass();
 		$filter->filid = acymailing_getCID('filid');
 
-		$formData = JRequest::getVar('data', array(), '', 'array');
+		$formData = acymailing_getVar('array', 'data', array(), '');
 
 		foreach($formData['filter'] as $column => $value){
 			acymailing_secureField($column);
 			$filter->$column = strip_tags($value);
 		}
 		$config = acymailing_config();
-		$alltriggers = array_keys((array)JRequest::getVar('trigger'));
+		$alltriggers = array_keys((array)acymailing_getVar('none', 'trigger'));
 		$filter->trigger = implode(',', $alltriggers);
 		$newConfig = new stdClass();
 		foreach($alltriggers as $oneTrigger){
@@ -110,14 +115,11 @@ class filterClass extends acymailingClass{
 		}
 
 		if(in_array('daycron', $alltriggers)){
-			$oldTime = $config->get('cron_plugins_next', 0);
-			$newHours = JRequest::getVar('triggerhours');
-			$newMinutes = JRequest::getVar('triggerminutes');
+			$newHours = acymailing_getVar('none', 'triggerhours');
+			$newMinutes = acymailing_getVar('none', 'triggerminutes');
 			$newTime = acymailing_getTime(date('Y').'-'.date('m').'-'.date('d').' '.$newHours.':'.$newMinutes);
-			if($newTime < $oldTime || $newTime < time()){
-				$newTime += 86400;
-			}
-			$newConfig->cron_plugins_next = $newTime;
+			if($newTime < time()) $newTime += 86400;
+			$filter->daycron = $newTime;
 		}
 
 		if(!empty($newConfig)) $config->save($newConfig);
@@ -125,7 +127,7 @@ class filterClass extends acymailingClass{
 		$data = array('action', 'filter');
 		foreach($data as $oneData){
 			$filter->$oneData = array();
-			$formData = JRequest::getVar($oneData);
+			$formData = acymailing_getVar('none', $oneData);
 			if(!empty($formData['type'])){
 				foreach($formData['type'] as $num => $oneType){
 					if(empty($oneType)) continue;
@@ -139,7 +141,7 @@ class filterClass extends acymailingClass{
 		$filid = $this->save($filter);
 		if(!$filid) return false;
 
-		JRequest::setVar('filid', $filid);
+		acymailing_setVar('filid', $filid);
 		return true;
 	}
 
@@ -167,11 +169,10 @@ class filterClass extends acymailingClass{
 
 		if(empty($listids)) return 0;
 
-		JPluginHelper::importPlugin('acymailing');
-		$this->dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 		$query = new acyQuery();
 
-		JArrayHelper::toInteger($listids);
+		acymailing_arrayToInteger($listids);
 		$query->from = '#__acymailing_listsub as listsub';
 		$query->join[] = '#__acymailing_subscriber as sub ON sub.subid = listsub.subid';
 		$query->where[] = 'listsub.listid IN ('.implode(',', $listids).') AND listsub.status=1';
@@ -189,7 +190,7 @@ class filterClass extends acymailingClass{
 		if(!empty($filters['type'])){
 			foreach($filters['type'] as $num => $oneType){
 				if(empty($oneType)) continue;
-				$this->dispatcher->trigger('onAcyProcessFilter_'.$oneType, array(&$query, $filters[$num][$oneType], $num));
+				acymailing_trigger('onAcyProcessFilter_'.$oneType, array(&$query, $filters[$num][$oneType], $num));
 			}
 		}
 
@@ -203,40 +204,34 @@ class filterClass extends acymailingClass{
 					newdiv.id = 'filter'+numFilters;
 					newdiv.className = 'plugarea';
 					newdiv.innerHTML = '';
-					if(numFilters > 0) newdiv.innerHTML += '".JText::_('FILTER_AND')."';
+					if(numFilters > 0) newdiv.innerHTML += '".acymailing_translation('FILTER_AND')."';
 					newdiv.innerHTML += document.getElementById('filters_original').innerHTML.replace(/__num__/g, numFilters);
 					if(document.getElementById('allfilters')){
 						document.getElementById('allfilters').appendChild(newdiv); updateFilter(numFilters); numFilters++;
 					}
 				}
 				function countresults(num){ ";
-		$app = JFactory::getApplication();
-		if(!$app->isAdmin()) $js .= " return; ";
+		if(!acymailing_isAdmin()) $js .= " return; ";
 		$js .= "
 					if(document.getElementById('filtertype'+num).value == ''){
 						document.getElementById('countresult_'+num).innerHTML = '';
 						return;
 					}
 					document.getElementById('countresult_'+num).innerHTML = '<span class=\"onload\"></span>';
-					var form = document.getElementById('adminForm');
-					var data = form.toQueryString();
-					data += '&task=countresults&ctrl=filter';
-					try{
-						new Ajax('index.php?option=com_acymailing&tmpl=component&ctrl=filter&task=countresults&num='+num,{
-							method: 'post',
-							data: data,
-							update: document.getElementById('countresult_'+num)
-						}).request();
-					}catch(err){
-						new Request({
-							method: 'post',
-							data: data,
-							url: 'index.php?option=com_acymailing&tmpl=component&ctrl=filter&task=countresults&num='+num,
-							onSuccess: function(responseText, responseXML) {
-								document.getElementById('countresult_'+num).innerHTML = responseText;
-							}
-						}).send();
-					}
+
+					var dataform = new FormData(document.getElementById('adminForm'));
+					dataform.append('task', 'countresults');
+					dataform.append('ctrl', 'filter');
+					dataform.append('option', 'com_acymailing');
+					dataform.append('tmpl', 'component');
+					dataform.append('num', num);
+
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', 'index.php?option=com_acymailing&tmpl=component&ctrl=filter&task=countresults&num='+num);
+					xhr.onload = function(){
+						document.getElementById('countresult_'+num).innerHTML = xhr.responseText;
+					};
+					xhr.send(dataform);
 				}
 
 				function updateFilter(filterNum){
@@ -255,27 +250,17 @@ class filterClass extends acymailingClass{
 
 				function displayCondFilter(fct, element, num, extra){";
 		$ctrl = 'filter';
-		if(!$app->isAdmin()) $ctrl = 'frontfilter';
+		if(!acymailing_isAdmin()) $ctrl = 'frontfilter';
 		$js .= "
-					try{
-						var ajaxCall = new Ajax('index.php?option=com_acymailing&tmpl=component&ctrl=".$ctrl."&task=displayCondFilter&fct='+fct+'&num='+num+'&'+extra,{
-							method: 'get',
-							update: document.getElementById(element)
-						}).request();
-						ajaxCall.addEvent('onSuccess', function(){countresults(num);});
-					}catch(err){
-						new Request({
-							url:'index.php?option=com_acymailing&tmpl=component&ctrl=".$ctrl."&task=displayCondFilter&fct='+fct+'&num='+num+'&'+extra,
-							method: 'get',
-							onSuccess: function(responseText, responseXML) {
-								document.getElementById(element).innerHTML = responseText;
-								countresults(num);
-							}
-						}).send();
-					}
+					var xhr = new XMLHttpRequest();
+					xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=".$ctrl."&task=displayCondFilter&fct='+fct+'&num='+num+'&'+extra);
+					xhr.onload = function(){
+						document.getElementById(element).innerHTML = xhr.responseText;
+						countresults(num);
+					};
+					xhr.send();
 				}";
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($js);
+		acymailing_addScript(true, $js);
 
 		$this->addDateDetailHandling();
 
@@ -420,46 +405,45 @@ class filterClass extends acymailingClass{
 					}
 				}";
 
-		$doc = JFactory::getDocument();
-		$doc->addScriptDeclaration($js);
+		acymailing_addScript(true, $js);
 
 		$dateDetails = '<div id="dateDetails" style="display:none;z-index: 60;">';
 		$dateTypeData = array();
-		$dateTypeData[] = JHTML::_('select.option', 'relativedate', JText::_('ACY_RELATIVE_DATE'));
-		$dateTypeData[] = JHTML::_('select.option', 'specificdate', JText::_('ACY_SPECIFIC_DATE'));
-		$dateDetails .= '<div class="dateDetailType">'.JHTML::_('acyselect.radiolist', $dateTypeData, 'dateDetail_type', 'onchange="updateDateDetail(this);"', 'value', 'text', 'relativedate', 'dateDetail_type').'</div>';
+		$dateTypeData[] = acymailing_selectOption('relativedate', acymailing_translation('ACY_RELATIVE_DATE'));
+		$dateTypeData[] = acymailing_selectOption('specificdate', acymailing_translation('ACY_SPECIFIC_DATE'));
+		$dateDetails .= '<div class="dateDetailType">'.acymailing_radio($dateTypeData, 'dateDetail_type', 'onchange="updateDateDetail(this);"', 'value', 'text', 'relativedate', 'dateDetail_type').'</div>';
 		$dateDetails .= '<div id="relativeDate">';
 		$dateDetails .= '<input type="text" name="dateDetail_delay" id="dateDetail_delay" size="5" style="width:30px" value="0" pattern="[0-9]*"> ';
 		$tempData = array();
-		$tempData[] = JHTML::_('select.option', 'minutes', JText::_('ACY_MINUTES'));
-		$tempData[] = JHTML::_('select.option', 'hours', JText::_('HOURS'));
-		$tempData[] = JHTML::_('select.option', 'days', JText::_('DAYS'));
-		$dateDetails .= JHTML::_('select.genericlist', $tempData, 'dateDetail_length', 'style="width:100px"', 'value', 'text');
+		$tempData[] = acymailing_selectOption('minutes', acymailing_translation('ACY_MINUTES'));
+		$tempData[] = acymailing_selectOption('hours', acymailing_translation('HOURS'));
+		$tempData[] = acymailing_selectOption('days', acymailing_translation('DAYS'));
+		$dateDetails .= acymailing_select($tempData, 'dateDetail_length', 'style="width:100px"', 'value', 'text');
 		$tempData = array();
-		$tempData[] = JHTML::_('select.option', 'before', JText::_('ACY_BEFORE'));
-		$tempData[] = JHTML::_('select.option', 'after', JText::_('ACY_AFTER'));
-		$dateDetails .= JHTML::_('select.genericlist', $tempData, 'dateDetail_operator', 'style="width:100px"', 'value', 'text');
-		$dateDetails .= ' '.JText::_('ACY_EXECUTION_TIME');
+		$tempData[] = acymailing_selectOption('before', acymailing_translation('ACY_BEFORE'));
+		$tempData[] = acymailing_selectOption('after', acymailing_translation('ACY_AFTER'));
+		$dateDetails .= acymailing_select($tempData, 'dateDetail_operator', 'style="width:100px"', 'value', 'text');
+		$dateDetails .= ' '.acymailing_translation('ACY_EXECUTION_TIME');
 		$dateDetails .= '</div>';
 		$dateDetails .= '<div id="specificDate" style="display:none;">';
 		$tempData = array();
 		$currentYear = (int)date('Y');
 		for($i = 1970; $i <= $currentYear + 5; $i++){
-			$tempData[] = JHTML::_('select.option', $i, $i);
+			$tempData[] = acymailing_selectOption($i, $i);
 		}
-		$dateDetails .= JHTML::_('select.genericlist', $tempData, 'dateDetail_year', 'style="width:80px"', 'value', 'text');
+		$dateDetails .= acymailing_select($tempData, 'dateDetail_year', 'style="width:80px"', 'value', 'text');
 		$tempData = array();
 		for($i = 1; $i < 13; $i++){
 			$monthVal = ($i < 10 ? '0'.$i : $i);
-			$tempData[] = JHTML::_('select.option', $monthVal, $monthVal);
+			$tempData[] = acymailing_selectOption($monthVal, $monthVal);
 		}
-		$dateDetails .= JHTML::_('select.genericlist', $tempData, 'dateDetail_month', 'style="width:60px"', 'value', 'text');
+		$dateDetails .= acymailing_select($tempData, 'dateDetail_month', 'style="width:60px"', 'value', 'text');
 		$tempData = array();
 		for($i = 1; $i < 32; $i++){
 			$dayVal = ($i < 10 ? '0'.$i : $i);
-			$tempData[] = JHTML::_('select.option', $dayVal, $dayVal);
+			$tempData[] = acymailing_selectOption($dayVal, $dayVal);
 		}
-		$dateDetails .= JHTML::_('select.genericlist', $tempData, 'dateDetail_day', 'style="width:60px"', 'value', 'text');
+		$dateDetails .= acymailing_select($tempData, 'dateDetail_day', 'style="width:60px"', 'value', 'text');
 		$dateDetails .= '</div>';
 		$dateDetails .= '<div class="dateBtn"><input type="button" onClick="hideDateDetail();" class="btn btn-danger" value="Cancel"> <input type="button" onClick="validateDateField();" class="btn btn-success" value="OK"></div>';
 		$dateDetails .= '</div>';
@@ -481,8 +465,7 @@ class acyQuery{
 
 	function count(){
 		$myquery = $this->getQuery(array('COUNT(DISTINCT sub.subid)'));
-		$this->db->setQuery($myquery);
-		return $this->db->loadResult();
+		return acymailing_loadResult($myquery);
 	}
 
 	function getQuery($select = array()){
@@ -494,7 +477,6 @@ class acyQuery{
 		if(!empty($this->where)) $query .= ' WHERE ('.implode(') AND (', $this->where).')';
 		if(!empty($this->orderBy)) $query .= ' ORDER BY '.$this->orderBy;
 		if(!empty($this->limit)) $query .= ' LIMIT '.$this->limit;
-
 
 		return $query;
 	}

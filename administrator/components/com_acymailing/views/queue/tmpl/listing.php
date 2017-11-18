@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 	<div id="iframedoc"></div>
 
 	<?php if(empty($this->pageInfo->search) && empty($this->rows) && empty($pageInfo->selectedMail)){
-		acymailing_display(JText::_('ACY_EMPTY_QUEUE'),'info');
+		acymailing_display(acymailing_translation('ACY_EMPTY_QUEUE'),'info');
 		echo '</div>';
 		return;
 	}
@@ -33,28 +33,28 @@ defined('_JEXEC') or die('Restricted access');
 				<thead>
 				<tr>
 					<th class="title titlenum">
-						<?php echo JText::_('ACY_NUM'); ?>
+						<?php echo acymailing_translation('ACY_NUM'); ?>
 					</th>
 					<th class="title titledate">
-						<?php echo JHTML::_('grid.sort', JText::_('SEND_DATE'), 'a.senddate', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('SEND_DATE'), 'a.senddate', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title">
-						<?php echo JHTML::_('grid.sort', JText::_('JOOMEXT_SUBJECT'), 'c.subject', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('JOOMEXT_SUBJECT'), 'c.subject', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title">
-						<?php echo JHTML::_('grid.sort', JText::_('ACY_USER'), 'b.email', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('ACY_USER'), 'b.email', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title titletoggle">
-						<?php echo JHTML::_('grid.sort', JText::_('PRIORITY'), 'a.priority', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('PRIORITY'), 'a.priority', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title titletoggle">
-						<?php echo JHTML::_('grid.sort', JText::_('TRY'), 'a.try', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('TRY'), 'a.try', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title titletoggle">
-						<?php echo JText::_('ACY_DELETE'); ?>
+						<?php echo acymailing_translation('ACY_DELETE'); ?>
 					</th>
 					<th class="title titletoggle" nowrap="nowrap">
-						<?php echo JHTML::_('grid.sort', JText::_('ACY_PUBLISHED'), 'c.published', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('ACY_PUBLISHED'), 'c.published', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 				</tr>
 				</thead>
@@ -83,13 +83,13 @@ defined('_JEXEC') or die('Restricted access');
 							<?php echo acymailing_getDate($row->senddate); ?>
 						</td>
 						<td>
-							<a class="modal" href="<?php echo acymailing_completeLink('queue&task=preview&mailid='.$row->mailid.'&subid='.$row->subid, true) ?>" rel="{handler: 'iframe', size: {x: 800, y: 590}}">
-								<?php echo acymailing_dispSearch($row->subject, $this->pageInfo->search); ?>
-							</a>
+							<?php
+							$row->subject = Emoji::Decode($row->subject);
+							echo acymailing_popup(acymailing_completeLink('queue&task=preview&mailid='.$row->mailid.'&subid='.$row->subid, true), acymailing_dispSearch($row->subject, $this->pageInfo->search), '', 800, 590); ?>
 						</td>
 						<td>
 							<?php
-							echo acymailing_tooltip(JText::_('ACY_NAME').' : '.$row->name.'<br />'.JText::_('ACY_ID').' : '.$row->subid, $row->email, 'tooltip.png', $row->name.' ( '.$row->email.' )', acymailing_completeLink('subscriber&task=edit&subid='.$row->subid));
+							echo acymailing_tooltip(acymailing_translation('ACY_NAME').' : '.$row->name.'<br />'.acymailing_translation('ACY_ID').' : '.$row->subid, $row->email, 'tooltip.png', $row->name.' ( '.$row->email.' )', acymailing_completeLink('subscriber&task=edit&subid='.$row->subid));
 							?>
 						</td>
 						<td align="center" style="text-align:center">
@@ -112,12 +112,6 @@ defined('_JEXEC') or die('Restricted access');
 				</tbody>
 			</table>
 
-			<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-			<input type="hidden" name="task" value=""/>
-			<input type="hidden" name="ctrl" value="<?php echo JRequest::getCmd('ctrl'); ?>"/>
-			<input type="hidden" name="boxchecked" value="0"/>
-			<input type="hidden" name="filter_order" value="<?php echo $this->pageInfo->filter->order->value; ?>"/>
-			<input type="hidden" name="filter_order_Dir" value="<?php echo $this->pageInfo->filter->order->dir; ?>"/>
-			<?php echo JHTML::_('form.token'); ?>
+			<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 		</form>
 </div>

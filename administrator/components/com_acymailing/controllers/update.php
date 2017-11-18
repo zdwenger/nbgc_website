@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -34,33 +34,23 @@ class UpdateController extends acymailingController{
 			return;
 		}
 
-		jimport('joomla.filesystem.folder');
-		$frontLanguages = JFolder::folders(JPATH_ROOT.DS.'language', '-');
-		$backLanguages = JFolder::folders(JPATH_ADMINISTRATOR.DS.'language', '-');
+
+		$frontLanguages = acymailing_getFolders(ACYMAILING_ROOT.'language', '-');
+		$backLanguages = acymailing_getFolders(JPATH_ADMINISTRATOR.DS.'language', '-');
 		$installedLanguages = array_unique(array_merge($frontLanguages, $backLanguages));
 		if(($key = array_search('en-GB', $installedLanguages)) !== false) unset($installedLanguages[$key]);
 
 		if(!empty($installedLanguages)){
-			$js = 'try{
-				var ajaxCall = new Ajax("index.php?option=com_acymailing&ctrl=file&task=installLanguages&tmpl=component&languages='.implode(',', $installedLanguages).'",{
-					method: "get",
-					onComplete: function(responseText, responseXML) {
-						container = document.getElementById("acymailing_div");
-						container.innerHTML = responseText+container.innerHTML;
-					}
-				}).request();
-			}catch(err){
-				new Request({
-					url:"index.php?option=com_acymailing&ctrl=file&task=installLanguages&tmpl=component&languages='.implode(',', $installedLanguages).'",
-					method: "get",
-					onSuccess: function(responseText, responseXML) {
-						container = document.getElementById("acymailing_div");
-						container.innerHTML = responseText+container.innerHTML;
-					}
-				}).send();
-			}';
-			$doc = JFactory::getDocument();
-			$doc->addScriptDeclaration($js);
+			$js = '
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "index.php?option=com_acymailing&ctrl=file&task=installLanguages&tmpl=component&languages='.implode(',', $installedLanguages).'");
+			xhr.onload = function(){
+				container = document.getElementById("acymailing_div");
+				container.innerHTML = xhr.responseText+container.innerHTML;
+			};
+			xhr.send();';
+			acymailing_addScript(true, $js);
 		}
 
 		$updateHelper->initList();
@@ -73,26 +63,26 @@ class UpdateController extends acymailingController{
 		$updateHelper->addUpdateSite();
 		$updateHelper->fixMenu();
 
-		if(ACYMAILING_J30) JFile::move(ACYMAILING_BACK.'acymailing_j3.xml', ACYMAILING_BACK.'acymailing.xml');
+		if(ACYMAILING_J30) acymailing_moveFile(ACYMAILING_BACK.'acymailing_j3.xml', ACYMAILING_BACK.'acymailing.xml');
 
-		$acyToolbar = acymailing::get('helper.toolbar');
+		$acyToolbar = acymailing_get('helper.toolbar');
 		$acyToolbar->setTitle('AcyMailing', 'dashboard');
 		$acyToolbar->display();
 
-		$this->_iframe(ACYMAILING_UPDATEURL.'install&fromversion='.JRequest::getCmd('fromversion').'&fromlevel='.JRequest::getCmd('fromlevel'));
+		$this->_iframe(ACYMAILING_UPDATEURL.'install&fromversion='.acymailing_getVar('cmd', 'fromversion').'&fromlevel='.acymailing_getVar('cmd', 'fromlevel'));
 	}
 
 	function update(){
 
 		$config = acymailing_config();
 		if(!acymailing_isAllowed($config->get('acl_config_manage', 'all'))){
-			acymailing_display(JText::_('ACY_NOTALLOWED'), 'error');
+			acymailing_display(acymailing_translation('ACY_NOTALLOWED'), 'error');
 			return false;
 		}
 
-		$acyToolbar = acymailing::get('helper.toolbar');
-		$acyToolbar->setTitle(JText::_('UPDATE_ABOUT'), 'update');
-		$acyToolbar->link(acymailing_completeLink('dashboard'), JText::_('ACY_CLOSE'), 'cancel');
+		$acyToolbar = acymailing_get('helper.toolbar');
+		$acyToolbar->setTitle(acymailing_translation('UPDATE_ABOUT'), 'update');
+		$acyToolbar->link(acymailing_completeLink('dashboard'), acymailing_translation('ACY_CLOSE'), 'cancel');
 		$acyToolbar->display();
 
 		return $this->_iframe(ACYMAILING_UPDATEURL.'update');
@@ -142,7 +132,7 @@ class UpdateController extends acymailingController{
 	function acysms(){
 		$config = acymailing_config();
 		if(!acymailing_isAllowed($config->get('acl_configuration_manage', 'all'))){
-			acymailing_display(JText::_('ACY_NOTALLOWED'), 'error');
+			acymailing_display(acymailing_translation('ACY_NOTALLOWED'), 'error');
 			return false;
 		}
 		if(file_exists(JPATH_SITE.DS.'components'.DS.'com_acysms')) {
@@ -153,7 +143,7 @@ class UpdateController extends acymailingController{
 			}
 			$this->setRedirect('index.php?option=com_acysms');
 		}else{
-			JRequest::setVar('layout', 'acysms');
+			acymailing_setVar('layout', 'acysms');
 			return parent::display();
 		}
 	}

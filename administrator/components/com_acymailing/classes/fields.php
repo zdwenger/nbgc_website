@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -23,13 +23,12 @@ class fieldsClass extends acymailingClass{
 
 	var $dispatcher;
 
-	var $currentUser;
+	var $currentUserEmail;
 
 	var $origin;
 
 	function __construct($config = array()){
-		JPluginHelper::importPlugin('acymailing');
-		$this->dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 		return parent::__construct($config);
 	}
 
@@ -71,19 +70,11 @@ class fieldsClass extends acymailingClass{
 			$where[] = "a.`namekey` IN (".$namesField.")";
 		}
 
-		$app = JFactory::getApplication();
-		if(!$app->isAdmin() && acymailing_level(3)){
-			$my = JFactory::getUser();
-			if(!ACYMAILING_J16){
-				$groups = $my->gid;
-				$condGroup = ' OR a.access LIKE (\'%,'.$groups.',%\')';
-			}else{
-				jimport('joomla.access.access');
-				$groups = JAccess::getGroupsByUser($my->id, false);
-				$condGroup = '';
-				foreach($groups as $group){
-					$condGroup .= ' OR a.access LIKE (\'%,'.$group.',%\')';
-				}
+		if(!acymailing_isAdmin() && acymailing_level(3)){
+			$groups = acymailing_getGroupsByUser(acymailing_currentUserId(), false);
+			$condGroup = '';
+			foreach($groups as $group){
+				$condGroup .= ' OR a.access LIKE (\'%,'.$group.',%\')';
 			}
 			$filterAccess = 'AND (a.access = \'all\''.$condGroup.')';
 		}else{
@@ -95,7 +86,10 @@ class fieldsClass extends acymailingClass{
 		foreach($fields as $namekey => $field){
 			if(!empty($fields[$namekey]->options)){
 				$fields[$namekey]->options = unserialize($fields[$namekey]->options);
+			}else{
+				$fields[$namekey]->options = array();
 			}
+
 			if(!empty($field->value)){
 				$fields[$namekey]->value = $this->explodeValues($fields[$namekey]->value);
 			}
@@ -168,7 +162,7 @@ class fieldsClass extends acymailingClass{
 
 	function trans($name){
 		if(preg_match('#^[A-Z_]*$#', $name)){
-			return JText::_($name);
+			return acymailing_translation($name);
 		}
 		return $name;
 	}
@@ -179,7 +173,7 @@ class fieldsClass extends acymailingClass{
 		if(method_exists($this, $functionType)) return $this->$functionType($field, $value);
 
 		ob_start();
-		$resultTrigger = $this->dispatcher->trigger('onAcyListingField_'.$field->type, array($field, $value));
+		$resultTrigger = acymailing_trigger('onAcyListingField_'.$field->type, array($field, $value));
 		$pluginField = ob_get_clean();
 
 		if(!empty($pluginField)){

@@ -1,34 +1,34 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><br style="font-size:1px;"/>
 <div id="dash_users">
 
-	<h1 class="acy_graphtitle"> <?php echo JText::_('ACY_LAST_TEN_SUBSCRIBERS') ?> </h1>
+	<h1 class="acy_graphtitle"> <?php echo acymailing_translation('ACY_LAST_TEN_SUBSCRIBERS') ?> </h1>
 	<table class="acymailing_table" cellpadding="1">
 		<thead>
 		<tr>
 			<th class="title">
-				<?php echo JText::_('JOOMEXT_NAME'); ?>
+				<?php echo acymailing_translation('JOOMEXT_NAME'); ?>
 			</th>
 			<th class="title">
-				<?php echo JText::_('JOOMEXT_EMAIL'); ?>
+				<?php echo acymailing_translation('JOOMEXT_EMAIL'); ?>
 			</th>
 			<th class="title titledate">
-				<?php echo JText::_('CREATED_DATE'); ?>
+				<?php echo acymailing_translation('CREATED_DATE'); ?>
 			</th>
 			<th class="title titletoggle">
-				<?php echo JText::_('RECEIVE_HTML'); ?>
+				<?php echo acymailing_translation('RECEIVE_HTML'); ?>
 			</th>
 			<?php if($this->config->get('require_confirmation', 1)){ ?>
 				<th class="title titletoggle">
-					<?php echo JText::_('CONFIRMED'); ?>
+					<?php echo acymailing_translation('CONFIRMED'); ?>
 				</th>
 			<?php } ?>
 		</tr>

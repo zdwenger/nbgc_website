@@ -1,58 +1,55 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="<?php echo JRoute::_('index.php?option=com_acymailing&ctrl=cpanel'); ?>" method="post" name="adminForm" autocomplete="off" id="adminForm">
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value=""/>
-		<input type="hidden" name="ctrl" value="cpanel"/>
-		<?php echo JHTML::_('form.token');
+	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl=cpanel'); ?>" method="post" name="adminForm" autocomplete="off" id="adminForm">
+		<?php acymailing_formOptions();
 
 		echo '<div class="acytabsystem">';
 		echo $this->tabs->startPane('config_tab');
 
-		echo $this->tabs->startPanel(JText::_('MAIL_CONFIG'), 'config_mail');
+		echo $this->tabs->startPanel(acymailing_translation('MAIL_CONFIG'), 'config_mail');
 		include(dirname(__FILE__).DS.'mail.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('QUEUE_PROCESS'), 'config_queue');
+		echo $this->tabs->startPanel(acymailing_translation('QUEUE_PROCESS'), 'config_queue');
 		include(dirname(__FILE__).DS.'queue.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('SUBSCRIPTION'), 'config_subscription');
+		echo $this->tabs->startPanel(acymailing_translation('SUBSCRIPTION'), 'config_subscription');
 		include(dirname(__FILE__).DS.'subscription.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('INTERFACE'), 'config_interface');
+		echo $this->tabs->startPanel(acymailing_translation('INTERFACE'), 'config_interface');
 		include(dirname(__FILE__).DS.'interface.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('SECURITY'), 'config_security');
+		echo $this->tabs->startPanel(acymailing_translation('SECURITY'), 'config_security');
 		include(dirname(__FILE__).DS.'security.php');
 		echo $this->tabs->endPanel();
 
 		if(file_exists(dirname(__FILE__).DS.'others.php')){
-			echo $this->tabs->startPanel(JText::_('OTHERS'), 'config_others');
+			echo $this->tabs->startPanel(acymailing_translation('OTHERS'), 'config_others');
 			include(dirname(__FILE__).DS.'others.php');
 			echo $this->tabs->endPanel();
 		}
 
-		echo $this->tabs->startPanel(JText::_('ACCESS_LEVEL'), 'config_acl');
+		echo $this->tabs->startPanel(acymailing_translation('ACCESS_LEVEL'), 'config_acl');
 		include(dirname(__FILE__).DS.'acl.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('PLUGINS'), 'config_plugins');
+		echo $this->tabs->startPanel(acymailing_translation('PLUGINS'), 'config_plugins');
 		include(dirname(__FILE__).DS.'plugins.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(JText::_('LANGUAGES'), 'config_languages');
+		echo $this->tabs->startPanel(acymailing_translation('LANGUAGES'), 'config_languages');
 		include(dirname(__FILE__).DS.'languages.php');
 		echo $this->tabs->endPanel();
 

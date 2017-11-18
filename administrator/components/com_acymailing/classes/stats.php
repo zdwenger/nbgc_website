@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -21,18 +21,17 @@ class statsClass extends acymailingClass{
 
 
 	function saveStats(){
-		$subid = empty($this->subid) ? JRequest::getInt('subid') : $this->subid;
-		$mailid = empty($this->mailid) ? JRequest::getInt('mailid') : $this->mailid;
+		$subid = empty($this->subid) ? acymailing_getVar('int', 'subid') : $this->subid;
+		$mailid = empty($this->mailid) ? acymailing_getVar('int', 'mailid') : $this->mailid;
 		if(empty($subid) OR empty($mailid)) return false;
 		if(acymailing_isRobot()) return false;
 
 		$db = JFactory::getDBO();
-		$db->setQuery('SELECT `open` FROM '.acymailing_table('userstats').' WHERE `mailid` = '.intval($mailid).' AND `subid` = '.intval($subid).' LIMIT 1');
-		$actual = $db->loadObject();
+		$actual = acymailing_loadObject('SELECT `open` FROM '.acymailing_table('userstats').' WHERE `mailid` = '.intval($mailid).' AND `subid` = '.intval($subid).' LIMIT 1');
 		if(empty($actual)) return false;
 
 		$userHelper = acymailing_get('helper.user');
-		$db->setQuery('UPDATE #__acymailing_subscriber SET `lastopen_date` = '.time().', `lastopen_ip` = '.$db->Quote($userHelper->getIP()).' WHERE `subid` = '.intval($subid));
+		$db->setQuery('UPDATE #__acymailing_subscriber SET `lastopen_date` = '.time().', `lastopen_ip` = '.acymailing_escapeDB($userHelper->getIP()).' WHERE `subid` = '.intval($subid));
 		try{
 			$results = $db->query();
 		}catch(Exception $e){
@@ -58,7 +57,7 @@ class statsClass extends acymailingClass{
 		$ipClass = acymailing_get('helper.user');
 		$ip = $ipClass->getIP();
 
-		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET open = '.$open.', opendate = '.time().', `ip`= '.$db->Quote($ip).' WHERE mailid = '.$mailid.' AND subid = '.$subid);
+		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET open = '.$open.', opendate = '.time().', `ip`= '.acymailing_escapeDB($ip).' WHERE mailid = '.$mailid.' AND subid = '.$subid);
 		try{
 			$results = $db->query();
 		}catch(Exception $e){
@@ -266,7 +265,7 @@ class statsClass extends acymailingClass{
 			}
 		}
 
-		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET `is_mobile` = '.intval($isMobile).', `mobile_os` = '.$db->Quote($osName).', `browser` = '.$db->Quote($name).', browser_version = '.intval($version).', user_agent = '.$db->Quote($agent).' WHERE mailid = '.$mailid.' AND subid = '.$subid.' LIMIT 1');
+		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET `is_mobile` = '.intval($isMobile).', `mobile_os` = '.acymailing_escapeDB($osName).', `browser` = '.acymailing_escapeDB($name).', browser_version = '.intval($version).', user_agent = '.acymailing_escapeDB($agent).' WHERE mailid = '.$mailid.' AND subid = '.$subid.' LIMIT 1');
 		try{
 			$results = $db->query();
 		}catch(Exception $e){
@@ -289,9 +288,8 @@ class statsClass extends acymailingClass{
 		$classGeoloc = acymailing_get('class.geolocation');
 		$classGeoloc->saveGeolocation('open', $subid);
 
-		JPluginHelper::importPlugin('acymailing');
-		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('onAcyOpenMail', array($subid, $mailid));
+		acymailing_importPlugin('acymailing');
+		acymailing_trigger('onAcyOpenMail', array($subid, $mailid));
 
 		return true;
 	}

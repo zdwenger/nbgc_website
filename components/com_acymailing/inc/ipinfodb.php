@@ -47,7 +47,6 @@ class ipinfodbInc{
 	}
 	function curlRequest($ip, $name) {
 		$qs = 'http://' . $this->service . '/' . $this->version . '/' . $name . '/' . '?ip=' . $ip . '&format=json&key=' . $this->apiKey;
-		$app = JFactory::getApplication();
 		if(!function_exists('curl_init')){
 			//$app->enqueueMessage('The AcyMailing geolocation plugin needs the CURL library installed but it seems that it is not available on your server. Please contact your web hosting to set it up.','error');
 			$this->errors[] = 'The AcyMailing geolocation plugin needs the CURL library installed but it seems that it is not available on your server. Please contact your web hosting to set it up.';

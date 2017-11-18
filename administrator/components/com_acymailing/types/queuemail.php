@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -23,13 +23,13 @@ class queuemailType{
 		}
 
 		$this->values = array();
-		$this->values[] = JHTML::_('select.option', '0', JText::_('ALL_EMAILS') );
+		$this->values[] = acymailing_selectOption('0', acymailing_translation('ALL_EMAILS'));
 		foreach($subjects as $mailid => $oneMail){
-			$this->values[] = JHTML::_('select.option', $mailid, $oneMail->subject.' ( '.$allmails[$mailid]->total.' )' );
+			$this->values[] = acymailing_selectOption($mailid, $oneMail->subject.' ( '.$allmails[$mailid]->total.' )' );
 		}
 	}
 
 	function display($map,$value){
-		return JHTML::_('select.genericlist',   $this->values, $map, 'class="inputbox" style="max-width:600px;width:auto;" size="1" onchange="document.adminForm.submit( );"', 'value', 'text', (int) $value );
+		return acymailing_select(  $this->values, $map, 'class="inputbox" style="max-width:600px;width:auto;" size="1" onchange="document.adminForm.submit( );"', 'value', 'text', (int) $value );
 	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -31,7 +31,7 @@ class acyeditorHelper{
 
 	function __construct(){
 
-		$config =& acymailing_config();
+		$config = acymailing_config();
 		$this->editor = $config->get('editor',null);
 		if(empty($this->editor)) $this->editor = null;
 
@@ -49,8 +49,7 @@ class acyeditorHelper{
 	function setTemplate($id){
 		if(empty($id)) return;
 
-		$app = JFactory::getApplication();
-		$cssurl = rtrim(JURI::root(),'/').'/'.($app->isAdmin() ? 'administrator/index.php?option=com_acymailing&ctrl=template':'index.php?option=com_acymailing&ctrl=fronttemplate').'&task=load&tempid='.$id.'&time='.time();
+		$cssurl = rtrim(acymailing_rootURI(),'/').'/'.(acymailing_isAdmin() ? 'administrator/index.php?option=com_acymailing&ctrl=template':'index.php?option=com_acymailing&ctrl=fronttemplate').'&task=load&tempid='.$id.'&time='.time();
 
 		$name = $this->myEditor->get('_name');
 
@@ -69,35 +68,7 @@ class acyeditorHelper{
 			$this->editorConfig['custom_css_url'] = $cssurl;
 			$this->editorConfig['custom_css_file'] = $fileurl;
 			$this->editorConfig['custom_css_path'] = $filepath;
-			JRequest::setVar('acycssfile',$fileurl);
-
-			if($name == 'jce'){
-				$jcepath = ACYMAILING_ROOT.'administrator'.DS.'components'.DS.'com_jce'.DS.'models'.DS;
-				if(file_exists($jcepath.'editor.php')){
-					jimport('joomla.filesystem.file');
-					$content = JFile::read($jcepath.'editor.php');
-					if(!strpos($content,'acycssfile')){
-						$acycode = '
-			if(JRequest::getCmd(\'option\') == \'com_acymailing\'){
-				$acycssfile = JRequest::getString(\'acycssfile\');
-				if(!empty($acycssfile)) $settings[\'content_css\'] = $acycssfile;
-			}
-			';
-						$content = preg_replace('#(\$settings\[\'content_css\'\][^=]*= *[^;]*;)#','$1'.$acycode,$content);
-						if(strpos($content,'acycssfile')){
-							if(!file_exists($jcepath.'editor_backup.php')){
-								if(JFile::copy($jcepath.'editor.php',$jcepath.'editor_backup.php') !== true){
-									acymailing_display('Could not copy the file from '.$jcepath.'editor.php to '.$jcepath.'editor_backup.php','error');
-								}
-							}
-							if(JFile::write($jcepath.'editor.php',$content) !== true){
-								acymailing_display('Could not write in '.$jcepath.'editor.php <br /> Please make sure this folder is writable','error');
-							}
-						}
-					}
-				}
-
-			}
+			acymailing_setVar('acycssfile', $fileurl);
 		}
 	}
 
@@ -124,7 +95,8 @@ class acyeditorHelper{
 	function setContent($var){
 		$name = $this->myEditor->get('_name');
 		if(method_exists($this->myEditor,'setContent')){
-			$function = "try{".$this->myEditor->setContent($this->name,$var)." }catch(err){alert('Error using the setContent function of the wysiwyg editor')}";
+			$function = "try{ Joomla.editors.instances['".$this->name."'].setValue(".$var."); }catch(err){alert('Error using the setContent function of the wysiwyg editor')} ";
+			$function = "try{".$this->myEditor->setContent($this->name,$var)." }catch(err){".$function."}";
 		}else{
 			$function = "alert('There is no setContent method defined for this editor');";
 		}
@@ -145,17 +117,38 @@ class acyeditorHelper{
 			if($name == 'artofeditor'){
 				return " try{CKEDITOR.instances.".$this->name.".setData( $var ); }catch(err){".$function."} ";
 			}
+			if($name == 'tinymce'){
+				return ' try{ Joomla.editors.instances["'.$this->name.'"].setValue('.$var.'); }catch(err){'.$function.'} ';
+			}
 		}
 
 		return $function;
 	}
 
 	function setEditorStylesheet($tempid){
+		if(acymailing_isAdmin()) $cssurl = 'administrator/index.php?option=com_acymailing&ctrl=template';
+		else $cssurl = 'index.php?option=com_acymailing&ctrl=fronttemplate';
 
-		$app = JFactory::getApplication();
-		$cssurl = rtrim(JURI::root(),'/').'/'.($app->isAdmin() ? 'administrator/index.php?option=com_acymailing&ctrl=template':'index.php?option=com_acymailing&ctrl=fronttemplate').'&task=load&time='.time().'&tempid=';
+		$cssurl = rtrim(acymailing_rootURI(),'/').'/'.$cssurl.'&task=load&time='.time().'&tempid=';
 
-		$function = 'try{setEditorStylesheet(\''.$this->name.'\',\''.$cssurl.'\'+'.$tempid.',\'media/com_acymailing/templates/css/template_\'+'.$tempid.'+\'.css\')}catch(err){}';
+		$function = 'if('.$tempid.' !== 0){
+						try{
+							setEditorStylesheet(\''.$this->name.'\',\''.$cssurl.'\'+'.$tempid.',\'media/com_acymailing/templates/css/template_\'+'.$tempid.'+\'.css\');
+						}catch(err){
+							var iframe = document.getElementById("'.$this->name.'_ifr");
+							if(typeof iframe != undefined && iframe){
+								var css = iframe.contentDocument.querySelector(\'link[href*="media/com_acymailing/templates/css/template_"]\');
+								if(typeof css != undefined && css){
+									css.href = css.href.replace(/template_\d{1,10}.css/, "template_"+'.$tempid.'+".css");
+								}else{
+									var css = iframe.contentDocument.querySelector(\'link[href*="com_acymailing&ctrl=template&task=load&tempid="]\');
+									if(typeof css != undefined && css){
+										css.href = css.href.replace(/&tempid=\d{1,10}&time/, "&tempid="+'.$tempid.'+"&time");
+									}
+								}
+							}
+						}
+					}';
 
 		return $function;
 	}

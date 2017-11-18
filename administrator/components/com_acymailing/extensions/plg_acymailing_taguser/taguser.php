@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -22,11 +22,9 @@ class plgAcymailingTaguser extends JPlugin{
 	}
 
 	function acymailing_getPluginType(){
-
-		$app = JFactory::getApplication();
-		if($this->params->get('frontendaccess') == 'none' && !$app->isAdmin()) return;
+		if($this->params->get('frontendaccess') == 'none' && !acymailing_isAdmin()) return;
 		$onePlugin = new stdClass();
-		$onePlugin->name = JText::_('TAGUSER_TAGUSER');
+		$onePlugin->name = acymailing_translation('TAGUSER_TAGUSER');
 		$onePlugin->function = 'acymailingtaguser_show';
 		$onePlugin->help = 'plugin-taguser';
 
@@ -51,9 +49,9 @@ class plgAcymailingTaguser extends JPlugin{
 		</script>
 		<?php
 		$typeinfo = array();
-		$typeinfo[] = JHTML::_('select.option', "receiver", JText::_('RECEIVER_INFORMATION'));
-		$typeinfo[] = JHTML::_('select.option', "sender", JText::_('SENDER_INFORMATIONS'));
-		echo JHTML::_('acyselect.radiolist', $typeinfo, 'typeinfo', '', 'value', 'text', 'receiver');
+		$typeinfo[] = acymailing_selectOption("receiver", acymailing_translation('RECEIVER_INFORMATION'));
+		$typeinfo[] = acymailing_selectOption("sender", acymailing_translation('SENDER_INFORMATIONS'));
+		echo acymailing_radio($typeinfo, 'typeinfo', '', 'value', 'text', 'receiver');
 
 
 		$notallowed = array('password', 'params', 'sendemail', 'gid', 'block', 'email', 'name', 'id');
@@ -62,10 +60,10 @@ class plgAcymailingTaguser extends JPlugin{
 		$fields = acymailing_getColumns('#__users');
 		if(ACYMAILING_J30) $fields = array_merge($fields, array('usertype' => 'usertype'));
 
-		$descriptions['username'] = JText::_('TAGUSER_USERNAME');
-		$descriptions['usertype'] = JText::_('TAGUSER_GROUP');
-		$descriptions['lastvisitdate'] = JText::_('TAGUSER_LASTVISIT');
-		$descriptions['registerdate'] = JText::_('TAGUSER_REGISTRATION');
+		$descriptions['username'] = acymailing_translation('TAGUSER_USERNAME');
+		$descriptions['usertype'] = acymailing_translation('TAGUSER_GROUP');
+		$descriptions['lastvisitdate'] = acymailing_translation('TAGUSER_LASTVISIT');
+		$descriptions['registerdate'] = acymailing_translation('TAGUSER_REGISTRATION');
 
 		$k = 0;
 		foreach($fields as $fieldname => $oneField){
@@ -93,7 +91,7 @@ class plgAcymailingTaguser extends JPlugin{
 		}else{
 			$link = 'index.php?option=com_user&task=activate&activation={usertag:activation|info:receiver}';
 		}
-		$text .= '<tr style="cursor:pointer" class="row'.$k.'" onclick="setTag(\''.htmlentities('<a target="_blank" href="'.$link.'">'.JText::_('JOOMLA_CONFIRM_ACCOUNT').'</a>').'\'); insertTag();" ><td class="acytdcheckbox"></td><td>confirmJoomla</td><td>'.JText::_('JOOMLA_CONFIRM_LINK').'</td></tr>';
+		$text .= '<tr style="cursor:pointer" class="row'.$k.'" onclick="setTag(\''.htmlentities('<a target="_blank" href="'.$link.'">'.acymailing_translation('JOOMLA_CONFIRM_ACCOUNT').'</a>').'\'); insertTag();" ><td class="acytdcheckbox"></td><td>confirmJoomla</td><td>'.acymailing_translation('JOOMLA_CONFIRM_LINK').'</td></tr>';
 
 		$text .= '</table></div>';
 
@@ -121,9 +119,9 @@ class plgAcymailingTaguser extends JPlugin{
 				$idused = $email->userid;
 				$save = true;
 			}
-			if(!empty($mytag->info) && $mytag->info == 'current'){
-				$my = JFactory::getUser();
-				if(!empty($my->id)) $idused = $my->id;
+			if(!empty($mytag->info) && $mytag->info == 'current'){   
+				$currentUserid = acymailing_currentUserId();
+				if(!empty($currentUserid)) $idused = $currentUserid;
 			}
 			if((empty($mytag->info) || $mytag->info == 'receiver') && !empty($user->userid)){
 				$idused = $user->userid;
@@ -175,13 +173,13 @@ class plgAcymailingTaguser extends JPlugin{
 		$fields = acymailing_getColumns('#__users');
 		if(empty($fields)) return;
 
-		$type['joomlafield'] = JText::_('JOOMLA_FIELD');
-		$type['joomlagroup'] = JText::_('ACY_GROUP');
+		$type['joomlafield'] = acymailing_translation('JOOMLA_FIELD');
+		$type['joomlagroup'] = acymailing_translation('ACY_GROUP');
 
 		$field = array();
-		$field[] = JHTML::_('select.option', 0, '- - -');
+		$field[] = acymailing_selectOption(0, '- - -');
 		foreach($fields as $oneField => $fieldType){
-			$field[] = JHTML::_('select.option', $oneField, $oneField);
+			$field[] = acymailing_selectOption($oneField, $oneField);
 		}
 
 		if(ACYMAILING_J16){
@@ -189,7 +187,7 @@ class plgAcymailingTaguser extends JPlugin{
 			$extraFields = $db->loadObjectList();
 			if(!empty($extraFields)){
 				foreach($extraFields as $oneField){
-					$field[] = JHTML::_('select.option', 'customfield_'.$oneField->profile_key, $oneField->profile_key);
+					$field[] = acymailing_selectOption('customfield_'.$oneField->profile_key, $oneField->profile_key);
 				}
 			}
 		}
@@ -199,7 +197,7 @@ class plgAcymailingTaguser extends JPlugin{
 		$operators = acymailing_get('type.operators');
 		$operators->extra = 'onchange="'.$jsOnChange.'countresults(__num__)"';
 
-		$return = '<div id="filter__num__joomlafield">'.JHTML::_('select.genericlist', $field, "filter[__num__][joomlafield][map]", 'class="inputbox" size="1" onchange="'.$jsOnChange.'countresults(__num__)"', 'value', 'text');
+		$return = '<div id="filter__num__joomlafield">'.acymailing_select($field, "filter[__num__][joomlafield][map]", 'class="inputbox" size="1" onchange="'.$jsOnChange.'countresults(__num__)"', 'value', 'text');
 		$return .= ' '.$operators->display("filter[__num__][joomlafield][operator]").' <span id="toChange__num__"><input onchange="countresults(__num__)" class="inputbox" type="text" name="filter[__num__][joomlafield][value]" id="filter__num__joomlafieldvalue" style="width:200px" value=""></span></div>';
 
 		if(!ACYMAILING_J16){
@@ -220,16 +218,16 @@ class plgAcymailingTaguser extends JPlugin{
 		$inoperator = acymailing_get('type.operatorsin');
 		$inoperator->js = 'onchange="countresults(__num__)"';
 
-		$return .= '<div id="filter__num__joomlagroup">'.$inoperator->display("filter[__num__][joomlagroup][type]").' '.JHTML::_('select.genericlist', $groups, "filter[__num__][joomlagroup][group]", 'class="inputbox" size="1" onchange="countresults(__num__)"', 'value', 'text').'<label for="filter__num__joomlagroupsubgroups"><input type="checkbox" value="1" id="filter__num__joomlagroupsubgroups" name="filter[__num__][joomlagroup][subgroups]" onchange="countresults(__num__)"/>'.JText::_('ACY_SUB_GROUPS').'</label></div>';
+		$return .= '<div id="filter__num__joomlagroup">'.$inoperator->display("filter[__num__][joomlagroup][type]").' '.acymailing_select($groups, "filter[__num__][joomlagroup][group]", 'class="inputbox" size="1" onchange="countresults(__num__)"', 'value', 'text').'<label for="filter__num__joomlagroupsubgroups"><input type="checkbox" value="1" id="filter__num__joomlagroupsubgroups" name="filter[__num__][joomlagroup][subgroups]" onchange="countresults(__num__)"/>'.acymailing_translation('ACY_SUB_GROUPS').'</label></div>';
 
 		return $return;
 	}
 
 	function onAcyTriggerFct_displayUserValues(){
-		$num = JRequest::getInt('num');
-		$map = JRequest::getCmd('map');
-		$cond = JRequest::getVar('cond', '', '', 'string', JREQUEST_ALLOWHTML);
-		$value = JRequest::getVar('value', '', '', 'string', JREQUEST_ALLOWHTML);
+		$num = acymailing_getVar('int', 'num');
+		$map = acymailing_getVar('cmd', 'map');
+		$cond = acymailing_getVar('string', 'cond', '', '', JREQUEST_ALLOWHTML);
+		$value = acymailing_getVar('string', 'value', '', '', JREQUEST_ALLOWHTML);
 
 		$emptyInputReturn = '<input onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][joomlafield][value]" id="filter'.$num.'joomlafieldvalue" style="width:200px" value="'.$value.'">';
 		$dateInput = '<input onclick="displayDatePicker(this,event)" onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][joomlafield][value]" id="filter'.$num.'joomlafieldvalue" style="width:200px" value="'.$value.'">';
@@ -244,16 +242,16 @@ class plgAcymailingTaguser extends JPlugin{
 
 		if(empty($prop) || count($prop) >= 100 || (count($prop) == 1 && (empty($prop[0]->value) || $prop[0]->value == '-'))) return $emptyInputReturn;
 
-		return JHTML::_('select.genericlist', $prop, "filter[$num][joomlafield][value]", 'onchange="countresults('.$num.')" class="inputbox" size="1" style="width:200px"', 'value', 'value', $value, 'filter'.$num.'joomlafieldvalue');
+		return acymailing_select($prop, "filter[$num][joomlafield][value]", 'onchange="countresults('.$num.')" class="inputbox" size="1" style="width:200px"', 'value', 'value', $value, 'filter'.$num.'joomlafieldvalue');
 	}
 
 	function onAcyProcessFilterCount_joomlafield(&$query, $filter, $num){
 		$this->onAcyProcessFilter_joomlafield($query, $filter, $num);
-		return JText::sprintf('SELECTED_USERS', $query->count());
+		return acymailing_translation_sprintf('SELECTED_USERS', $query->count());
 	}
 
 	function onAcyDisplayFilter_joomlafield($filter){
-		return JText::_('JOOMLA_FIELD').' : '.$filter['map'].' '.$filter['operator'].' '.$filter['value'];
+		return acymailing_translation('JOOMLA_FIELD').' : '.$filter['map'].' '.$filter['operator'].' '.$filter['value'];
 	}
 
 
@@ -285,7 +283,7 @@ class plgAcymailingTaguser extends JPlugin{
 
 	function onAcyProcessFilterCount_joomlagroup(&$query, $filter, $num){
 		$this->onAcyProcessFilter_joomlagroup($query, $filter, $num);
-		return JText::sprintf('SELECTED_USERS', $query->count());
+		return acymailing_translation_sprintf('SELECTED_USERS', $query->count());
 	}
 
 	function onAcyProcessFilter_joomlagroup(&$query, $filter, $num){

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -21,7 +21,7 @@ class plgAcymailingContentplugin extends JPlugin
 		}
 
 		$this->paramsContent = JComponentHelper::getParams('com_content');
-		JPluginHelper::importPlugin('content');
+		acymailing_importPlugin('content');
 		$this->dispatcherContent = JDispatcher::getInstance();
 
 		$excludedHandlers = array('plgContentEmailCloak','pluginImageShow');
@@ -65,10 +65,10 @@ class plgAcymailingContentplugin extends JPlugin
 			if(!empty($email->body)){
 				$art->text = $email->body;
 				if(!ACYMAILING_J16){
-					$resultsPlugin = $this->dispatcherContent->trigger('onPrepareContent', array (&$art, &$this->paramsContent, 0 ));
+					$resultsPlugin = acymailing_trigger('onPrepareContent', array(&$art, &$this->paramsContent, 0));
 				}else{
 					if($send) $art->text .= '{emailcloak=off}';
-					$resultsPlugin = $this->dispatcherContent->trigger('onContentPrepare', array ($context,&$art, &$this->paramsContent, 0 ));
+					$resultsPlugin = acymailing_trigger('onContentPrepare', array($context, &$art, &$this->paramsContent, 0));
 					if($send) $art->text = str_replace(array('{emailcloak=off}','{* emailcloak=off}'),'',$art->text);
 				}
 				$email->body = $art->text;
@@ -76,7 +76,7 @@ class plgAcymailingContentplugin extends JPlugin
 			if(!empty($email->altbody)){
 				$art->text = $email->altbody;
 				if(!ACYMAILING_J16){
-					$resultsPlugin = $this->dispatcherContent->trigger('onPrepareContent', array (&$art, &$this->paramsContent, 0 ));
+					$resultsPlugin = acymailing_trigger('onPrepareContent', array(&$art, &$this->paramsContent, 0));
 				}else{
 					if($send) $art->text .= '{emailcloak=off}';
 					$resultsPlugin = $this->dispatcherContent->trigger('onContentPrepare', array ($context,&$art, &$this->paramsContent, 0 ));

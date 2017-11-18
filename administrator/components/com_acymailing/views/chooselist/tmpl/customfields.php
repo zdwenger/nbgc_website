@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -41,7 +41,7 @@ defined('_JEXEC') or die('Restricted access');
 
 		window.top.document.getElementById('<?php echo $this->controlName; ?>customfields').value = tag;
 		window.top.document.getElementById('link<?php echo $this->controlName; ?>customfields').href = 'index.php?option=com_acymailing&tmpl=component&ctrl=chooselist&task=customfields&control=<?php echo $this->controlName; ?>&values='+tag;
-		acymailing_js.closeBox(true);
+		acymailing.closeBox(true);
 	}
 //-->
 </script>
@@ -52,7 +52,7 @@ defined('_JEXEC') or die('Restricted access');
 </style>
 <form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>" method="post" name="adminForm" id="adminForm" >
 <div style="float:right;margin-bottom : 10px">
-	<button class="acymailing_button_grey" id="insertButton" onclick="insertTag(); return false;"><?php echo JText::_('ACY_APPLY'); ?></button>
+	<button class="acymailing_button_grey" id="insertButton" onclick="insertTag(); return false;"><?php echo acymailing_translation('ACY_APPLY'); ?></button>
 </div>
 <div style="clear:both"/>
 	<table class="acymailing_table" cellpadding="1">
@@ -62,13 +62,13 @@ defined('_JEXEC') or die('Restricted access');
 
 				</th>
 				<th class="title">
-					<?php echo JText::_('FIELD_COLUMN'); ?>
+					<?php echo acymailing_translation('FIELD_COLUMN'); ?>
 				</th>
 				<th class="title">
-					<?php echo JText::_('FIELD_LABEL'); ?>
+					<?php echo acymailing_translation('FIELD_LABEL'); ?>
 				</th>
 				<th class="title titleid">
-					<?php echo JText::_('ACY_ID'); ?>
+					<?php echo acymailing_translation('ACY_ID'); ?>
 				</th>
 			</tr>
 		</thead>

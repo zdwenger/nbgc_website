@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -69,7 +69,7 @@ class acyqueueHelper{
 		if(empty($queueElements)){
 			$this->finish = true;
 			if($this->report){
-				acymailing_display('<a href="index.php?option=com_acymailing&ctrl=queue" target="_blank">'.JText::_('NO_PROCESS').'</a>', 'warning');
+				acymailing_display('<a href="index.php?option=com_acymailing&ctrl=queue" target="_blank">'.acymailing_translation('NO_PROCESS').'</a>', 'warning');
 			}
 			return true;
 		}
@@ -91,16 +91,16 @@ class acyqueueHelper{
 			}
 
 			$disp = '<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />';
-			$disp .= '<title>'.JText::_('SEND_PROCESS').'</title>';
+			$disp .= '<title>'.acymailing_translation('SEND_PROCESS').'</title>';
 			$disp .= '<style>body{font-size:12px;font-family: Arial,Helvetica,sans-serif;}</style></head><body>';
-			$disp .= '<div style="margin-bottom: 18px;padding: 8px !important; background-color: #fcf8e3; border: 1px solid #fbeed5; border-radius: 4px;"><p style="margin:0;">'.JText::_('ACY_DONT_CLOSE').'</p></div>';
+			$disp .= '<div style="margin-bottom: 18px;padding: 8px !important; background-color: #fcf8e3; border: 1px solid #fbeed5; border-radius: 4px;"><p style="margin:0;">'.acymailing_translation('ACY_DONT_CLOSE').'</p></div>';
 			$disp .= "<div style='display: inline;background-color : white;border : 1px solid grey; padding : 3px;font-size:14px'>";
 			$disp .= "<span id='divpauseinfo' style='padding:10px;margin:5px;font-size:16px;font-weight:bold;display:none;background-color:black;color:white;'> </span>";
-			$disp .= JText::_('SEND_PROCESS').': <span id="counter" >'.$this->start.'</span> / '.$this->total;
+			$disp .= acymailing_translation('SEND_PROCESS').': <span id="counter" >'.$this->start.'</span> / '.$this->total;
 			$disp .= '</div>';
 			$disp .= "<div id='divinfo' style='display:none; position:fixed; bottom:3px;left:3px;background-color : white; border : 1px solid grey; padding : 3px;'> </div>";
 			$disp .= '<br /><br />';
-			$url = JURI::base().'index.php?option=com_acymailing&ctrl=send&tmpl=component&task=continuesend&mailid='.$this->mailid.'&totalsend='.$this->total.'&alreadysent=';
+			$url = acymailing_baseURI().'index.php?option=com_acymailing&ctrl=send&tmpl=component&task=continuesend&mailid='.$this->mailid.'&totalsend='.$this->total.'&alreadysent=';
 			$disp .= '<script type="text/javascript" language="javascript">';
 			$disp .= 'var mycounter = document.getElementById("counter");';
 			$disp .= 'var divinfo = document.getElementById("divinfo");
@@ -180,7 +180,7 @@ class acyqueueHelper{
 				if(in_array($mailHelper->errorNumber, $mailHelper->errorNewTry)){
 					if(empty($maxTry) OR $oneQueue->try < $maxTry - 1){
 						$newtry = true;
-						$otherMessage = JText::sprintf('QUEUE_NEXT_TRY', 60);
+						$otherMessage = acymailing_translation_sprintf('QUEUE_NEXT_TRY', 60);
 					}
 					if($mailHelper->errorNumber == 1) $this->consecutiveError++;
 					if($this->consecutiveError == 2) sleep(1);
@@ -209,13 +209,13 @@ class acyqueueHelper{
 			}
 
 			if(!empty($this->stoptime) AND $this->stoptime < time()){
-				$this->_display(JText::_('SEND_REFRESH_TIMEOUT'));
+				$this->_display(acymailing_translation('SEND_REFRESH_TIMEOUT'));
 				if($this->nbprocess < count($queueElements)) $this->finish = false;
 				break;
 			}
 
 			if($this->consecutiveError > 3 AND $this->successSend > 3){
-				$this->_display(JText::_('SEND_REFRESH_CONNECTION'));
+				$this->_display(acymailing_translation('SEND_REFRESH_CONNECTION'));
 				break;
 			}
 
@@ -270,7 +270,7 @@ class acyqueueHelper{
 				$nbdeleted = $this->db->getAffectedRows();
 				if($nbdeleted != $nbsub){
 					$status = false;
-					$this->_display($nbdeleted < $nbsub ? JText::_('QUEUE_DOUBLE') : $nbdeleted.' emails deleted from the queue whereas we only have '.$nbsub.' subscribers');
+					$this->_display($nbdeleted < $nbsub ? acymailing_translation('QUEUE_DOUBLE') : $nbdeleted.' emails deleted from the queue whereas we only have '.$nbsub.' subscribers');
 				}
 			}
 		}
@@ -340,22 +340,22 @@ class acyqueueHelper{
 
 	private function _handleError(){
 		$this->finish = true;
-		$message = JText::_('SEND_STOPED');
+		$message = acymailing_translation('SEND_STOPED');
 		$message .= '<br />';
-		$message .= JText::_('SEND_KEPT_ALL');
+		$message .= acymailing_translation('SEND_KEPT_ALL');
 		$message .= '<br />';
 		if($this->report){
 			if(empty($this->successSend) AND empty($this->start)){
-				$message .= JText::_('SEND_CHECKONE');
+				$message .= acymailing_translation('SEND_CHECKONE');
 				$message .= '<br />';
-				$message .= JText::_('SEND_ADVISE_LIMITATION');
+				$message .= acymailing_translation('SEND_ADVISE_LIMITATION');
 			}else{
-				$message .= JText::_('SEND_REFUSE');
+				$message .= acymailing_translation('SEND_REFUSE');
 				$message .= '<br />';
 				if(!acymailing_level(1)){
-					$message .= JText::_('SEND_CONTINUE_COMMERCIAL');
+					$message .= acymailing_translation('SEND_CONTINUE_COMMERCIAL');
 				}else{
-					$message .= JText::_('SEND_CONTINUE_AUTO');
+					$message .= acymailing_translation('SEND_CONTINUE_AUTO');
 				}
 			}
 		}
@@ -370,7 +370,7 @@ class acyqueueHelper{
 
 		if(!empty($num)){
 			$color = $status ? 'green' : 'red';
-			echo '<br />'.$num.' : <font color="'.$color.'">'.$message.'</font>';
+			echo '<br />'.$num.' : <span style="color:'.$color.';">'.$message.'</span>';
 		}else{
 			echo '<script type="text/javascript" language="javascript">setInfo(\''.addslashes($message).'\')</script>';
 		}

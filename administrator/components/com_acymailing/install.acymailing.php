@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -78,7 +78,7 @@ class com_acymailingInstallerScript{
 class acymailingInstall{
 
 	var $level = 'starter';
-	var $version = '5.6.0';
+	var $version = '5.8.1';
 	var $update = false;
 	var $fromLevel = '';
 	var $fromVersion = '';
@@ -86,6 +86,7 @@ class acymailingInstall{
 
 	function __construct(){
 		$this->db = JFactory::getDBO();
+		include_once(rtrim(JPATH_ADMINISTRATOR, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_acymailing'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'helper.php');
 	}
 
 	function displayInfo(){
@@ -126,9 +127,10 @@ class acymailingInstall{
 
 	function updateSQL(){
 		if(!$this->update) return true;
+		$config = acymailing_config();
 
-		jimport('joomla.filesystem.folder');
-		jimport('joomla.filesystem.file');
+
+
 
 		if(version_compare($this->fromVersion, '1.1.4', '<')){
 			$replace1 = "REPLACE(`params`, 'showhtml=1\nshowname=1', 'customfields=name,email,html' )";
@@ -154,11 +156,11 @@ class acymailingInstall{
 			$this->updateQuery("DELETE FROM `#__plugins` WHERE `folder` = 'acymailing' AND `element` = 'autocontent'");
 			$this->updateQuery("ALTER TABLE `#__acymailing_template` ADD `stylesheet` TEXT NULL");
 
-			if(is_dir(rtrim(JPATH_ADMINISTRATOR, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS.'plugins'.DS.'plg_user_acymailing')){
-				JFolder::delete(rtrim(JPATH_ADMINISTRATOR, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS.'plugins'.DS.'plg_user_acymailing');
+			if(is_dir(ACYMAILING_BACK.'plugins'.DS.'plg_user_acymailing')){
+				acymailing_deleteFolder(ACYMAILING_BACK.'plugins'.DS.'plg_user_acymailing');
 			}
-			if(is_dir(rtrim(JPATH_ADMINISTRATOR, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS.'plugins'.DS.'plg_acymailing_autocontent')){
-				JFolder::delete(rtrim(JPATH_ADMINISTRATOR, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS.'plugins'.DS.'plg_acymailing_autocontent');
+			if(is_dir(ACYMAILING_BACK.'plugins'.DS.'plg_acymailing_autocontent')){
+				acymailing_deleteFolder(ACYMAILING_BACK.'plugins'.DS.'plg_acymailing_autocontent');
 			}
 		}
 
@@ -172,8 +174,7 @@ class acymailingInstall{
 
 		if(version_compare($this->fromVersion, '1.5.2', '<')){
 
-			$this->db->setQuery("SELECT `params` FROM #__plugins WHERE `element` = 'regacymailing' LIMIT 1");
-			$existingEntry = $this->db->loadResult();
+			$existingEntry = acymailing_loadResult("SELECT `params` FROM #__plugins WHERE `element` = 'regacymailing' LIMIT 1");
 			$listids = 'None';
 			if(preg_match('#autosub=(.*)#i', $existingEntry, $autosubResult)){
 				$listids = $autosubResult[1];
@@ -205,7 +206,7 @@ class acymailingInstall{
 			$removeFiles[] = ACYMAILING_FRONT.'css'.DS.'frontendedition.css';
 			$removeFiles[] = ACYMAILING_FRONT.'css'.DS.'module_default.css';
 			foreach($removeFiles as $oneFile){
-				if(is_file($oneFile)) JFile::delete($oneFile);
+				if(is_file($oneFile)) acymailing_deleteFile($oneFile);
 			}
 
 			$fromFolders = array();
@@ -232,7 +233,7 @@ class acymailingInstall{
 
 			foreach($deleteFolders as $oneFolder){
 				if(!is_dir($oneFolder)) continue;
-				JFolder::delete($oneFolder);
+				acymailing_deleteFolder($oneFolder);
 			}
 		}
 
@@ -252,7 +253,7 @@ class acymailingInstall{
 
 		if(version_compare($this->fromVersion, '1.8.5', '<')){
 			$metaFile = ACYMAILING_FRONT.'metadata.xml';
-			if(file_exists($metaFile)) JFile::delete($metaFile);
+			if(file_exists($metaFile)) acymailing_deleteFile($metaFile);
 			$this->updateQuery('ALTER TABLE #__acymailing_url DROP INDEX url');
 			$this->updateQuery('ALTER TABLE `#__acymailing_url` CHANGE `url` `url` TEXT NOT NULL');
 			$this->updateQuery('ALTER TABLE `#__acymailing_url` ADD INDEX `url` ( `url` ( 250 ) ) ');
@@ -283,7 +284,7 @@ class acymailingInstall{
 		}
 
 		if(version_compare($this->fromVersion, '3.5.1', '<')){
-			if(file_exists(ACYMAILING_FRONT.'sef_ext.php')) JFile::delete(ACYMAILING_FRONT.'sef_ext.php');
+			if(file_exists(ACYMAILING_FRONT.'sef_ext.php')) acymailing_deleteFile(ACYMAILING_FRONT.'sef_ext.php');
 
 			$this->updateQuery("ALTER TABLE `#__acymailing_queue` ADD `paramqueue` VARCHAR( 250 ) NULL ");
 
@@ -313,10 +314,10 @@ class acymailingInstall{
 		}
 
 		$file = ACYMAILING_FRONT.'views'.DS.'newsletter'.DS.'metadata.xml';
-		if(file_exists($file)) JFile::delete($file);
+		if(file_exists($file)) acymailing_deleteFile($file);
 
 		$file = ACYMAILING_BACK.'admin.acymailing.php';
-		if(file_exists($file)) JFile::delete($file);
+		if(file_exists($file)) acymailing_deleteFile($file);
 
 		if(version_compare($this->fromVersion, '4.0.0', '<')){
 
@@ -340,10 +341,10 @@ class acymailingInstall{
 		}
 
 		if(is_dir(ACYMAILING_BACK.'inc'.DS.'openflash')){
-			JFolder::delete(ACYMAILING_BACK.'inc'.DS.'openflash');
+			acymailing_deleteFolder(ACYMAILING_BACK.'inc'.DS.'openflash');
 		}
 		if(is_dir(ACYMAILING_FRONT.'inc'.DS.'openflash')){
-			JFolder::delete(ACYMAILING_FRONT.'inc'.DS.'openflash');
+			acymailing_deleteFolder(ACYMAILING_FRONT.'inc'.DS.'openflash');
 		}
 
 		if(version_compare($this->fromVersion, '4.2.0', '<')){
@@ -379,13 +380,12 @@ class acymailingInstall{
 			$this->updateQuery($queryReplace);
 
 			if(!ACYMAILING_J16){
-				$this->db->setQuery("SELECT `params` FROM #__plugins WHERE `element` = 'urltracker' LIMIT 1");
+				$existingEntry = acymailing_loadResult("SELECT `params` FROM #__plugins WHERE `element` = 'urltracker' LIMIT 1");
 				$pattern = '#trackingsystem=(.*)#i';
 			}else{
-				$this->db->setQuery("SELECT `params` FROM #__extensions WHERE `element` = 'urltracker' LIMIT 1");
+				$existingEntry = acymailing_loadResult("SELECT `params` FROM #__extensions WHERE `element` = 'urltracker' LIMIT 1");
 				$pattern = '#"trackingsystem":"([^"]*)"#i';
 			}
-			$existingEntry = $this->db->loadResult();
 			$trackingMode = 'acymailing';
 			if(preg_match($pattern, $existingEntry, $autosubResult)){
 				$trackingMode = $autosubResult[1];
@@ -413,13 +413,12 @@ class acymailingInstall{
 			$this->updateQuery('UPDATE `#__acymailing_fields` SET `frontlisting`  = `listing`');
 
 			if(!ACYMAILING_J16){
-				$this->db->setQuery("SELECT `params` FROM #__plugins WHERE `element` = 'regacymailing' LIMIT 1");
+				$existingEntry = acymailing_loadResult("SELECT `params` FROM #__plugins WHERE `element` = 'regacymailing' LIMIT 1");
 				$pattern = '#customfields=(.*)#i';
 			}else{
-				$this->db->setQuery("SELECT `params` FROM #__extensions WHERE `element` = 'regacymailing' LIMIT 1");
+				$existingEntry = acymailing_loadResult("SELECT `params` FROM #__extensions WHERE `element` = 'regacymailing' LIMIT 1");
 				$pattern = '#"customfields":"([^"]*)"#i';
 			}
-			$existingEntry = $this->db->loadResult();
 			if(preg_match($pattern, $existingEntry, $pregResult)){
 				$existingEntries = explode(',', $pregResult[1]);
 				foreach($existingEntries as $fieldToDisplay){
@@ -430,13 +429,13 @@ class acymailingInstall{
 			$this->updateQuery("ALTER TABLE `#__acymailing_list` ADD `startrule` VARCHAR(50) NOT NULL DEFAULT '0'");
 
 			if(is_dir(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'acyeditor'.DS.'kcfinder')){
-				JFolder::delete(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'acyeditor'.DS.'kcfinder');
+				acymailing_deleteFolder(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'acyeditor'.DS.'kcfinder');
 			}
 			if(is_dir(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'kcfinder')){
-				JFolder::delete(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'kcfinder');
+				acymailing_deleteFolder(ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'kcfinder');
 			}
 			if(is_dir(ACYMAILING_BACK.'extensions'.DS.'plg_editors_acyeditor'.DS.'acyeditor'.DS.'kcfinder')){
-				JFolder::delete(ACYMAILING_BACK.'extensions'.DS.'plg_editors_acyeditor'.DS.'acyeditor'.DS.'kcfinder');
+				acymailing_deleteFolder(ACYMAILING_BACK.'extensions'.DS.'plg_editors_acyeditor'.DS.'acyeditor'.DS.'kcfinder');
 			}
 		}
 
@@ -459,12 +458,11 @@ class acymailingInstall{
 
 		if(version_compare($this->fromVersion, '4.6.3', '<')){
 			$file = ACYMAILING_ROOT.'plugins'.DS.'editors'.DS.'acyeditor'.DS.'acyeditor_j30.xml';
-			if(file_exists($file)) JFile::delete($file);
+			if(file_exists($file)) acymailing_deleteFile($file);
 
 			$file = ACYMAILING_ROOT.'plugins'.DS.'system'.DS.'acymailingclassmail'.DS.'acymailingclassmail_j30.xml';
-			if(file_exists($file)) JFile::delete($file);
+			if(file_exists($file)) acymailing_deleteFile($file);
 
-			$config = acymailing_config();
 			if($config->get('mailer_method') == 'smtp_com'){
 				$newConfig = new stdClass();
 				$newConfig->mailer_method = 'smtp';
@@ -502,7 +500,7 @@ class acymailingInstall{
 
 		if(version_compare($this->fromVersion, '4.8.2', '<')){
 			$tagsFile = JPATH_SITE.DS.'plugins'.DS.'acymailing'.DS.'tagcontent'.DS.'tagcontenttags.xml';
-			if(file_exists($tagsFile)) JFile::delete($tagsFile);
+			if(file_exists($tagsFile)) acymailing_deleteFile($tagsFile);
 
 			$this->updateQuery("ALTER TABLE `#__acymailing_mail` ADD `thumb` VARCHAR( 250 ) DEFAULT NULL");
 			$this->updateQuery("ALTER TABLE `#__acymailing_mail` ADD `summary` TEXT NOT NULL DEFAULT ''");
@@ -545,7 +543,6 @@ class acymailingInstall{
 				$query .= ' ON DUPLICATE KEY UPDATE `attach` = VALUES(`attach`)';
 				$this->updateQuery($query);
 			}
-			$config = acymailing_config();
 			$newConfig = new stdClass();
 			$newConfig->css_backend = '';
 			$config->save($newConfig);
@@ -566,7 +563,6 @@ class acymailingInstall{
 		}
 
 		if(version_compare($this->fromVersion, '5.2.0', '<')){
-			$config = acymailing_config();
 			$this->updateQuery("ALTER TABLE `#__acymailing_mail` MODIFY `type` ENUM('news','autonews','followup','unsub','welcome','notification','joomlanotification','action') NOT NULL DEFAULT 'news'");
 
 			$this->updateQuery("ALTER TABLE `#__acymailing_mail` ADD `bccaddresses` varchar(250) DEFAULT NULL");
@@ -580,7 +576,7 @@ class acymailingInstall{
 				if(empty($mailids) || empty($bcc)) continue;
 
 				$emails = explode(';', $mailids);
-				JArrayHelper::toInteger($emails);
+				acymailing_arrayToInteger($emails);
 
 				$this->updateQuery('UPDATE `#__acymailing_mail` SET bccaddresses = '.$this->db->quote($bcc).' WHERE mailid IN ('.implode(',', $emails).')');
 			}
@@ -645,6 +641,23 @@ class acymailingInstall{
 			$this->updateQuery("CREATE TABLE IF NOT EXISTS `#__acymailing_tagmail` (`tagid` smallint unsigned NOT NULL,	`mailid` mediumint unsigned NOT NULL,
 			PRIMARY KEY (`tagid`,`mailid`)) ;");
 		}
+
+		if(version_compare($this->fromVersion, '5.6.5', '<')) {
+			$this->updateQuery("ALTER TABLE `#__acymailing_mail` MODIFY subject text");
+		}
+
+		if(version_compare($this->fromVersion, '5.7.1', '<')) {
+			$daycron = $config->get('cron_plugins_next', 0);
+
+			$this->updateQuery("ALTER TABLE `#__acymailing_filter` ADD `daycron` int unsigned");
+			$this->db->setQuery('UPDATE #__acymailing_filter SET `daycron` = '.intval($daycron).' WHERE `trigger` LIKE "%daycron%"');
+			$this->db->query();
+		}
+
+		if(version_compare($this->fromVersion, '5.8.0', '<')) {
+			$this->updateQuery("ALTER TABLE #__acymailing_mail ADD `lastupdate` int unsigned DEFAULT NULL");
+			$this->updateQuery("ALTER TABLE #__acymailing_mail ADD `userlastupdate` int unsigned DEFAULT NULL");
+		}
 	}
 
 	function updateQuery($query){
@@ -658,8 +671,7 @@ class acymailingInstall{
 	}
 
 	function updateJoomailing(){
-		$this->db->setQuery("SHOW TABLES LIKE '".$this->db->getPrefix()."joomailing_config'");
-		$result = $this->db->loadResult();
+		$result = acymailing_loadResult("SHOW TABLES LIKE '".$this->db->getPrefix()."joomailing_config'");
 
 		if(empty($result)) return true;
 
@@ -707,13 +719,12 @@ class acymailingInstall{
 
 
 		$newFile = '<?php
-					$app = JFactory::getApplication();
 					$url = \'index.php?option=com_acymailing\';
 					foreach($_GET as $name => $value){
 						if($name == \'option\') continue;
 						$url .= \'&\'.$name.\'=\'.$value;
 					}
-					$app->redirect($url);
+					acymailing_redirect($url);
 					';
 
 		@file_put_contents(rtrim(JPATH_SITE, DS).DS.'components'.DS.'com_joomailing'.DS.'joomailing.php', $newFile);
@@ -824,7 +835,6 @@ class acymailingInstall{
 
 		$allPref['security_key'] = acymailing_generateKey(30);
 
-		$app = JFactory::getApplication();
 
 		$allPref['installcomplete'] = '0';
 

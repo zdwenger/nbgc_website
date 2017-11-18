@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -19,49 +19,47 @@ class FilterController extends acymailingController{
 
 	function countresults(){
 		$filterClass = acymailing_get('class.filter');
-		$num = JRequest::getInt('num');
-		$filters = JRequest::getVar('filter');
+		$num = acymailing_getVar('int', 'num');
+		$filters = acymailing_getVar('none', 'filter');
 		$query = new acyQuery();
 		if(empty($filters['type'][$num])) die('No filter type found for the num '.intval($num));
 		$currentType = $filters['type'][$num];
 		if(empty($filters[$num][$currentType])) die('No filter parameters founds for the num '.intval($num));
 		$currentFilterData = $filters[$num][$currentType];
-		JPluginHelper::importPlugin('acymailing');
-		$dispatcher = JDispatcher::getInstance();
-		$messages = $dispatcher->trigger('onAcyProcessFilterCount_'.$currentType,array(&$query,$currentFilterData,$num));
+		acymailing_importPlugin('acymailing');
+		$messages = acymailing_trigger('onAcyProcessFilterCount_'.$currentType, array(&$query,$currentFilterData,$num));
 		echo implode(' | ',$messages);
 		exit;
 	}
 
 	function displayCondFilter(){
-		JPluginHelper::importPlugin('acymailing');
-		$fct = JRequest::getVar('fct');
+		acymailing_importPlugin('acymailing');
+		$fct = acymailing_getVar('none', 'fct');
 
-		$dispatcher = JDispatcher::getInstance();
-		$message = $dispatcher->trigger('onAcyTriggerFct_'.$fct);
+		$message = acymailing_trigger('onAcyTriggerFct_'.$fct);
 		echo implode(' | ',$message);
 		exit;
 	}
 
 	function process(){
 		if(!$this->isAllowed('lists','filter')) return;
-		JRequest::checkToken() or die( 'Invalid Token' );
+		acymailing_checkToken();
 
-		$filid = JRequest::getInt('filid');
+		$filid = acymailing_getVar('int', 'filid');
 		if(!empty($filid)){
 			$this->store();
 		}
 
 		$filterClass = acymailing_get('class.filter');
-		$filterClass->subid = JRequest::getString('subid');
-		$filterClass->execute(JRequest::getVar('filter'),JRequest::getVar('action'));
+		$filterClass->subid = acymailing_getVar('string', 'subid');
+		$filterClass->execute(acymailing_getVar('none', 'filter'),acymailing_getVar('none', 'action'));
 
 		if(!empty($filterClass->report)){
-			if(JRequest::getCmd('tmpl') == 'component'){
+			if(acymailing_getVar('cmd', 'tmpl') == 'component'){
 				echo acymailing_display($filterClass->report,'info');
-				$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=subscriber'; }";
-				$doc = JFactory::getDocument();
-				$doc->addScriptDeclaration( $js );
+				if(acymailing_getVar('string', 'tmpl', '') != 'component') {
+					acymailing_addScript(true, "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=subscriber'; }");
+				}
 				return;
 			}else{
 				foreach($filterClass->report as $oneReport){
@@ -74,20 +72,20 @@ class FilterController extends acymailingController{
 
 	function filterDisplayUsers(){
 		if(!$this->isAllowed('lists','filter')) return;
-		JRequest::checkToken() or die( 'Invalid Token' );
+		acymailing_checkToken();
 		return $this->edit();
 	}
 
 	function store(){
 		if(!$this->isAllowed('lists','filter')) return;
-		JRequest::checkToken() or die( 'Invalid Token' );
+		acymailing_checkToken();
 
 		$class = acymailing_get('class.filter');
 		$status = $class->saveForm();
 		if($status){
-			acymailing_enqueueMessage(JText::_( 'JOOMEXT_SUCC_SAVED' ), 'message');
+			acymailing_enqueueMessage(acymailing_translation( 'JOOMEXT_SUCC_SAVED' ), 'message');
 		}else{
-			acymailing_enqueueMessage(JText::_( 'ERROR_SAVING' ), 'error');
+			acymailing_enqueueMessage(acymailing_translation( 'ERROR_SAVING' ), 'error');
 			if(!empty($class->errors)){
 				foreach($class->errors as $oneError){
 					acymailing_enqueueMessage($oneError, 'error');

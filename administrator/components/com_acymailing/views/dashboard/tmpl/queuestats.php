@@ -1,14 +1,14 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><?php
-if(empty($this->newsletters)) echo JText::_("ACY_NO_STATISTICS");
+if(empty($this->newsletters)) echo acymailing_translation("ACY_NO_STATISTICS");
 else{ ?>
 
 	<script language="JavaScript" type="text/javascript">
@@ -16,8 +16,8 @@ else{ ?>
 			var dataTable = new google.visualization.DataTable();
 
 			dataTable.addColumn('date');
-			dataTable.addColumn('number', '<?php echo JText::_('ACY_SENT_EMAILS'); ?>');
-			dataTable.addColumn('number', '<?php echo JText::_('FAILED'); ?>');
+			dataTable.addColumn('number', '<?php echo acymailing_translation('ACY_SENT_EMAILS'); ?>');
+			dataTable.addColumn('number', '<?php echo acymailing_translation('FAILED'); ?>');
 
 			<?php
 			$i = -1;
@@ -65,6 +65,6 @@ else{ ?>
 		google.setOnLoadCallback(statsqueue);
 
 	</script>
-	<h1 class="acy_graphtitle"> <?php echo JText::_('ACY_NEWSLETTER_STATUS') ?> </h1>
+	<h1 class="acy_graphtitle"> <?php echo acymailing_translation('ACY_NEWSLETTER_STATUS') ?> </h1>
 	<div id="statsqueue" style="text-align:center;width:100%,margin-bottom:20px"></div>
 <?php } ?>

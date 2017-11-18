@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -47,14 +47,13 @@ class rulesClass extends acymailingClass{
 		$rule = new stdClass();
 		$rule->ruleid = acymailing_getCID('ruleid');
 		if(empty( $rule->ruleid)){
-			$this->database->setQuery('SELECT max(ordering) FROM `#__acymailing_rules`');
-		$rule->ordering = intval($this->database->loadResult()) + 1;
+			$rule->ordering = intval(acymailing_loadResult('SELECT max(ordering) FROM `#__acymailing_rules`')) + 1;
 		}
 		$rule->executed_on = '';
 		$rule->action_message = '';
 		$rule->action_user = '';
 
-		$formData = JRequest::getVar( 'data', array(), '', 'array' );
+		$formData = acymailing_getVar('array',  'data', array(), '');
 
 		foreach($formData['rule'] as $column => $value){
 			acymailing_secureField($column);
@@ -69,7 +68,7 @@ class rulesClass extends acymailingClass{
 		$ruleid = $this->save($rule);
 		if(!$ruleid) return false;
 
-		JRequest::setVar( 'ruleid', $ruleid);
+		acymailing_setVar( 'ruleid', $ruleid);
 		return true;
 
 	}

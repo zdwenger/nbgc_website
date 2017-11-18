@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.0" method="upgrade">
 	<name>AcyMailing</name>
-	<creationDate>novembre 2016</creationDate>
-	<version>5.6.0</version>
+	<creationDate>septembre 2017</creationDate>
+	<version>5.8.1</version>
 	<level>starter</level>
 	<author>Acyba</author>
 	<authorEmail>dev@acyba.com</authorEmail>
 	<authorUrl>http://www.acyba.com</authorUrl>
-	<copyright>Copyright (C) 2009-2016 ACYBA SAS - All rights reserved.</copyright>
+	<copyright>Copyright (C) 2009-2017 ACYBA SAS - All rights reserved.</copyright>
 	<description>Manage your Mailing lists, Newsletters, e-mail marketing campaigns</description>
 	<license>GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html</license>
 	<languages folder="language">

@@ -1,25 +1,22 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-JPluginHelper::importPlugin('acymailing');
-$dispatcher = JDispatcher::getInstance();
+acymailing_importPlugin('acymailing');
 $typesFilters = array();
-$outputFilters = implode('', $dispatcher->trigger('onAcyDisplayFilters', array(&$typesFilters, 'mail')));
+$outputFilters = implode('', acymailing_trigger('onAcyDisplayFilters', array(&$typesFilters, 'mail')));
 
 if(empty($typesFilters)) return;
 
 $filterClass = acymailing_get('class.filter');
 $filterClass->addJSFilterFunctions();
-
-$doc = JFactory::getDocument();
 
 $js = '';
 $datatype = "filter";
@@ -38,12 +35,12 @@ if(!empty($this->mail->$datatype)){
 		if($datatype == 'filter') $js .= " countresults($num);";
 	}
 }
-$doc->addScriptDeclaration("window.addEvent('domready', function(){ $js });");
+acymailing_addScript(true, "document.addEventListener(\"DOMContentLoaded\", function(){ $js });");
 
 $typevaluesFilters = array();
-$typevaluesFilters[] = JHTML::_('select.option', '', JText::_('FILTER_SELECT'));
+$typevaluesFilters[] = acymailing_selectOption('', acymailing_translation('FILTER_SELECT'));
 foreach($typesFilters as $oneType => $oneName){
-	$typevaluesFilters[] = JHTML::_('select.option', $oneType, $oneName);
+	$typevaluesFilters[] = acymailing_selectOption($oneType, $oneName);
 }
 
 ?>
@@ -53,18 +50,18 @@ foreach($typesFilters as $oneType => $oneName){
 
 	<div id="acybase_filters" style="display:none">
 		<div id="filters_original">
-			<?php echo JHTML::_('select.genericlist', $typevaluesFilters, "filter[type][__num__]", 'class="inputbox" size="1" onchange="updateFilter(__num__);countresults(__num__);"', 'value', 'text', 'filtertype__num__'); ?>
+			<?php echo acymailing_select($typevaluesFilters, "filter[type][__num__]", 'class="inputbox" size="1" onchange="updateFilter(__num__);countresults(__num__);"', 'value', 'text', 'filtertype__num__'); ?>
 			<span id="countresult___num__"></span>
 
 			<div class="acyfilterarea" id="filterarea___num__"></div>
 		</div>
 		<?php echo $outputFilters; ?>
 	</div>
-	<?php echo JText::_('RECEIVER_LISTS').' '.JText::_('RECEIVER_FILTER'); ?>
+	<?php echo acymailing_translation('RECEIVER_LISTS').' '.acymailing_translation('RECEIVER_FILTER'); ?>
 	<div class="onelineblockoptions" id="filtersblock">
-		<span class="acyblocktitle"><?php echo JText::_('ACY_FILTERS'); ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('ACY_FILTERS'); ?></span>
 
 		<div id="allfilters"></div>
-		<button class="acymailing_button" onclick="addAcyFilter();return false;"><?php echo JText::_('ADD_FILTER'); ?></button>
+		<button class="acymailing_button" onclick="addAcyFilter();return false;"><?php echo acymailing_translation('ADD_FILTER'); ?></button>
 	</div>
 </div>

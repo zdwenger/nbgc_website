@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -22,10 +22,9 @@ class plgAcymailingTagsubscriber extends JPlugin{
 	}
 
 	function acymailing_getPluginType(){
-		$app = JFactory::getApplication();
-		if($this->params->get('frontendaccess') == 'none' && !$app->isAdmin()) return;
+		if($this->params->get('frontendaccess') == 'none' && !acymailing_isAdmin()) return;
 		$onePlugin = new stdClass();
-		$onePlugin->name = JText::_('SUBSCRIBER_SUBSCRIBER');
+		$onePlugin->name = acymailing_translation('SUBSCRIBER_SUBSCRIBER');
 		$onePlugin->function = 'acymailingtagsubscriber_show';
 		$onePlugin->help = 'plugin-tagsubscriber';
 
@@ -35,16 +34,16 @@ class plgAcymailingTagsubscriber extends JPlugin{
 	function acymailingtagsubscriber_show(){
 		$fields = acymailing_getColumns('#__acymailing_subscriber');
 
-		$descriptions['subid'] = JText::_('SUBSCRIBER_ID');
-		$descriptions['email'] = JText::_('SUBSCRIBER_EMAIL');
-		$descriptions['name'] = JText::_('SUBSCRIBER_NAME');
-		$descriptions['userid'] = JText::_('SUBSCRIBER_USERID');
-		$descriptions['ip'] = JText::_('SUBSCRIBER_IP');
-		$descriptions['created'] = JText::_('SUBSCRIBER_CREATED');
+		$descriptions['subid'] = acymailing_translation('SUBSCRIBER_ID');
+		$descriptions['email'] = acymailing_translation('SUBSCRIBER_EMAIL');
+		$descriptions['name'] = acymailing_translation('SUBSCRIBER_NAME');
+		$descriptions['userid'] = acymailing_translation('SUBSCRIBER_USERID');
+		$descriptions['ip'] = acymailing_translation('SUBSCRIBER_IP');
+		$descriptions['created'] = acymailing_translation('SUBSCRIBER_CREATED');
 		echo '<br style="clear:both;"/>';
-		if(JRequest::getVar('type') == 'notification'){
+		if(acymailing_getVar('none', 'type') == 'notification'){
 			$text = '<div class="onelineblockoptions">
-						<span class="acyblocktitle">'.JText::_('CURRENT_USER_INFO').'</span>
+						<span class="acyblocktitle">'.acymailing_translation('CURRENT_USER_INFO').'</span>
 						<table class="acymailing_table" cellpadding="1">';
 			$k = 0;
 			foreach($fields as $fieldname => $oneField){
@@ -61,12 +60,12 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		}
 
 		$text = '<div class="onelineblockoptions">
-					<span class="acyblocktitle">'.JText::_('RECEIVER_INFORMATION').'</span>
+					<span class="acyblocktitle">'.acymailing_translation('RECEIVER_INFORMATION').'</span>
 					<table class="acymailing_table" cellpadding="1">';
 
 		$others = array();
-		$others['{subtag:name|part:first|ucfirst}'] = array('name' => JText::_('SUBSCRIBER_FIRSTPART'), 'desc' => JText::_('SUBSCRIBER_FIRSTPART').' '.JText::_('SUBSCRIBER_FIRSTPART_DESC'));
-		$others['{subtag:name|part:last|ucfirst}'] = array('name' => JText::_('SUBSCRIBER_LASTPART'), 'desc' => JText::_('SUBSCRIBER_LASTPART').' '.JText::_('SUBSCRIBER_LASTPART_DESC'));
+		$others['{subtag:name|part:first|ucfirst}'] = array('name' => acymailing_translation('SUBSCRIBER_FIRSTPART'), 'desc' => acymailing_translation('SUBSCRIBER_FIRSTPART').' '.acymailing_translation('SUBSCRIBER_FIRSTPART_DESC'));
+		$others['{subtag:name|part:last|ucfirst}'] = array('name' => acymailing_translation('SUBSCRIBER_LASTPART'), 'desc' => acymailing_translation('SUBSCRIBER_LASTPART').' '.acymailing_translation('SUBSCRIBER_LASTPART_DESC'));
 
 		$k = 0;
 
@@ -116,10 +115,9 @@ class plgAcymailingTagsubscriber extends JPlugin{
 				$JuserTmp = $db->loadObject();
 				if(!empty($JuserTmp->email)) $userTmp = $subClass->get($JuserTmp->email);
 			}
-			$app = JFactory::getApplication();
 			if(!empty($userTmp)){
 				$user = $userTmp;
-			}else $app->enqueueMessage('User not found for tag juser', 'warning');
+			}else acymailing_enqueueMessage('User not found for tag juser', 'warning');
 		}
 
 		$field = $mytag->id;
@@ -147,28 +145,28 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		if(empty($fields)) return;
 
 		$field = array();
-		$field[] = JHTML::_('select.option', 0, '- - -');
+		$field[] = acymailing_selectOption(0, '- - -');
 		foreach($fields as $oneField => $fieldType){
-			$field[] = JHTML::_('select.option', $oneField, $oneField);
+			$field[] = acymailing_selectOption($oneField, $oneField);
 		}
-		$type['acymailingfield'] = JText::_('ACYMAILING_FIELD');
+		$type['acymailingfield'] = acymailing_translation('ACYMAILING_FIELD');
 
 		$jsOnChange = "displayCondFilter('displaySubscriberValues', 'toChange__num__',__num__,'map='+document.getElementById('filter__num__acymailingfieldmap').value+'&cond='+document.getElementById('filter__num__acymailingfieldoperator').value+'&value='+document.getElementById('filter__num__acymailingfieldvalue').value); ";
 
 		$operators = acymailing_get('type.operators');
 		$operators->extra = 'onchange="'.$jsOnChange.'"';
 
-		$return = '<div id="filter__num__acymailingfield">'.JHTML::_('select.genericlist', $field, "filter[__num__][acymailingfield][map]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1"', 'value', 'text');
+		$return = '<div id="filter__num__acymailingfield">'.acymailing_select($field, "filter[__num__][acymailingfield][map]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1"', 'value', 'text');
 		$return .= ' '.$operators->display("filter[__num__][acymailingfield][operator]").' <span id="toChange__num__"><input onchange="countresults(__num__)" class="inputbox" type="text" name="filter[__num__][acymailingfield][value]" style="width:200px" value="" id="filter__num__acymailingfieldvalue"></span></div>';
 
 		return $return;
 	}
 
 	function onAcyTriggerFct_displaySubscriberValues(){
-		$num = JRequest::getInt('num');
-		$map = JRequest::getCmd('map');
-		$cond = JRequest::getVar('cond', '', '', 'string', JREQUEST_ALLOWHTML);
-		$value = JRequest::getVar('value', '', '', 'string', JREQUEST_ALLOWHTML);
+		$num = acymailing_getVar('int', 'num');
+		$map = acymailing_getVar('cmd', 'map');
+		$cond = acymailing_getVar('string', 'cond', '', '', JREQUEST_ALLOWHTML);
+		$value = acymailing_getVar('string', 'value', '', '', JREQUEST_ALLOWHTML);
 
 		$emptyInputReturn = '<input onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][acymailingfield][value]" id="filter'.$num.'acymailingfieldvalue" style="width:200px" value="'.$value.'">';
 		$dateInput = '<input onClick="displayDatePicker(this,event)" onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][acymailingfield][value]" id="filter'.$num.'acymailingfieldvalue" style="width:200px" value="'.$value.'">';
@@ -184,11 +182,11 @@ class plgAcymailingTagsubscriber extends JPlugin{
 
 		if(empty($prop) || count($prop) >= 100 || (count($prop) == 1 && (empty($prop[0]->value) || $prop[0]->value == '-'))) return $emptyInputReturn;
 
-		return JHTML::_('select.genericlist', $prop, "filter[$num][acymailingfield][value]", 'onchange="countresults('.$num.')" class="inputbox" size="1" style="width:200px"', 'value', 'value', $value, 'filter'.$num.'acymailingfieldvalue');
+		return acymailing_select($prop, "filter[$num][acymailingfield][value]", 'onchange="countresults('.$num.')" class="inputbox" size="1" style="width:200px"', 'value', 'value', $value, 'filter'.$num.'acymailingfieldvalue');
 	}
 
 	function onAcyDisplayFilter_acymailingfield($filter){
-		return JText::_('ACYMAILING_FIELD').' : '.$filter['map'].' '.$filter['operator'].' '.$filter['value'];
+		return acymailing_translation('ACYMAILING_FIELD').' : '.$filter['map'].' '.$filter['operator'].' '.$filter['value'];
 	}
 
 	function onAcyProcessFilter_acymailingfield(&$query, $filter, $num){
@@ -210,22 +208,22 @@ class plgAcymailingTagsubscriber extends JPlugin{
 
 	function onAcyProcessFilterCount_acymailingfield(&$query, $filter, $num){
 		$this->onAcyProcessFilter_acymailingfield($query, $filter, $num);
-		return JText::sprintf('SELECTED_USERS', $query->count());
+		return acymailing_translation_sprintf('SELECTED_USERS', $query->count());
 	}
 
 	function onAcyDisplayActions(&$type){
 		$config = acymailing_config();
 
-		$type['acymailingfield'] = JText::_('BOUNCE_ACTION');
+		$type['acymailingfield'] = acymailing_translation('BOUNCE_ACTION');
 		$status = array();
-		$status[] = JHTML::_('select.option', 'confirm', JText::_('CONFIRM_USERS'));
-		$status[] = JHTML::_('select.option', 'unconfirm', JText::_('ACY_ACTION_UNCONFIRM'));
-		$status[] = JHTML::_('select.option', 'enable', JText::_('ENABLE_USERS'));
-		$status[] = JHTML::_('select.option', 'block', JText::_('BLOCK_USERS'));
+		$status[] = acymailing_selectOption('confirm', acymailing_translation('CONFIRM_USERS'));
+		$status[] = acymailing_selectOption('unconfirm', acymailing_translation('ACY_ACTION_UNCONFIRM'));
+		$status[] = acymailing_selectOption('enable', acymailing_translation('ENABLE_USERS'));
+		$status[] = acymailing_selectOption('block', acymailing_translation('BLOCK_USERS'));
 
-		if(acymailing_isAllowed($config->get('acl_subscriber_delete', 'all'))) $status[] = JHTML::_('select.option', 'delete', JText::_('DELETE_USERS'));
+		if(acymailing_isAllowed($config->get('acl_subscriber_delete', 'all'))) $status[] = acymailing_selectOption('delete', acymailing_translation('DELETE_USERS'));
 
-		$content = '<div id="action__num__acymailingfield">'.JHTML::_('select.genericlist', $status, "action[__num__][acymailingfield][action]", 'class="inputbox" size="1"', 'value', 'text').'</div>';
+		$content = '<div id="action__num__acymailingfield">'.acymailing_select($status, "action[__num__][acymailingfield][action]", 'class="inputbox" size="1"', 'value', 'text').'</div>';
 
 		if(!acymailing_level(3)) return $content;
 
@@ -233,36 +231,36 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		if(empty($fields)) return $content;
 
 		$field = array();
-		$field[] = JHTML::_('select.option', 0, '- - -');
+		$field[] = acymailing_selectOption(0, '- - -');
 		foreach($fields as $oneField => $fieldType){
 			if(in_array($oneField, array('name', 'email', 'subid', 'created', 'ip'))) continue;
-			$field[] = JHTML::_('select.option', $oneField, $oneField);
+			$field[] = acymailing_selectOption($oneField, $oneField);
 		}
 
 		$jsOnChange = "if(document.getElementById('action__num__acymailingfieldvalvalue')!= undefined){ currentVal=document.getElementById('action__num__acymailingfieldvalvalue').value;} else{currentVal='';}
 			displayCondFilter('displayFieldPossibleValues', 'toChangeAction__num__',__num__,'map='+document.getElementById('action__num__acymailingfieldvalmap').value+'&value='+currentVal+'&operator='+document.getElementById('action__num__acymailingfieldvaloperator').value); ";
 
 		$operator = array();
-		$operator[] = JHTML::_('select.option', '=', '=');
-		$operator[] = JHTML::_('select.option', '+', '+');
-		$operator[] = JHTML::_('select.option', '-', '-');
-		$operator[] = JHTML::_('select.option', 'addend', JText::_('ACY_OPERATOR_ADDEND'));
-		$operator[] = JHTML::_('select.option', 'addbegin', JText::_('ACY_OPERATOR_ADDBEGINNING'));
+		$operator[] = acymailing_selectOption('=', '=');
+		$operator[] = acymailing_selectOption('+', '+');
+		$operator[] = acymailing_selectOption('-', '-');
+		$operator[] = acymailing_selectOption('addend', acymailing_translation('ACY_OPERATOR_ADDEND'));
+		$operator[] = acymailing_selectOption('addbegin', acymailing_translation('ACY_OPERATOR_ADDBEGINNING'));
 
-		$content .= '<div id="action__num__acymailingfieldval">'.JHTML::_('select.genericlist', $field, "action[__num__][acymailingfieldval][map]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1"', 'value', 'text');
-		$content .= ' '.JHTML::_('select.genericlist', $operator, "action[__num__][acymailingfieldval][operator]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1" style="width:150px;"', 'value', 'text', '=');
+		$content .= '<div id="action__num__acymailingfieldval">'.acymailing_select($field, "action[__num__][acymailingfieldval][map]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1"', 'value', 'text');
+		$content .= ' '.acymailing_select($operator, "action[__num__][acymailingfieldval][operator]", 'onchange="'.$jsOnChange.'" class="inputbox" size="1" style="width:150px;"', 'value', 'text', '=');
 		$content .= ' <span id="toChangeAction__num__"><input class="inputbox" type="text" id="action__num__acymailingfieldvalvalue" name="action[__num__][acymailingfieldval][value]" style="width:200px" value=""></span></div>';
 
-		$type['acymailingfieldval'] = JText::_('SET_SUBSCRIBER_VALUE');
+		$type['acymailingfieldval'] = acymailing_translation('SET_SUBSCRIBER_VALUE');
 
 		return $content;
 	}
 
 	function onAcyTriggerFct_displayFieldPossibleValues(){
-		$num = JRequest::getInt('num');
-		$map = JRequest::getCmd('map');
-		$value = JRequest::getString('value');
-		$operator = JRequest::getString('operator');
+		$num = acymailing_getVar('int', 'num');
+		$map = acymailing_getVar('cmd', 'map');
+		$value = acymailing_getVar('string', 'value');
+		$operator = acymailing_getVar('string', 'operator');
 
 		if(in_array($operator, array('addend', 'addbegin'))){
 			$emptyInputReturn = '<textarea class="inputbox" type="text" name="action['.$num.'][acymailingfieldval][value]" id="action'.$num.'acymailingfieldvalvalue" style="width:200px">'.$value.'</textarea>';
@@ -343,7 +341,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		$cquery->db->setQuery($query);
 		$cquery->db->query();
 		$nbAffected = $cquery->db->getAffectedRows();
-		return JText::sprintf('NB_MODIFIED', $nbAffected);
+		return acymailing_translation_sprintf('NB_MODIFIED', $nbAffected);
 	}
 
 	function onAcyProcessAction_acymailingfield($cquery, $action, $num){
@@ -364,7 +362,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 				}
 			}
 			unset($cquery->where['confirmed']);
-			return JText::sprintf('NB_CONFIRMED', count($allSubids));
+			return acymailing_translation_sprintf('NB_CONFIRMED', count($allSubids));
 		}
 
 		if($action['action'] == 'enable'){
@@ -391,7 +389,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 			$cquery->db->setQuery($query);
 			$allSubids = acymailing_loadResultArray($cquery->db);
 			$nbAffected = $subClass->delete($allSubids);
-			return JText::sprintf('IMPORT_DELETE', $nbAffected);
+			return acymailing_translation_sprintf('IMPORT_DELETE', $nbAffected);
 		}
 
 		return 'Filter AcyMailingField error, action not found : '.$action['action'];

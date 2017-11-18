@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -23,7 +23,7 @@ class listcampaignClass extends acymailingClass{
 		$this->database->setQuery($query);
 		if(!$this->database->query()) return false;
 
-		JArrayHelper::toInteger($listids);
+		acymailing_arrayToInteger($listids);
 		if(empty($listids))	return true;
 
 		$query = 'INSERT IGNORE INTO '.acymailing_table('listcampaign').' (campaignid,listid) VALUES ('.$campaignid.','.implode('),('.$campaignid.',',$listids).')';

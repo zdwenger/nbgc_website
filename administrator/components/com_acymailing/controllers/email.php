@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -16,8 +16,7 @@ class EmailController extends acymailingController{
 
 		$mailHelper = acymailing_get('helper.mailer');
 
-		$user = JFactory::getUser();
-		$receiver = $user->email;
+		$receiver = acymailing_currentUserEmail();
 		$mailid = acymailing_getCID('mailid');
 
 		$mailHelper->report = false;
@@ -28,19 +27,17 @@ class EmailController extends acymailingController{
 	}
 
 	function store(){
-
-		JRequest::checkToken() or die('Invalid Token');
+		acymailing_checkToken();
 
 		$oldMailid = acymailing_getCID('mailid');
-
 		$mailClass = acymailing_get('class.mail');
 
 		if($mailClass->saveForm()){
-			$data = JRequest::getVar('data');
+			$data = acymailing_getVar('none', 'data');
 			$type = @$data['mail']['type'];
 			if(!empty($type) AND in_array($type, array('unsub', 'welcome'))){
 				$subject = addslashes($data['mail']['subject']);
-				$mailid = JRequest::getInt('mailid');
+				$mailid = acymailing_getVar('int', 'mailid');
 				if($type == 'unsub'){
 					$js = "var mydrop = window.top.document.getElementById('datalistunsubmailid'); ";
 					$js .= "var type = 'unsub';";
@@ -58,12 +55,11 @@ class EmailController extends acymailingController{
 					$js .= "lastid = 0; notfound = true; while(notfound && mydrop.options[lastid]){if(mydrop.options[lastid].value == $mailid){mydrop.options[lastid].text = '[$mailid] $subject';notfound = false;} lastid = lastid+1;}";
 				}
 				if(ACYMAILING_J30) $js .= 'window.top.jQuery("#datalist'.($type == 'unsub' ? 'unsub' : 'wel').'mailid").trigger("liszt:updated");';
-				$doc = JFactory::getDocument();
-				$doc->addScriptDeclaration($js);
+				acymailing_addScript(true, $js);
 			}
-			acymailing_enqueueMessage(JText::_('JOOMEXT_SUCC_SAVED'), 'success');
+			acymailing_enqueueMessage(acymailing_translation('JOOMEXT_SUCC_SAVED'), 'success');
 		}else{
-			acymailing_enqueueMessage(JText::_('ERROR_SAVING'), 'error');
+			acymailing_enqueueMessage(acymailing_translation('ERROR_SAVING'), 'error');
 		}
 	}//endfct store
 }//endclass

@@ -1,51 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-jimport('joomla.application.component.controller');
-jimport('joomla.application.component.view');
-
 if(!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
-define('ACYMAILING_COMPONENT', 'com_acymailing');
-define('ACYMAILING_ROOT', rtrim(JPATH_ROOT, DS).DS);
-define('ACYMAILING_FRONT', rtrim(JPATH_SITE, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS);
-define('ACYMAILING_BACK', rtrim(JPATH_ADMINISTRATOR, DS).DS.'components'.DS.ACYMAILING_COMPONENT.DS);
-define('ACYMAILING_HELPER', ACYMAILING_BACK.'helpers'.DS);
-define('ACYMAILING_CLASS', ACYMAILING_BACK.'classes'.DS);
-define('ACYMAILING_TYPE', ACYMAILING_BACK.'types'.DS);
-define('ACYMAILING_CONTROLLER', ACYMAILING_BACK.'controllers'.DS);
-define('ACYMAILING_CONTROLLER_FRONT', ACYMAILING_FRONT.'controllers'.DS);
-define('ACYMAILING_DBPREFIX', '#__acymailing_');
-define('ACYMAILING_NAME', 'AcyMailing');
-define('ACYMAILING_MEDIA', ACYMAILING_ROOT.'media'.DS.ACYMAILING_COMPONENT.DS);
-define('ACYMAILING_TEMPLATE', ACYMAILING_MEDIA.'templates'.DS);
-define('ACYMAILING_UPDATEURL', 'https://www.acyba.com/index.php?option=com_updateme&ctrl=update&task=');
-define('ACYMAILING_SPAMURL', 'https://www.acyba.com/index.php?option=com_updateme&ctrl=spamsystem&task=');
-define('ACYMAILING_HELPURL', 'https://www.acyba.com/index.php?option=com_updateme&ctrl=doc&component='.ACYMAILING_NAME.'&page=');
-define('ACYMAILING_REDIRECT', 'https://www.acyba.com/index.php?option=com_updateme&ctrl=redirect&page=');
-define('ACYMAILING_INC', ACYMAILING_FRONT.'inc'.DS);
-
-$jversion = preg_replace('#[^0-9\.]#i', '', JVERSION);
-define('ACYMAILING_J16', version_compare($jversion, '1.6.0', '>=') ? true : false);
-define('ACYMAILING_J25', version_compare($jversion, '2.5.0', '>=') ? true : false);
-define('ACYMAILING_J30', version_compare($jversion, '3.0.0', '>=') ? true : false);
-
-$compatPath = ACYMAILING_BACK.'compat'.DS.'compat';
-if(file_exists($compatPath.substr(str_replace('.', '', $jversion), 0, 2).'.php')){
-	require($compatPath.substr(str_replace('.', '', $jversion), 0, 2).'.php');
-}elseif(file_exists($compatPath.substr(str_replace('.', '', $jversion), 0, 1).'.php')) require($compatPath.substr(str_replace('.', '', $jversion), 0, 1).'.php');
-else{
-	echo 'AcyMailing: Could not load compat file for J'.JVERSION;
-	return;
-}
+include_once(rtrim(dirname(__DIR__),DS).DS.'compat'.DS.'joomla.php');
 
 if(is_callable("date_default_timezone_set")) date_default_timezone_set(@date_default_timezone_get());
 
@@ -53,11 +19,11 @@ function acymailing_getDate($time = 0, $format = '%d %B %Y %H:%M'){
 
 	if(empty($time)) return '';
 
-	if(is_numeric($format)) $format = JText::_('DATE_FORMAT_LC'.$format);
+	if(is_numeric($format)) $format = acymailing_translation('DATE_FORMAT_LC'.$format);
 	if(ACYMAILING_J16){
 		$format = str_replace(array('%A', '%d', '%B', '%m', '%Y', '%y', '%H', '%M', '%S', '%a', '%I', '%p', '%w'), array('l', 'd', 'F', 'm', 'Y', 'y', 'H', 'i', 's', 'D', 'h', 'a', 'w'), $format);
 		try{
-			return JHTML::_('date', $time, $format, false);
+			return acymailing_date($time, $format, false);
 		}catch(Exception $e){
 			return date($format, $time);
 		}
@@ -67,7 +33,7 @@ function acymailing_getDate($time = 0, $format = '%d %B %Y %H:%M'){
 			$config = JFactory::getConfig();
 			$timeoffset = $config->getValue('config.offset');
 		}
-		return JHTML::_('date', $time - date('Z'), $format, $timeoffset);
+		return acymailing_date($time - date('Z'), $format, $timeoffset);
 	}
 }
 
@@ -82,27 +48,18 @@ function acymailing_isRobot(){
 function acymailing_isAllowed($allowedGroups, $groups = null){
 	if($allowedGroups == 'all') return true;
 	if($allowedGroups == 'none') return false;
-	$my = JFactory::getUser();
 	if(!is_array($allowedGroups)) $allowedGroups = explode(',', trim($allowedGroups, ','));
 
-	if(empty($my->id) && empty($groups) && in_array('nonloggedin', $allowedGroups)) return true;
+	$currentUserid = acymailing_currentUserId();
+	if(empty($currentUserid) && empty($groups) && in_array('nonloggedin', $allowedGroups)) return true;
 
-	if(empty($groups) AND empty($my->id)) return false;
-	if(empty($groups)){
-		if(!ACYMAILING_J16){
-			$groups = $my->gid;
-		}else{
-			jimport('joomla.access.access');
-			$groups = JAccess::getGroupsByUser($my->id, false);
-		}
-	}
-	if(is_array($groups)){
-		$inter = array_intersect($groups, $allowedGroups);
-		if(empty($inter)) return false;
-		return true;
-	}else{
-		return in_array($groups, $allowedGroups);
-	}
+	if(empty($groups) && empty($currentUserid)) return false;
+	if(empty($groups)) $groups = acymailing_getGroupsByUser($currentUserid, false);
+
+	if(!is_array($groups)) $groups = array($groups);
+	$inter = array_intersect($groups, $allowedGroups);
+	if(empty($inter)) return false;
+	return true;
 }
 
 function acymailing_getFunctionsEmailCheck($controllButtons = array(), $bounce = false){
@@ -170,21 +127,17 @@ function acymailing_getTime($date){
 }
 
 function acymailing_loadLanguage(){
-	$lang = JFactory::getLanguage();
-	$lang->load(ACYMAILING_COMPONENT, JPATH_SITE);
-	$lang->load(ACYMAILING_COMPONENT.'_custom', JPATH_SITE);
+	acymailing_loadLanguageFile(ACYMAILING_COMPONENT, JPATH_SITE);
+	acymailing_loadLanguageFile(ACYMAILING_COMPONENT.'_custom', JPATH_SITE);
 }
 
 function acymailing_createDir($dir, $report = true, $secured = false){
 	if(is_dir($dir)) return true;
 
-	jimport('joomla.filesystem.folder');
-	jimport('joomla.filesystem.file');
-
 	$indexhtml = '<html><body bgcolor="#FFFFFF"></body></html>';
 
 	try{
-		$status = JFolder::create($dir);
+		$status = acymailing_createFolder($dir);
 	}catch(Exception $e){
 		$status = false;
 	}
@@ -195,7 +148,7 @@ function acymailing_createDir($dir, $report = true, $secured = false){
 	}
 
 	try{
-		$status = JFile::write($dir.DS.'index.html', $indexhtml);
+		$status = acymailing_writeFile($dir.DS.'index.html', $indexhtml);
 	}catch(Exception $e){
 		$status = false;
 	}
@@ -207,7 +160,7 @@ function acymailing_createDir($dir, $report = true, $secured = false){
 	if($secured){
 		try{
 			$htaccess = 'Order deny,allow'."\r\n".'Deny from all';
-			$status = JFile::write($dir.DS.'.htaccess', $htaccess);
+			$status = acymailing_writeFile($dir.DS.'.htaccess', $htaccess);
 		}catch(Exception $e){
 			$status = false;
 		}
@@ -221,8 +174,8 @@ function acymailing_createDir($dir, $report = true, $secured = false){
 }
 
 function acymailing_getUpgradeLink($tolevel){
-	$config =& acymailing_config();
-	return ' <a class="acyupgradelink" href="'.ACYMAILING_REDIRECT.'upgrade-acymailing-'.$config->get('level').'-to-'.$tolevel.'" target="_blank">'.JText::_('ONLY_FROM_'.strtoupper($tolevel)).'</a>';
+	$config = acymailing_config();
+	return ' <a class="acyupgradelink" href="'.ACYMAILING_REDIRECT.'upgrade-acymailing-'.$config->get('level').'-to-'.$tolevel.'" target="_blank">'.acymailing_translation('ONLY_FROM_'.strtoupper($tolevel)).'</a>';
 }
 
 function acymailing_replaceDate($mydate){
@@ -250,26 +203,25 @@ function acymailing_initJSStrings($includejs = 'header', $params = null){
 
 	$alreadyThere = true;
 
-	$doc = JFactory::getDocument();
 	if(method_exists($params, 'get')){
 		$nameCaption = $params->get('nametext');
 		$emailCaption = $params->get('emailtext');
 	}
-	if(empty($nameCaption)) $nameCaption = JText::_('NAMECAPTION');
-	if(empty($emailCaption)) $emailCaption = JText::_('EMAILCAPTION');
+	if(empty($nameCaption)) $nameCaption = acymailing_translation('NAMECAPTION');
+	if(empty($emailCaption)) $emailCaption = acymailing_translation('EMAILCAPTION');
 	$js = "	if(typeof acymailing == 'undefined'){
 					var acymailing = Array();
 				}
 				acymailing['NAMECAPTION'] = '".str_replace("'", "\'", $nameCaption)."';
-				acymailing['NAME_MISSING'] = '".str_replace("'", "\'", JText::_('NAME_MISSING'))."';
+				acymailing['NAME_MISSING'] = '".str_replace("'", "\'", acymailing_translation('NAME_MISSING'))."';
 				acymailing['EMAILCAPTION'] = '".str_replace("'", "\'", $emailCaption)."';
-				acymailing['VALID_EMAIL'] = '".str_replace("'", "\'", JText::_('VALID_EMAIL'))."';
-				acymailing['ACCEPT_TERMS'] = '".str_replace("'", "\'", JText::_('ACCEPT_TERMS'))."';
-				acymailing['CAPTCHA_MISSING'] = '".str_replace("'", "\'", JText::_('ERROR_CAPTCHA'))."';
-				acymailing['NO_LIST_SELECTED'] = '".str_replace("'", "\'", JText::_('NO_LIST_SELECTED'))."';
+				acymailing['VALID_EMAIL'] = '".str_replace("'", "\'", acymailing_translation('VALID_EMAIL'))."';
+				acymailing['ACCEPT_TERMS'] = '".str_replace("'", "\'", acymailing_translation('ACCEPT_TERMS'))."';
+				acymailing['CAPTCHA_MISSING'] = '".str_replace("'", "\'", acymailing_translation('ERROR_CAPTCHA'))."';
+				acymailing['NO_LIST_SELECTED'] = '".str_replace("'", "\'", acymailing_translation('NO_LIST_SELECTED'))."';
 		";
 	if($includejs == 'header'){
-		$doc->addScriptDeclaration($js);
+		acymailing_addScript(true, $js);
 	}else{
 		echo "<script type=\"text/javascript\">
 					<!--
@@ -331,13 +283,12 @@ function acymailing_absoluteURL($text){
 }
 
 function acymailing_setPageTitle($title){
-	$app = JFactory::getApplication();
 	if(empty($title)){
-		$title = $app->getCfg('sitename');
-	}elseif($app->getCfg('sitename_pagetitles', 0) == 1){
-		$title = JText::sprintf('ACY_JPAGETITLE', $app->getCfg('sitename'), $title);
-	}elseif($app->getCfg('sitename_pagetitles', 0) == 2){
-		$title = JText::sprintf('ACY_JPAGETITLE', $title, $app->getCfg('sitename'));
+		$title = acymailing_getCMSConfig('sitename');
+	}elseif(acymailing_getCMSConfig('sitename_pagetitles', 0) == 1){
+		$title = acymailing_translation_sprintf('ACY_JPAGETITLE', acymailing_getCMSConfig('sitename'), $title);
+	}elseif(acymailing_getCMSConfig('sitename_pagetitles', 0) == 2){
+		$title = acymailing_translation_sprintf('ACY_JPAGETITLE', $title, acymailing_getCMSConfig('sitename'));
 	}
 	$document = JFactory::getDocument();
 	$document->setTitle($title);
@@ -345,14 +296,20 @@ function acymailing_setPageTitle($title){
 
 function acymailing_frontendLink($link, $newsletter = true, $popup = false){
 	if($popup) $link .= '&tmpl=component';
-
 	$config = acymailing_config();
 
-	if($config->get('use_sef', 0) && strpos($link, '&ctrl=url') === false && (!file_exists(JPATH_SITE.DS.'components'.DS.'com_sh404sef') || !JComponentHelper::isEnabled('com_sh404sef'))){
-		if($newsletter) return '{acyfrontsef:'.$link.'}';
-		$json = json_decode(acymailing_fileGetContent(JURI::root().'index.php?option=com_acymailing&ctrl=url&task=sef&'.http_build_query(array('urls' => array($link)))), true);
-		$link = array_shift($json);
-		return $link;
+	if($config->get('use_sef', 0) && strpos($link, '&ctrl=url') === false){
+
+		if ($newsletter) return '{acyfrontsef}' . $link . '{/acyfrontsef}';
+
+		$sefLink = acymailing_fileGetContent(acymailing_rootURI() . 'index.php?option=com_acymailing&ctrl=url&task=sef&urls[0]=' . base64_encode($link));
+		$json = json_decode($sefLink, true);
+		if ($json == null) {
+			if (!empty($sefLink) && defined('JDEBUG') && JDEBUG) acymailing_enqueueMessage('Error trying to get the sef link: ' . $sefLink);
+		} else {
+			$link = array_shift($json);
+			return $link;
+		}
 	}
 
 	static $mainurl = '';
@@ -381,11 +338,11 @@ function acymailing_bytes($val){
 	$last = strtolower($val[strlen($val) - 1]);
 	switch($last){
 		case 'g':
-			$val *= 1024;
+			$val = intval($val) * 1073741824;
 		case 'm':
-			$val *= 1024;
+			$val = intval($val) * 1048576;
 		case 'k':
-			$val *= 1024;
+			$val = intval($val) * 1024;
 	}
 
 	return (int)$val;
@@ -394,43 +351,16 @@ function acymailing_bytes($val){
 function acymailing_display($messages, $type = 'success', $close = false){
 	if(empty($messages)) return;
 	if(!is_array($messages)) $messages = array($messages);
-	$app = JFactory::getApplication();
-	if(ACYMAILING_J30 || $app->isAdmin()){
-		$tmpl = JRequest::getString('tmpl', '');
-		if($app->isAdmin() && empty($tmpl)) echo '<div style="padding:1px;">';
+	if(ACYMAILING_J30 || acymailing_isAdmin()){
+		$tmpl = acymailing_getVar('string', 'tmpl', '');
+		if(acymailing_isAdmin() && empty($tmpl)) echo '<div style="padding:1px;">';
 		echo '<div id="acymailing_messages_'.$type.'" class="alert alert-'.$type.' alert-block">';
 		if($close && ACYMAILING_J30) echo '<button type="button" class="close" data-dismiss="alert">×</button>';
 		echo '<p>'.implode('</p><p>', $messages).'</p></div>';
-		if($app->isAdmin() && empty($tmpl)) echo '</div>';
+		if(acymailing_isAdmin() && empty($tmpl)) echo '</div>';
 	}else{
 		echo '<div id="acymailing_messages_'.$type.'" class="acymailing_messages acymailing_'.$type.'"><ul><li>'.implode('</li><li>', $messages).'</li></ul></div>';
 	}
-}
-
-function acymailing_enqueueMessage($message, $type = 'success'){
-	$result = is_array($message) ? implode('<br/>', $message) : $message;
-
-	$app = JFactory::getApplication();
-	if($app->isAdmin()){
-		if(ACYMAILING_J30){
-			$type = str_replace(array('notice', 'message'), array('info', 'success'), $type);
-		}else{
-			$type = str_replace(array('message', 'notice', 'warning'), array('info', 'warning', 'error'), $type);
-		}
-		$_SESSION['acymessage'.$type][] = $result;
-	}else{
-		if(ACYMAILING_J30){
-			$type = str_replace(array('success', 'info'), array('message', 'notice'), $type);
-		}else{
-			$type = str_replace(array('success', 'error', 'warning', 'info'), array('message', 'warning', 'notice', 'message'), $type);
-		}
-		$app->enqueueMessage($result, $type);
-	}
-}
-
-function acymailing_completeLink($link, $popup = false, $redirect = false){
-	if($popup) $link .= '&tmpl=component';
-	return JRoute::_('index.php?option='.ACYMAILING_COMPONENT.'&ctrl='.$link, !$redirect);
 }
 
 function acymailing_table($name, $component = true){
@@ -455,7 +385,7 @@ function acymailing_increasePerf(){
 	@ini_set('pcre.backtrack_limit', 1000000);
 }
 
-function &acymailing_config($reload = false){
+function acymailing_config($reload = false){
 	static $configClass = null;
 	if($configClass === null || $reload){
 		$configClass = acymailing_get('class.config');
@@ -465,23 +395,16 @@ function &acymailing_config($reload = false){
 }
 
 function acymailing_listingsearch($search){
-	$app = JFactory::getApplication();
-	if($app->isAdmin()){ ?>
-		<div class="filter-search">
-			<input type="text" name="search" id="search" value="<?php echo htmlspecialchars($search, ENT_COMPAT, 'UTF-8'); ?>" class="text_area" placeholder="<?php echo JText::_('ACY_SEARCH'); ?>" title="<?php echo JText::_('ACY_SEARCH'); ?>"/>
-			<button style="float:none;" onclick="document.adminForm.limitstart.value=0;this.form.submit();" class="btn tip hasTooltip" type="submit" title="<?php echo JText::_('ACY_SEARCH'); ?>"><i class="acyicon-search"></i></button>
-			<button style="float:none;" onclick="document.adminForm.limitstart.value=0;document.getElementById('search').value='';this.form.submit();" class="btn tip hasTooltip" type="button" title="<?php echo JText::_('JOOMEXT_RESET'); ?>"><i class="acyicon-cancel"></i></button>
-		</div>
-	<?php }else{ ?>
-		<input placeholder="<?php echo JText::_('ACY_SEARCH'); ?>" type="text" name="search" id="search" value="<?php echo htmlspecialchars($search, ENT_COMPAT, 'UTF-8'); ?>" class="text_area" style="margin-bottom:0;"/>
-		<button class="btn" onclick="document.adminForm.limitstart.value=0;this.form.submit();" title="<?php echo JText::_('JOOMEXT_GO'); ?>"><?php echo JText::_('JOOMEXT_GO'); ?></button>
-		<button class="btn" onclick="document.adminForm.limitstart.value=0;document.getElementById('search').value='';this.form.submit();" title="<?php echo JText::_('JOOMEXT_RESET'); ?>"><?php echo JText::_('JOOMEXT_RESET'); ?></button>
-		<?php
-	}
+	$searchBar = '<div class="filter-search">';
+	$searchBar .= '<input placeholder="'.acymailing_translation('ACY_SEARCH').'" type="text" name="search" id="search" value="'.htmlspecialchars($search, ENT_COMPAT, 'UTF-8').'" class="text_area" title="'.acymailing_translation('ACY_SEARCH').'"/>';
+	$searchBar .= '<button style="float:none;" onclick="document.adminForm.task.value=\'\';document.adminForm.limitstart.value=0;this.form.submit();" class="btn tip hasTooltip" type="submit" title="'.acymailing_translation('ACY_SEARCH').'"><i class="acyicon-search"></i></button>';
+	$searchBar .= '<button style="float:none;margin-left:0px;" onclick="document.adminForm.task.value=\'\';document.adminForm.limitstart.value=0;document.getElementById(\'search\').value=\'\';this.form.submit();" class="btn tip hasTooltip" type="button" title="'.acymailing_translation('JOOMEXT_RESET').'"><i class="acyicon-cancel"></i></button>';
+	$searchBar .= '</div>';
+	echo $searchBar;
 }
 
 function acymailing_level($level){
-	$config =& acymailing_config();
+	$config = acymailing_config();
 	if($config->get($config->get('level'), 0) >= $level) return true;
 	return false;
 }
@@ -499,13 +422,12 @@ function acymailing_initModule($includejs, $params){
 	$alreadyThere = true;
 
 	acymailing_initJSStrings($includejs, $params);
-	$doc = JFactory::getDocument();
 	$config = acymailing_config();
 	if($includejs == 'header'){
 		if(ACYMAILING_J16){
-			$doc->addScript(ACYMAILING_JS.'acymailing_module.js?v='.str_replace('.', '', $config->get('version')), 'text/javascript', false, true);
+			acymailing_addScript(false, ACYMAILING_JS.'acymailing_module.js?v='.str_replace('.', '', $config->get('version')), 'text/javascript', false, true);
 		}else{
-			$doc->addScript(ACYMAILING_JS.'acymailing_module.js?v='.str_replace('.', '', $config->get('version')));
+			acymailing_addScript(false, ACYMAILING_JS.'acymailing_module.js?v='.str_replace('.', '', $config->get('version')));
 		}
 	}else{
 		echo "\n".'<script type="text/javascript" src="'.ACYMAILING_JS.'acymailing_module.js?v='.str_replace('.', '', $config->get('version')).'" ></script>'."\n";
@@ -514,7 +436,7 @@ function acymailing_initModule($includejs, $params){
 	$moduleCSS = $config->get('css_module', 'default');
 	if(!empty($moduleCSS)){
 		if($includejs == 'header'){
-			$doc->addStyleSheet(ACYMAILING_CSS.'module_'.$moduleCSS.'.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'module_'.$moduleCSS.'.css'));
+			acymailing_addStyle(false, ACYMAILING_CSS.'module_'.$moduleCSS.'.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'module_'.$moduleCSS.'.css'));
 		}else{
 			echo "\n".'<link rel="stylesheet" property="stylesheet" href="'.ACYMAILING_CSS.'module_'.$moduleCSS.'.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'module_'.$moduleCSS.'.css').'" type="text/css" />'."\n";
 		}
@@ -590,7 +512,7 @@ function acymailing_get($path){
 	if($group == 'helper' && $class == 'mailer') $class = 'acymailer';
 	if($class == 'config') $class = 'cpanel';
 
-	$className = $class.ucfirst($group);
+	$className = $class.ucfirst(str_replace('_front', '', $group));
 	if($group == 'helper' && strpos($className, 'acy') !== 0) $className = 'acy'.$className;
 	if(!class_exists($className)) include(constant(strtoupper('ACYMAILING_'.$group)).$class.'.php');
 
@@ -599,25 +521,12 @@ function acymailing_get($path){
 }
 
 function acymailing_getCID($field = ''){
-	$oneResult = JRequest::getVar('cid', array(), '', 'array');
+	$oneResult = acymailing_getVar('array', 'cid', array(), '');
 	$oneResult = intval(reset($oneResult));
 	if(!empty($oneResult) OR empty($field)) return $oneResult;
 
-	$oneResult = JRequest::getVar($field, 0, '', 'int');
+	$oneResult = acymailing_getVar('int', $field, 0, '');
 	return intval($oneResult);
-}
-
-function acymailing_tooltip($desc, $title = ' ', $image = 'tooltip.png', $name = '', $href = '', $link = 1){
-	$app = JFactory::getApplication();
-	$config = acymailing_config();
-	$bootstrap = $config->get('bootstrap_frontend');
-	if(ACYMAILING_J30 && ($app->isAdmin() || !empty($bootstrap))){
-		$class = 'hasTooltip';
-		JHtml::_('bootstrap.tooltip');
-	}else{
-		$class = 'hasTip';
-	}
-	return JHTML::_('tooltip', str_replace(array("'", "::"), array("&#039;", ": : "), $desc.' '), str_replace(array("'", '::'), array("&#039;", ': : '), $title), $image, str_replace(array("'", '::'), array("&#039;", ': : '), $name.' '), $href, $link, $class);
 }
 
 function acymailing_checkRobots(){
@@ -634,16 +543,15 @@ function acymailing_removeChzn($eltsToClean){
 					';
 	}
 	$js .= '}
-		window.addEvent("domready", function(){removeChosen();
+		document.addEventListener("DOMContentLoaded", function(){removeChosen();
 			setTimeout(function(){
 				removeChosen();
 		}, 100);});';
-	$doc = JFactory::getDocument();
-	$doc->addScriptDeclaration($js);
+	acymailing_addScript(true, $js);
 }
 
 function acymailing_checkPluginsFolders(){
-	$folders = array(JPATH_ROOT.DS.'plugins' => '', JPATH_ROOT.DS.'plugins'.DS.'user' => '', JPATH_ROOT.DS.'plugins'.DS.'system' => '');
+	$folders = array(ACYMAILING_ROOT.'plugins' => '', ACYMAILING_ROOT.'plugins'.DS.'user' => '', ACYMAILING_ROOT.'plugins'.DS.'system' => '');
 	$results = array('', '', '');
 	foreach($folders as $oneFolderToCheck => &$result){
 		if(!is_writable($oneFolderToCheck)){
@@ -659,64 +567,31 @@ function acymailing_checkPluginsFolders(){
 	}
 	$errorPluginTxt = 'Some required AcyMailing plugins have not been installed.<br />Please make sure your plugins folders are writables by checking the user/group permissions:<br />* Joomla / Plugins'.$results[0].'<br />* Joomla / Plugins / User'.$results[1].'<br />* Joomla / Plugins / System'.$results[0].'<br />';
 	if(empty($writableIssue)) $errorPluginTxt .= 'Please also empty your plugins cache: System => Clear cache => com_plugins => Delete<br />';
-	acymailing_display($errorPluginTxt.'<a href="index.php?option=com_acymailing&amp;ctrl=update&amp;task=install">'.JText::_('ACY_ERROR_INSTALLAGAIN').'</a>', 'warning');
+	acymailing_display($errorPluginTxt.'<a href="index.php?option=com_acymailing&amp;ctrl=update&amp;task=install">'.acymailing_translation('ACY_ERROR_INSTALLAGAIN').'</a>', 'warning');
 }
 
-function acymailing_fileGetContent($url, $timeout = 0){
-	if(ACYMAILING_J16) {
-		$http = JHttpFactory::getHttp();
-		try {
-			$response = $http->get($url);
-		} catch (RuntimeException $e) {
-			$response = null;
-		}
+function acymailing_importFile($file, $uploadPath, $onlyPict, $maxwidth = ''){
+	acymailing_checkToken();
 
-		if ($response !== null && $response->code === 200) return $response->body;
-	}
-
-	$data = '';
-
-	if(function_exists('curl_exec')){
-		$conn = curl_init($url);
-		curl_setopt($conn, CURLOPT_SSL_VERIFYPEER, true);
-		curl_setopt($conn, CURLOPT_FRESH_CONNECT, true);
-		curl_setopt($conn, CURLOPT_RETURNTRANSFER, 1);
-		if(!empty($timeout)){
-			curl_setopt($conn, CURLOPT_TIMEOUT, $timeout);
-			curl_setopt($conn, CURLOPT_CONNECTTIMEOUT, $timeout);
-		}
-
-		$data = curl_exec($conn);
-		curl_close($conn);
-	}
-
-	if(empty($data) && function_exists('file_get_contents')){
-		if(!empty($timeout)){
-			ini_set('default_socket_timeout', $timeout);
-		}
-		$streamContext = stream_context_create(array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false)));
-		$data = file_get_contents($url, false, $streamContext);
-	}
-
-	if(empty($data) && function_exists('fopen') && function_exists('stream_get_contents')){
-		$handle = fopen($url, "r");
-		if(!empty($timeout)){
-			stream_set_timeout($handle, $timeout);
-		}
-		$data = stream_get_contents($handle);
-	}
-
-	return $data;
-}
-
-function acymailing_importFile($file, $uploadPath, $onlyPict){
-	JRequest::checkToken() or die('Invalid Token');
-
-	$config =& acymailing_config();
+	$config = acymailing_config();
 	$additionalMsg = '';
 
 	if($file["error"] > 0){
-		acymailing_display("Error Uploading code: ".htmlspecialchars($file["error"], ENT_COMPAT, 'UTF-8'), 'error');
+		$file["error"] = intval($file["error"]);
+		if($file["error"] > 8) $file["error"] = 0;
+
+		$phpFileUploadErrors = array(
+			0 => 'Unknown error',
+			1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
+			2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
+			3 => 'The uploaded file was only partially uploaded',
+			4 => 'No file was uploaded',
+			6 => 'Missing a temporary folder',
+			7 => 'Failed to write file to disk',
+			8 => 'A PHP extension stopped the file upload'
+		);
+
+		acymailing_display("Error Uploading file: ".$phpFileUploadErrors[$file["error"]], 'error');
 		return false;
 	}
 
@@ -725,7 +600,7 @@ function acymailing_importFile($file, $uploadPath, $onlyPict){
 	if(!is_writable($uploadPath)){
 		@chmod($uploadPath, '0755');
 		if(!is_writable($uploadPath)){
-			acymailing_display(JText::sprintf('WRITABLE_FOLDER', $uploadPath), 'error');
+			acymailing_display(acymailing_translation_sprintf('WRITABLE_FOLDER', $uploadPath), 'error');
 			return false;
 		}
 	}
@@ -738,7 +613,7 @@ function acymailing_importFile($file, $uploadPath, $onlyPict){
 
 	if(!preg_match('#\.('.implode('|', $allowedExtensions).')$#Ui', $file["name"], $extension)){
 		$ext = substr($file["name"], strrpos($file["name"], '.') + 1);
-		acymailing_display(JText::sprintf('ACCEPTED_TYPE', htmlspecialchars($ext, ENT_COMPAT, 'UTF-8'), implode(', ', $allowedExtensions)), 'error');
+		acymailing_display(acymailing_translation_sprintf('ACCEPTED_TYPE', htmlspecialchars($ext, ENT_COMPAT, 'UTF-8'), implode(', ', $allowedExtensions)), 'error');
 		return false;
 	}
 
@@ -766,45 +641,50 @@ function acymailing_importFile($file, $uploadPath, $onlyPict){
 		}
 
 		$file["name"] = $nameFile.'_'.$i.'.'.$ext;
-		$additionalMsg = '<br />'.JText::sprintf('FILE_RENAMED', $file["name"]);
-		$additionalMsg .= '<br /><a style="color: blue; cursor: pointer;" onclick="confirmBox(\'rename\', \''.$file['name'].'\', \''.$nameFile.'.'.$ext.'\')">'.JText::_('ACY_RENAME_OR_REPLACE').'</a>';
+		$additionalMsg = '<br />'.acymailing_translation_sprintf('FILE_RENAMED', $file["name"]);
+		$additionalMsg .= '<br /><a style="color: blue; cursor: pointer;" onclick="confirmBox(\'rename\', \''.$file['name'].'\', \''.$nameFile.'.'.$ext.'\')">'.acymailing_translation('ACY_RENAME_OR_REPLACE').'</a>';
 	}
 
-	if(!JFile::upload($file["tmp_name"], rtrim($uploadPath, DS).DS.$file["name"])){
+	if(!acymailing_uploadFile($file["tmp_name"], rtrim($uploadPath, DS).DS.$file["name"])){
 		if(!move_uploaded_file($file["tmp_name"], rtrim($uploadPath, DS).DS.$file["name"])){
-			acymailing_display(JText::sprintf('FAIL_UPLOAD', '<b><i>'.htmlspecialchars($file["tmp_name"], ENT_COMPAT, 'UTF-8').'</i></b>', '<b><i>'.htmlspecialchars(rtrim($uploadPath, DS).DS.$file["name"], ENT_COMPAT, 'UTF-8').'</i></b>'), 'error');
+			acymailing_display(acymailing_translation_sprintf('FAIL_UPLOAD', '<b><i>'.htmlspecialchars($file["tmp_name"], ENT_COMPAT, 'UTF-8').'</i></b>', '<b><i>'.htmlspecialchars(rtrim($uploadPath, DS).DS.$file["name"], ENT_COMPAT, 'UTF-8').'</i></b>'), 'error');
 			return false;
 		}
 	}
 
-	if($onlyPict && $imageSize[0] > 1000){
+	if(!empty($maxwidth) || ($onlyPict && $imageSize[0] > 1000)){
 		$pictureHelper = acymailing_get('helper.acypict');
 		if($pictureHelper->available()){
 			$pictureHelper->maxHeight = 9999;
-			$pictureHelper->maxWidth = 700;
+			if(empty($maxwidth)) {
+				$pictureHelper->maxWidth = 700;
+				$message = 'IMAGE_RESIZED';
+			}else{
+				$pictureHelper->maxWidth = $maxwidth;
+				$message = 'ACY_IMAGE_RESIZED';
+			}
 			$pictureHelper->destination = $uploadPath;
 			$thumb = $pictureHelper->generateThumbnail(rtrim($uploadPath, DS).DS.$file["name"], $file["name"]);
-			$resize = JFile::move($thumb['file'], $uploadPath.DS.$file["name"]);
-			if($thumb) $additionalMsg .= '<br />'.JText::_('IMAGE_RESIZED');
+			$resize = acymailing_moveFile($thumb['file'], $uploadPath.DS.$file["name"]);
+			if($thumb) $additionalMsg .= '<br />'.acymailing_translation($message);
 		}
 	}
-	acymailing_display('<strong>'.JText::_('SUCCESS_FILE_UPLOAD').'</strong>'.$additionalMsg, 'success');
+	acymailing_display('<strong>'.acymailing_translation('SUCCESS_FILE_UPLOAD').'</strong>'.$additionalMsg, 'success');
 	return $file["name"];
 }
 
 function acymailing_getFilesFolder($folder = 'upload', $multipleFolders = false){
 	$my = JFactory::getUser();
 	$db = JFactory::getDBO();
-	$app = JFactory::getApplication();
 	$listClass = acymailing_get('class.list');
-	if($app->isAdmin()){
+	if(acymailing_isAdmin()){
 		$allLists = $listClass->getLists('listid');
 	}else{
 		$allLists = $listClass->getFrontendLists('listid');
 	}
 	$newFolders = array();
 
-	$config =& acymailing_config();
+	$config = acymailing_config();
 	if($folder == 'upload'){
 		$uploadFolder = $config->get('uploadfolder', 'media/com_acymailing/upload');
 	}else{
@@ -815,7 +695,7 @@ function acymailing_getFilesFolder($folder = 'upload', $multipleFolders = false)
 
 	foreach($folders as $k => $folder){
 		$folders[$k] = trim($folder, '/');
-		if(strpos($folder, '{userid}') !== false) $folders[$k] = str_replace('{userid}', $my->id, $folders[$k]);
+		if(strpos($folder, '{userid}') !== false) $folders[$k] = str_replace('{userid}', acymailing_currentUserId(), $folders[$k]);
 
 		if(strpos($folder, '{listalias}') !== false){
 			if(empty($allLists)){
@@ -833,21 +713,15 @@ function acymailing_getFilesFolder($folder = 'upload', $multipleFolders = false)
 		}
 
 		if(strpos($folder, '{groupid}') !== false || strpos($folder, '{groupname}') !== false){
-			if(ACYMAILING_J16){
-				jimport('joomla.access.access');
-				$groups = JAccess::getGroupsByUser($my->id, false);
-			}else{
-				$groups = array($my->gid);
-			}
-
-			JArrayHelper::toInteger($groups);
+			$groups = acymailing_getGroupsByUser(acymailing_currentUserId(), false);
+			acymailing_arrayToInteger($groups);
 
 			if(ACYMAILING_J16){
 				$db->setQuery('SELECT id, title FROM #__usergroups WHERE id IN ('.implode(',', $groups).')');
 				$completeGroups = $db->loadObjectList();
 			}else{
 				$groupObject = new stdClass();
-				$groupObject->id = $my->gid;
+				$groupObject->id = $groups[0];
 				$groupObject->title = $my->usertype;
 				$completeGroups = array($groupObject);
 			}
@@ -873,9 +747,9 @@ function acymailing_getFilesFolder($folder = 'upload', $multipleFolders = false)
 function acymailing_generateArborescence($folders){
 	$folderList = array();
 	foreach($folders as $folder){
-		$folderPath = JPath::clean(ACYMAILING_ROOT.trim(str_replace('/', DS, trim($folder)), DS));
+		$folderPath = acymailing_cleanPath(ACYMAILING_ROOT.trim(str_replace('/', DS, trim($folder)), DS));
 		if(!file_exists($folderPath)) acymailing_createDir($folderPath);
-		$subFolders = JFolder::listFolderTree($folderPath, '', 15);
+		$subFolders = acymailing_listFolderTree($folderPath, '', 15);
 		$folderList[$folder] = array();
 		foreach($subFolders as $oneFolder){
 			$subFolder = str_replace(ACYMAILING_ROOT, '', $oneFolder['relname']);
@@ -887,99 +761,456 @@ function acymailing_generateArborescence($folders){
 	return $folderList;
 }
 
-function acymailing_checkToken(){
-	JRequest::checkToken() || JRequest::checkToken('get') || JSession::checkToken('get') || die('Invalid Token');
-}
-
-class acymailing{
-
-	static function initModule($includejs, $params){
-		return acymailing_initModule($includejs, $params);
-	}
-
-	static function initJSStrings($includejs = 'header', $params = null){
-		return acymailing_initJSStrings($includejs, $params);
-	}
-
-	static function getModuleFormName(){
-		return acymailing_getModuleFormName();
-	}
-
-	static function absoluteURL($text){
-		return acymailing_absoluteURL($text);
-	}
-
-	static function getDate($time = 0, $format = '%d %B %Y %H:%M'){
-		return acymailing_getDate($time, $format);
-	}
-
-	static function isAllowed($allowedGroups, $groups = null){
-		return acymailing_isAllowed($allowedGroups, $groups);
-	}
-
-	static function getTime($date){
-		return acymailing_getTime($date);
-	}
-
-	static function loadLanguage(){
-		return acymailing_loadLanguage();
-	}
-
-	static function level($level){
-		return acymailing_level($level);
-	}
-
-	static function createDir($dir, $report = true){
-		return acymailing_createDir($dir, $report);
-	}
-
-	static function replaceDate($mydate){
-		return acymailing_replaceDate($mydate);
-	}
-
-	static function frontendLink($link, $newsletter = true, $popup = false){
-		return acymailing_frontendLink($link, $newsletter, $popup);
-	}
-
-	static function display($messages, $type = 'success'){
-		return acymailing_display($messages, $type);
-	}
-
-	static function completeLink($link, $popup = false, $redirect = false){
-		return acymailing_completeLink($link, $popup, $redirect);
-	}
-
-	static function table($name, $component = true){
-		return acymailing_table($name, $component);
-	}
-
-	static function secureField($fieldName){
-		return acymailing_secureField($fieldName);
-	}
-
-	static function &config($reload = false){
-		return acymailing_config($reload);
-	}
-
-	static function search($searchString, $object){
-		return acymailing_search($searchString, $object);
-	}
-
-	static function get($path){
-		return acymailing_get($path);
-	}
-
-	static function getCID($field = ''){
-		return acymailing_getCID($field);
-	}
-
-	static function tooltip($desc, $title = ' ', $image = 'tooltip.png', $name = '', $href = '', $link = 1){
-		return acymailing_tooltip($desc, $title, $image, $name, $href, $link);
+function acymailing_arrayToInteger(&$array, $default = null){
+	if(is_array($array)){
+		$array = array_map('intval', $array);
+	}else{
+		if($default === null){
+			$array = array();
+		}elseif(is_array($default)){
+			acymailing_arrayToInteger($default, null);
+			$array = $default;
+		}else{
+			$array = array((int) $default);
+		}
 	}
 }
 
+function acymailing_arrayToString($array, $inner_glue = '=', $outer_glue = ' ', $keepOuterKey = false){
+	$output = array();
 
-class acymailingController extends acymailingControllerCompat{
+	foreach($array as $key => $item){
+		if(is_array($item)){
+			if($keepOuterKey) $output[] = $key;
+
+			$output[] = acymailing_arrayToString($item, $inner_glue, $outer_glue, $keepOuterKey);
+		}else{
+			$output[] = $key . $inner_glue . '"' . $item . '"';
+		}
+	}
+
+	return implode($outer_glue, $output);
+}
+
+function acymailing_makeSafeFile($file){
+	$file = rtrim($file, '.');
+	$regex = array('#(\.){2,}#', '#[^A-Za-z0-9\.\_\- ]#', '#^\.#');
+	return trim(preg_replace($regex, '', $file));
+}
+
+function acymailing_getLanguagePath($basePath = JPATH_BASE, $language = null){
+	return JLanguage::getLanguagePath(rtrim($basePath, DS), $language);
+}
+
+function acymailing_sortablelist($table, $ordering){
+	acymailing_addScript(false, ACYMAILING_JS.'sortable.js?v='.@filemtime(ACYMAILING_MEDIA.'js'.DS.'sortable.js'));
+
+	$js = "
+		document.addEventListener(\"DOMContentLoaded\", function(event) {
+			Sortable.create(document.getElementById('acymailing_sortable_listing'), {
+				handle: '.acyicon-draghandle',
+				animation: 150,
+				store: {
+					set: function (sortable) {
+						var cid = sortable.toArray();
+						var order = [".$ordering."];
+
+						var xhr = new XMLHttpRequest();
+						xhr.open('GET', 'index.php?option=com_acymailing&ctrl=".$table."&task=saveorder&tmpl=component&'+cid.join('&')+'&'+order.join('&')+'&".acymailing_getFormToken()."');
+						xhr.send();
+					}
+				}
+			});
+		});";
+
+	acymailing_addScript(true, $js);
+}
+
+function acymailing_tooltip($desc, $title = '', $image = 'tooltip.png', $name = '', $href = '', $alt = ''){
+	$content = $desc;
+	if(!empty($title)) $content = '<span style="font-weight: bold;">'.$title.'</span><br/>'.$content;
+	if(empty($name)) $name = '<img alt="" src="'.ACYMAILING_IMAGES.$image.'"/>';
+	if(!empty($href)) $name = '<a href="'.$href.'" alt="'.htmlspecialchars($alt, ENT_QUOTES, 'UTF-8').'"">'.$name.'</a>';
+
+	return '<span class="acymailingtooltip"><span class="acymailingtooltiptext">'.$content.'</span>'.$name.'</span>';
+}
+
+function acymailing_deleteFolder($path){
+	$path = acymailing_cleanPath($path);
+	if(!is_dir($path)){
+		acymailing_enqueueMessage($path.' is not a folder', 'error');
+		return false;
+	}
+	$files = acymailing_getFiles($path);
+	if(!empty($files)){
+		foreach($files as $oneFile){
+			if(!acymailing_deleteFile($path.DS.$oneFile)) return false;
+		}
+	}
+
+	$folders = acymailing_getFolders($path);
+	if(!empty($folders)){
+		foreach($folders as $oneFolder){
+			if(!acymailing_deleteFolder($path.DS.$oneFolder)) return false;
+		}
+	}
+
+	if (@rmdir($path)){
+		$ret = true;
+	}else{
+		acymailing_enqueueMessage('Could not delete folder '.$path, 'error');
+		$ret = false;
+	}
+
+	return $ret;
+}
+
+function acymailing_createFolder($path = '', $mode = 0755){
+	$path = acymailing_cleanPath($path);
+	if(file_exists($path)) return true;
+
+	$origmask = @umask(0);
+	$ret = @mkdir($path, $mode, true);
+	@umask($origmask);
+
+	return $ret;
+}
+
+function acymailing_getFolders($path, $filter = '.', $recurse = false, $full = false, $exclude = array('.svn', 'CVS', '.DS_Store', '__MACOSX'), $excludefilter = array('^\..*')){
+	$path = acymailing_cleanPath($path);
+
+	if (!is_dir($path)){
+		acymailing_enqueueMessage($path.' is not a folder', 'error');
+		return false;
+	}
+
+	if (count($excludefilter)){
+		$excludefilter_string = '/(' . implode('|', $excludefilter) . ')/';
+	}else{
+		$excludefilter_string = '';
+	}
+
+	$arr = acymailing_getItems($path, $filter, $recurse, $full, $exclude, $excludefilter_string, false);
+	asort($arr);
+
+	return array_values($arr);
+}
+
+function acymailing_getFiles($path, $filter = '.', $recurse = false, $full = false, $exclude = array('.svn', 'CVS', '.DS_Store', '__MACOSX'), $excludefilter = array('^\..*', '.*~'), $naturalSort = false){
+	$path = acymailing_cleanPath($path);
+
+	if (!is_dir($path)){
+		acymailing_enqueueMessage($path.' is not a folder', 'error');
+		return false;
+	}
+
+	if (count($excludefilter)){
+		$excludefilter_string = '/(' . implode('|', $excludefilter) . ')/';
+	}else{
+		$excludefilter_string = '';
+	}
+
+	$arr = acymailing_getItems($path, $filter, $recurse, $full, $exclude, $excludefilter_string, true);
+
+	if ($naturalSort){
+		natsort($arr);
+	}else{
+		asort($arr);
+	}
+
+	return array_values($arr);
+}
+
+function acymailing_getItems($path, $filter, $recurse, $full, $exclude, $excludefilter_string, $findfiles){
+	$arr = array();
+
+	if(!($handle = @opendir($path))) return $arr;
+
+	while(($file = readdir($handle)) !== false){
+		if($file == '.' || $file == '..' || in_array($file, $exclude) || (!empty($excludefilter_string) && preg_match($excludefilter_string, $file))) continue;
+		$fullpath = $path . '/' . $file;
+
+		$isDir = is_dir($fullpath);
+
+		if(($isDir xor $findfiles) && preg_match("/$filter/", $file)){
+			if($full){
+				$arr[] = $fullpath;
+			}else{
+				$arr[] = $file;
+			}
+		}
+
+		if($isDir && $recurse){
+			if(is_int($recurse)){
+				$arr = array_merge($arr, acymailing_getItems($fullpath, $filter, $recurse - 1, $full, $exclude, $excludefilter_string, $findfiles));
+			}else{
+				$arr = array_merge($arr, acymailing_getItems($fullpath, $filter, $recurse, $full, $exclude, $excludefilter_string, $findfiles));
+			}
+		}
+	}
+
+	closedir($handle);
+
+	return $arr;
+}
+
+function acymailing_copyFolder($src, $dest, $path = '', $force = false, $use_streams = false){
+
+	if($path){
+		$src  = acymailing_cleanPath($path . '/' . $src);
+		$dest = acymailing_cleanPath($path . '/' . $dest);
+	}
+
+	$src = rtrim($src, DIRECTORY_SEPARATOR);
+	$dest = rtrim($dest, DIRECTORY_SEPARATOR);
+
+	if (!file_exists($src)){
+		acymailing_enqueueMessage('Folder '.$src.' does not exist', 'error');
+		return false;
+	}
+
+	if(file_exists($dest) && !$force){
+		acymailing_enqueueMessage('Folder '.$dest.' already exists', 'error');
+		return true;
+	}
+
+	if (!acymailing_createFolder($dest)){
+		acymailing_enqueueMessage('Cannot create destination folder', 'error');
+		return false;
+	}
+
+	if (!($dh = @opendir($src))){
+		acymailing_enqueueMessage('Cannot open source folder', 'error');
+		return false;
+	}
+
+	while(($file = readdir($dh)) !== false){
+		$sfid = $src . '/' . $file;
+		$dfid = $dest . '/' . $file;
+
+		switch (filetype($sfid)){
+			case 'dir':
+				if ($file != '.' && $file != '..'){
+					$ret = acymailing_copyFolder($sfid, $dfid, null, $force, $use_streams);
+
+					if ($ret !== true)
+					{
+						return $ret;
+					}
+				}
+				break;
+
+			case 'file':
+				if (!@copy($sfid, $dfid)){
+					acymailing_enqueueMessage('Copy file '.$sfid.' failed, check permissions', 'error');
+					return false;
+				}
+				break;
+		}
+	}
+
+	return true;
+}
+
+function acymailing_moveFolder($src, $dest, $path = '', $use_streams = false){
+	if($path){
+		$src = acymailing_cleanPath($path . '/' . $src);
+		$dest = acymailing_cleanPath($path . '/' . $dest);
+	}
+
+	if (!file_exists($src)){
+		acymailing_enqueueMessage('Folder '.$src.' does not exist', 'error');
+		return false;
+	}
+
+	if (!@rename($src, $dest)){
+		acymailing_enqueueMessage('Could not move folder '.$src.' to '.$dest.', check permissions', 'error');
+		return false;
+	}
+
+	return true;
+}
+
+function acymailing_listFolderTree($path, $filter, $maxLevel = 3, $level = 0, $parent = 0){
+	$dirs = array();
+
+	if($level == 0) $GLOBALS['acymailing_folder_tree_index'] = 0;
+
+	if ($level < $maxLevel){
+		$folders = acymailing_getFolders($path, $filter);
+
+		foreach ($folders as $name){
+			$id = ++$GLOBALS['acymailing_folder_tree_index'];
+			$fullName = acymailing_cleanPath($path . '/' . $name);
+			$dirs[] = array(
+				'id' => $id,
+				'parent' => $parent,
+				'name' => $name,
+				'fullname' => $fullName,
+				'relname' => str_replace(ACYMAILING_ROOT, '', $fullName),
+			);
+			$dirs2 = acymailing_listFolderTree($fullName, $filter, $maxLevel, $level + 1, $id);
+			$dirs = array_merge($dirs, $dirs2);
+		}
+	}
+
+	return $dirs;
+}
+
+function acymailing_deleteFile($file){
+	$file = acymailing_cleanPath($file);
+	if(!is_file($file)){
+		acymailing_enqueueMessage($file.' is not a file', 'error');
+		return false;
+	}
+
+	@chmod($file, 0777);
+
+	if (!@unlink($file)){
+		$filename = basename($file);
+		acymailing_enqueueMessage('Failed to delete '.$filename, 'error');
+		return false;
+	}
+
+	return true;
+}
+
+function acymailing_writeFile($file, $buffer, $use_streams = false){
+	if (!file_exists(dirname($file)) && acymailing_createFolder(dirname($file)) == false) return false;
+
+	$file = acymailing_cleanPath($file);
+	$ret = is_int(file_put_contents($file, $buffer));
+
+	return $ret;
+}
+
+function acymailing_moveFile($src, $dest, $path = '', $use_streams = false){
+	if ($path){
+		$src = acymailing_cleanPath($path . '/' . $src);
+		$dest = acymailing_cleanPath($path . '/' . $dest);
+	}
+
+	if (!is_readable($src)){
+		acymailing_enqueueMessage('Could not find source file, check permissions: '.$src, 'error');
+		return false;
+	}
+
+	if (!@rename($src, $dest)){
+		acymailing_enqueueMessage('Could not move the file', 'error');
+		return false;
+	}
+
+	return true;
+}
+
+function acymailing_uploadFile($src, $dest){
+	$dest = acymailing_cleanPath($dest);
+
+	$baseDir = dirname($dest);
+	if(!file_exists($baseDir)) acymailing_createFolder($baseDir);
+
+	if(is_writeable($baseDir) && move_uploaded_file($src, $dest)){
+		if (@chmod($dest, octdec('0644'))){
+			return true;
+		}else{
+			acymailing_enqueueMessage('The file has been rejected for safety reason', 'error');
+		}
+	}else{
+		acymailing_enqueueMessage('Couldn\'t upload file, check permissions for the folder '.$baseDir, 'error');
+	}
+
+	return false;
+}
+
+function acymailing_copyFile($src, $dest, $path = null, $use_streams = false){
+	if ($path){
+		$src = acymailing_cleanPath($path . '/' . $src);
+		$dest = acymailing_cleanPath($path . '/' . $dest);
+	}
+
+	if (!is_readable($src)){
+		acymailing_enqueueMessage('Could not find source file, check permissions: '.$src, 'error');
+		return false;
+	}
+
+	if (!@copy($src, $dest)){
+		acymailing_enqueueMessage('Could not copy the file '.$src.' to '.$dest, 'error');
+		return false;
+	}
+
+	return true;
+}
+
+function acymailing_fileGetExt($file){
+	$dot = strrpos($file, '.');
+	if($dot === false) return '';
+
+	return substr($file, $dot + 1);
+}
+
+function acymailing_cleanPath($path, $ds = DIRECTORY_SEPARATOR){
+	$path = trim($path);
+
+	if(empty($path)){
+		$path = ACYMAILING_ROOT;
+	}elseif (($ds == '\\') && substr($path, 0, 2) == '\\\\'){
+		$path = "\\" . preg_replace('#[/\\\\]+#', $ds, $path);
+	}else{
+		$path = preg_replace('#[/\\\\]+#', $ds, $path);
+	}
+
+	return $path;
+}
+
+function acymailing_popup($url, $text, $class = '', $width = 800, $height = 500, $id = '', $params = ''){
+	acymailing_addScript(false, ACYMAILING_JS.'acymailing.js?v='.filemtime(ACYMAILING_MEDIA.'js'.DS.'acymailing.js'));
+	acymailing_addStyle(false, ACYMAILING_CSS.'acypopup.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'acypopup.css'));
+
+	if(!empty($id)) $id = ' id="'.$id.'" ';
+	$url .= '&tmpl=component';
+	return '<a onclick="acymailing.openpopup(\''.$url.'\','.$width.','.$height.'); return false;" class="acymailingpopup '.$class.'" '.$id.$params.'>'.$text.'</a>';
+}
+
+function acymailing_createArchive($name, $files){
+	$contents = array();
+	$ctrldir = array();
+
+	$timearray = getdate();
+	$dostime = (($timearray['year'] - 1980) << 25) | ($timearray['mon'] << 21) | ($timearray['mday'] << 16) | ($timearray['hours'] << 11) | ($timearray['minutes'] << 5) | ($timearray['seconds'] >> 1);
+	$dtime = dechex($dostime);
+	$hexdtime = chr(hexdec($dtime[6] . $dtime[7])) . chr(hexdec($dtime[4] . $dtime[5])) . chr(hexdec($dtime[2] . $dtime[3])) . chr(hexdec($dtime[0] . $dtime[1]));
+
+	foreach ($files as $file){
+		$data = $file['data'];
+		$filename = str_replace('\\', '/', $file['name']);
+
+		$fr = "\x50\x4b\x03\x04\x14\x00\x00\x00\x08\x00".$hexdtime;
+
+		$unc_len = strlen($data);
+		$crc = crc32($data);
+		$zdata = gzcompress($data);
+		$zdata = substr(substr($zdata, 0, strlen($zdata) - 4), 2);
+		$c_len = strlen($zdata);
+
+		$fr .= pack('V', $crc).pack('V', $c_len).pack('V', $unc_len).pack('v', strlen($filename)).pack('v', 0).$filename.$zdata;
+
+		$old_offset = strlen(implode('', $contents));
+		$contents[] = $fr;
+
+		$cdrec = "\x50\x4b\x01\x02\x00\x00\x14\x00\x00\x00\x08\x00".$hexdtime;
+		$cdrec .= pack('V', $crc).pack('V', $c_len).pack('V', $unc_len).pack('v', strlen($filename)).pack('v', 0).pack('v', 0).pack('v', 0).pack('v', 0).pack('V', 32).pack('V', $old_offset).$filename;
+
+		$ctrldir[] = $cdrec;
+	}
+
+	$data = implode('', $contents);
+	$dir = implode('', $ctrldir);
+	$buffer = $data . $dir . "\x50\x4b\x05\x06\x00\x00\x00\x00" . pack('v', count($ctrldir)) . pack('v', count($ctrldir)) . pack('V', strlen($dir)) . pack('V', strlen($data)) . "\x00\x00";
+
+	return acymailing_writeFile($name.'.zip', $buffer);
+}
+
+class acymailingController extends acymailingBridgeController{
 
 	var $pkey = '';
 	var $table = '';
@@ -998,8 +1229,8 @@ class acymailingController extends acymailingControllerCompat{
 	}
 
 	function listing(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::setVar('layout', 'listing');
+		if(!empty($this->aclCat) && !$this->isAllowed($this->aclCat, 'manage')) return;
+		acymailing_setVar('layout', 'listing');
 		return parent::display();
 	}
 
@@ -1007,7 +1238,7 @@ class acymailingController extends acymailingControllerCompat{
 		if(acymailing_level(3)){
 			$config = acymailing_config();
 			if(!acymailing_isAllowed($config->get('acl_'.$cat.'_'.$action, 'all'))){
-				acymailing_display(JText::_('ACY_NOTALLOWED'), 'error');
+				acymailing_display(acymailing_translation('ACY_NOTALLOWED'), 'error');
 				return false;
 			}
 		}
@@ -1015,18 +1246,18 @@ class acymailingController extends acymailingControllerCompat{
 	}
 
 	function edit(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::setVar('hidemainmenu', 1);
-		JRequest::setVar('layout', 'form');
+		if(!empty($this->aclCat) && !$this->isAllowed($this->aclCat, 'manage')) return;
+		acymailing_setVar('hidemainmenu', 1);
+		acymailing_setVar('layout', 'form');
 		return parent::display();
 	}
 
 
 	function add(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::setVar('cid', array());
-		JRequest::setVar('hidemainmenu', 1);
-		JRequest::setVar('layout', 'form');
+		if(!empty($this->aclCat) && !$this->isAllowed($this->aclCat, 'manage')) return;
+		acymailing_setVar('cid', array());
+		acymailing_setVar('hidemainmenu', 1);
+		acymailing_setVar('layout', 'form');
 		return parent::display();
 	}
 
@@ -1042,44 +1273,16 @@ class acymailingController extends acymailingControllerCompat{
 
 	function save2new(){
 		$this->store();
-		JRequest::setVar('cid', array());
-		JRequest::setVar('hidemainmenu', 1);
-		JRequest::setVar('layout', 'form');
-		JRequest::setVar($this->pkey, '');
+		acymailing_setVar('cid', array());
+		acymailing_setVar('hidemainmenu', 1);
+		acymailing_setVar('layout', 'form');
+		acymailing_setVar($this->pkey, '');
 		return parent::display();
 	}
 
-	function orderdown(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::checkToken() or jexit('Invalid Token');
-
-		$orderClass = acymailing_get('helper.order');
-		$orderClass->pkey = $this->pkey;
-		$orderClass->table = $this->table;
-		$orderClass->groupMap = $this->groupMap;
-		$orderClass->groupVal = $this->groupVal;
-		$orderClass->order(true);
-
-		return $this->listing();
-	}
-
-	function orderup(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::checkToken() or jexit('Invalid Token');
-
-		$orderClass = acymailing_get('helper.order');
-		$orderClass->pkey = $this->pkey;
-		$orderClass->table = $this->table;
-		$orderClass->groupMap = $this->groupMap;
-		$orderClass->groupVal = $this->groupVal;
-		$orderClass->order(false);
-
-		return $this->listing();
-	}
-
 	function saveorder(){
-		if(!empty($this->aclCat) AND !$this->isAllowed($this->aclCat, 'manage')) return;
-		JRequest::checkToken() or jexit('Invalid Token');
+		if(!empty($this->aclCat) && !$this->isAllowed($this->aclCat, 'manage')) return;
+		acymailing_checkToken();
 
 		$orderClass = acymailing_get('helper.order');
 		$orderClass->pkey = $this->pkey;
@@ -1093,7 +1296,7 @@ class acymailingController extends acymailingControllerCompat{
 }
 
 
-class acymailingClass extends JObject{
+class acymailingClass{
 
 	var $tables = array();
 
@@ -1105,27 +1308,25 @@ class acymailingClass extends JObject{
 
 	function __construct($config = array()){
 		$this->database = JFactory::getDBO();
-
-		return parent::__construct($config);
 	}
 
 
 	function save($element){
 		$pkey = $this->pkey;
 		if(empty($element->$pkey)){
-			$status = $this->database->insertObject(acymailing_table(end($this->tables)), $element);
+			$status = acymailing_insertObject(acymailing_table(end($this->tables)), $element);
 		}else{
 			if(count((array)$element) > 1){
-				$status = $this->database->updateObject(acymailing_table(end($this->tables)), $element, $pkey);
+				$status = acymailing_updateObject(acymailing_table(end($this->tables)), $element, $pkey);
 			}else{
 				$status = true;
 			}
 		}
 		if(!$status){
-			$this->errors[] = substr(strip_tags($this->database->getErrorMsg()), 0, 200).'...';
+			$this->errors[] = substr(strip_tags(acymailing_getDBError()), 0, 200).'...';
 		}
 
-		if($status) return empty($element->$pkey) ? $this->database->insertid() : $element->$pkey;
+		if($status) return empty($element->$pkey) ? $status : $element->$pkey;
 		return false;
 	}
 
@@ -1147,11 +1348,10 @@ class acymailingClass extends JObject{
 		$whereIn = ' WHERE '.acymailing_secureField($column).' IN ('.implode(',', $elements).')';
 		$result = true;
 
-		JPluginHelper::importPlugin('acymailing');
-		$dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 
 		foreach($this->tables as $oneTable){
-			$dispatcher->trigger('onAcyBefore'.ucfirst($oneTable).'Delete', array(&$elements));
+			acymailing_trigger('onAcyBefore'.ucfirst($oneTable).'Delete', array(&$elements));
 			$query = 'DELETE FROM '.acymailing_table($oneTable).$whereIn;
 			$this->database->setQuery($query);
 			$result = $this->database->query() && $result;
@@ -1165,28 +1365,53 @@ class acymailingClass extends JObject{
 }
 
 acymailing_loadLanguage();
-$app = JFactory::getApplication();
+
 $config = acymailing_config();
-if($app->isAdmin()){
-	define('ACYMAILING_IMAGES', '../media/'.ACYMAILING_COMPONENT.'/images/');
-	define('ACYMAILING_CSS', '../media/'.ACYMAILING_COMPONENT.'/css/');
-	define('ACYMAILING_JS', '../media/'.ACYMAILING_COMPONENT.'/js/');
-}else{
-	define('ACYMAILING_IMAGES', JURI::base(true).'/media/'.ACYMAILING_COMPONENT.'/images/');
-	define('ACYMAILING_CSS', JURI::base(true).'/media/'.ACYMAILING_COMPONENT.'/css/');
-	define('ACYMAILING_JS', JURI::base(true).'/media/'.ACYMAILING_COMPONENT.'/js/');
-}
-
 if(!$config->get('ssl_links', 0)){
-	define('ACYMAILING_LIVE', rtrim(str_replace('https:', 'http:', JURI::root()), '/').'/');
+	define('ACYMAILING_LIVE', rtrim(str_replace('https:', 'http:', acymailing_rootURI()), '/').'/');
 }else{
-	define('ACYMAILING_LIVE', rtrim(str_replace('http:', 'https:', JURI::root()), '/').'/');
+	define('ACYMAILING_LIVE', rtrim(str_replace('http:', 'https:', acymailing_rootURI()), '/').'/');
 }
 
-JHTML::_('select.booleanlist', 'acymailing');
-if(ACYMAILING_J30 && ($app->isAdmin() || $config->get('bootstrap_frontend', 0))){
+acymailing_boolean('acymailing');
+if(ACYMAILING_J30 && (acymailing_isAdmin() || $config->get('bootstrap_frontend', 0))){
 	require(ACYMAILING_BACK.'compat'.DS.'bootstrap.php');
 }else{
 	class JHtmlAcyselect extends JHTMLSelect{
+	}
+}
+
+
+class Emoji
+{
+	public static function Encode($text) {
+		return self::convertEmoji($text,"ENCODE");
+	}
+	public static function Decode($text) {
+		return self::convertEmoji($text,"DECODE");
+	}
+	private static function convertEmoji($text,$op) {
+		if(empty($text) || !file_exists(JPATH_SITE.DS.'plugins'.DS.'acymailing'.DS.'emojis')) return $text;
+		if($op=="ENCODE"){
+			return preg_replace_callback('/([0-9|#][\x{20E3}])|[\x{00ae}|\x{00a9}|\x{203C}|\x{2047}|\x{2048}|\x{2049}|\x{3030}|\x{303D}|\x{2139}|\x{2122}|\x{3297}|\x{3299}][\x{FE00}-\x{FEFF}]?|[\x{2190}-\x{21FF}][\x{FE00}-\x{FEFF}]?|[\x{2300}-\x{23FF}][\x{FE00}-\x{FEFF}]?|[\x{2460}-\x{24FF}][\x{FE00}-\x{FEFF}]?|[\x{25A0}-\x{25FF}][\x{FE00}-\x{FEFF}]?|[\x{2600}-\x{27BF}][\x{FE00}-\x{FEFF}]?|[\x{2600}-\x{27BF}][\x{1F000}-\x{1FEFF}]?|[\x{2900}-\x{297F}][\x{FE00}-\x{FEFF}]?|[\x{2B00}-\x{2BF0}][\x{FE00}-\x{FEFF}]?|[\x{1F000}-\x{1F9FF}][\x{FE00}-\x{FEFF}]?|[\x{1F000}-\x{1F9FF}][\x{1F000}-\x{1FEFF}]?/u',array('self',"encodeEmoji"),$text);
+		}else{
+			return preg_replace_callback('/(\\\u[0-9a-f]{4})+/i',array('self',"decodeEmoji"),$text);
+		}
+	}
+	private static function encodeEmoji($match) {
+		return str_replace(array('[',']','"'),'',json_encode($match));
+	}
+
+	private static function decodeEmoji($text) {
+		if(!$text) return '';
+		$text = $text[0];
+		$decode = json_decode($text,true);
+		if($decode) return $decode;
+		$text = '["' . $text . '"]';
+		$decode = json_decode($text);
+		if(count($decode) == 1){
+			return $decode[0];
+		}
+		return $text;
 	}
 }

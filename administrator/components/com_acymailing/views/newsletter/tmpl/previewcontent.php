@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -60,8 +60,8 @@ defined('_JEXEC') or die('Restricted access');
 		}
 	</style>
 
-	<div class="<?php echo (!isset($this->app) || $this->app->isAdmin()) ? 'acyblockoptions' : 'onelineblockoptions'; ?> acyblock_newsletter" width="100%" id="htmlfieldset" style="clear:both;">
-		<span class="acyblocktitle donotprint"> <?php echo JText::_('HTML_VERSION'); ?></span>
+	<div class="<?php echo acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions'; ?> acyblock_newsletter" width="100%" id="htmlfieldset" style="clear:both;">
+		<span class="acyblocktitle donotprint"> <?php echo acymailing_translation('HTML_VERSION'); ?></span>
 
 		<div style="float:right;width:340px;clear:both" id="acypreview_resize">
 			<span class="previewsize preview320" id="preview320" style="width:55px;" onclick="previewResize('342px','480px');previewSizeClick(this);"></span>
@@ -77,14 +77,14 @@ defined('_JEXEC') or die('Restricted access');
 <?php
 } ?>
 
-<div class="<?php echo (!isset($this->app) || $this->app->isAdmin()) ? 'acyblockoptions' : 'onelineblockoptions'; ?> acyblock_newsletter donotprint" id="textfieldset">
-	<span class="acyblocktitle donotprint"><?php echo JText::_('TEXT_VERSION'); ?></span>
+<div class="<?php echo (acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions'); ?> acyblock_newsletter donotprint" id="textfieldset">
+	<span class="acyblocktitle donotprint"><?php echo acymailing_translation('TEXT_VERSION'); ?></span>
 	<?php echo nl2br($this->escape($this->mail->altbody)); ?>
 </div>
 <?php
 if(!empty($this->mail->attachments)){
-	echo '<div class="'.((!isset($this->app) || $this->app->isAdmin()) ? 'acyblockoptions' : 'onelineblockoptions').' newsletter_attachments donotprint adminform">
-		<span class="acyblocktitle">'.JText::_('ATTACHMENTS').'</span>
+	echo '<div class="'.(acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions').' newsletter_attachments donotprint adminform">
+		<span class="acyblocktitle">'.acymailing_translation('ATTACHMENTS').'</span>
 		<table>';
 	foreach($this->mail->attachments as $attachment){
 		echo '<tr><td><a href="'.$attachment->url.'" target="_blank">'.$attachment->name.'</a></td></tr>';

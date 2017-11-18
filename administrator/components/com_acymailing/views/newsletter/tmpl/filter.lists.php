@@ -1,26 +1,26 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><?php
-	if(empty($currentPage)) $currentPage = 'mail';
+if(empty($currentPage)) $currentPage = 'mail';
 
-	foreach($this->lists as $oneList){
-		$listids[] = $oneList->listid;
-	}
-	if(count($this->lists) > 10){
-?>
+foreach($this->lists as $oneList){
+	$listids[] = $oneList->listid;
+}
+if(count($this->lists) > 10){
+	?>
 	<script language="javascript" type="text/javascript">
 		<!--
 		var listids = new Array(<?php echo implode(',', $listids); ?>);
 		function acymailing_searchAList(){
 			var filter = document.getElementById("acymailing_searchList").value.toLowerCase();
-			for(var i = 0 ; i < listids.length ; i++){
+			for(var i = 0; i < listids.length; i++){
 				var itemName = document.getElementById("listName_" + listids[i]).innerHTML.toLowerCase();
 				if(itemName.indexOf(filter) > -1){
 					document.getElementById("acylistrow_" + listids[i]).style.display = "table-row";
@@ -31,7 +31,7 @@ defined('_JEXEC') or die('Restricted access');
 		}
 		//-->
 	</script>
-	<div style="margin-bottom:10px;"><input onkeyup="acymailing_searchAList();" type="text" style="width: 200px;max-width:100%;margin-bottom:5px;" placeholder="<?php echo JText::_('ACY_SEARCH'); ?>" id="acymailing_searchList"></div>
+	<div style="margin-bottom:10px;"><input onkeyup="acymailing_searchAList();" type="text" style="width: 200px;max-width:100%;margin-bottom:5px;" placeholder="<?php echo acymailing_translation('ACY_SEARCH'); ?>" id="acymailing_searchList"></div>
 <?php }
 
 $k = 0;
@@ -59,25 +59,23 @@ foreach($orderedList as $oneCategory){
 	$categorizedLists = array_merge($categorizedLists, $oneCategory);
 }
 
-$app = JFactory::getApplication();
-
 echo '<table class="acymailing_table" id="lists_choice"><tbody>';
 
-$filter_list = JRequest::getInt('filter_list');
-if(empty($filter_list)) $filter_list = JRequest::getInt('listid');
-$selectedLists = explode(',', JRequest::getString('listids'));
+$filter_list = acymailing_getVar('int', 'filter_list');
+if(empty($filter_list)) $filter_list = acymailing_getVar('int', 'listid');
+$selectedLists = explode(',', acymailing_getVar('string', 'listids'));
 
 foreach($categorizedLists as $row){
-	if(empty($row->category)) $row->category = JText::_('ACY_NO_CATEGORY');
+	if(empty($row->category)) $row->category = acymailing_translation('ACY_NO_CATEGORY');
 	if(count($allCats) > 1 && (empty($currentCatgeory) || $row->category != $currentCatgeory)){
 		$currentCatgeory = $row->category;
-?>
+		?>
 		<tr class="<?php echo "row$k"; ?>">
 			<td colspan="2">
-				<a href="#" onclick="checkCats('<?php echo htmlspecialchars(str_replace("'", "\'", $row->category == JText::_('ACY_NO_CATEGORY') ? -1 : $row->category), ENT_QUOTES, "UTF-8"); ?>'); return false;"><strong><?php echo htmlspecialchars($row->category, ENT_QUOTES, "UTF-8"); ?></strong></a>
+				<a href="#" onclick="checkCats('<?php echo htmlspecialchars(str_replace("'", "\'", $row->category == acymailing_translation('ACY_NO_CATEGORY') ? -1 : $row->category), ENT_QUOTES, "UTF-8"); ?>'); return false;"><strong><?php echo htmlspecialchars($row->category, ENT_QUOTES, "UTF-8"); ?></strong></a>
 			</td>
 		</tr>
-<?php
+		<?php
 	}
 
 	$checked = (bool)($row->{$currentPage.'id'} || // The list was selected before
@@ -92,9 +90,9 @@ foreach($categorizedLists as $row){
 		<td class="acytdcheckbox"><input name="data[list'.$currentPage.']['.$row->listid.']" id="datalistmail'.$row->listid.'" type="hidden" value="'.(int)$checked.'" /></td>
 		<td>
 			<div class="roundsubscrib rounddisp" style="background-color:'.$row->color.'"></div>';
-			$text = '<b>'.JText::_('ACY_ID').' : </b>'.$row->listid;
-			$text .= '<br />'.$row->description;
-			echo acymailing_tooltip($text, $row->name, 'tooltip.png', $row->name).'
+	$text = '<b>'.acymailing_translation('ACY_ID').' : </b>'.$row->listid;
+	$text .= '<br />'.$row->description;
+	echo acymailing_tooltip($text, $row->name, 'tooltip.png', $row->name).'
 		</td>
 	</tr>';
 
@@ -120,12 +118,12 @@ if(count($this->lists) > 3){ ?>
 					$listidSelection = "selectedLists[selection][i]+'listmail";
 					?>
 					for(var i = 0; i < selectedLists['all'].length; i++){
-						if(document.getElementById('acylistrow_'+selectedLists['all'][i]).style.display == 'none') continue;
+						if(document.getElementById('acylistrow_' + selectedLists['all'][i]).style.display == 'none') continue;
 						toggleList(selectedLists['all'][i], 0);
 					}
 					if(!selectedLists[selection]) return;
 					for(i = 0; i < selectedLists[selection].length; i++){
-						if(document.getElementById('acylistrow_'+selectedLists[selection][i]).style.display == 'none') continue;
+						if(document.getElementById('acylistrow_' + selectedLists[selection][i]).style.display == 'none') continue;
 						toggleList(selectedLists[selection][i], 1);
 					}
 				}
@@ -133,60 +131,59 @@ if(count($this->lists) > 3){ ?>
 			</script>
 			<?php
 			$selectList = array();
-			$selectList[] = JHTML::_('select.option', 'none', JText::_('ACY_NONE'));
+			$selectList[] = acymailing_selectOption('none', acymailing_translation('ACY_NONE'));
 			foreach($languages as $oneLang => $values){
 				if($oneLang == 'all') continue;
-				$selectList[] = JHTML::_('select.option', $oneLang, ucfirst($oneLang));
+				$selectList[] = acymailing_selectOption($oneLang, ucfirst($oneLang));
 			}
-			$selectList[] = JHTML::_('select.option', 'all', JText::_('ACY_ALL'));
-			echo JHTML::_('acyselect.radiolist', $selectList, "selectlists", 'onclick="updateStatus(this.value);"', 'value', 'text');
+			$selectList[] = acymailing_selectOption('all', acymailing_translation('ACY_ALL'));
+			echo acymailing_radio($selectList, "selectlists", 'onclick="updateStatus(this.value);"', 'value', 'text');
 			?>
 		</td>
 	</tr>
 <?php } ?>
-	</tbody>
-	</table>
+</tbody>
+</table>
 
-	<script language="javascript" type="text/javascript">
-		<!--
-		function toggleList(id, value){
-			var valueField = document.getElementById('datalistmail'+id);
-			var row = document.getElementById('acylistrow_'+id);
+<script language="javascript" type="text/javascript">
+	<!--
+	function toggleList(id, value){
+		var valueField = document.getElementById('datalistmail' + id);
+		var row = document.getElementById('acylistrow_' + id);
 
-			if(value == 1 || (valueField.value == 0 && value != 0)){
-				valueField.value = 1;
-				row.className = row.className.replace('acy_list_unchecked', 'acy_list_checked');
-			}else{
-				valueField.value = 0;
-				row.className = row.className.replace('acy_list_checked', 'acy_list_unchecked');
+		if(value == 1 || (valueField.value == 0 && value != 0)){
+			valueField.value = 1;
+			row.className = row.className.replace('acy_list_unchecked', 'acy_list_checked');
+		}else{
+			valueField.value = 0;
+			row.className = row.className.replace('acy_list_checked', 'acy_list_unchecked');
+		}
+	}
+
+	var listsCats = new Array();
+
+	<?php
+	foreach($listsPerCategory as $val => $listids){
+		if(empty($val)) $val = '-1';
+		echo "listsCats['".str_replace("'", "\'", $val)."'] = new Array('".implode("','", $listids)."'); ";
+	}
+
+	?>
+	function checkCats(selection){
+		if(!listsCats[selection]) return;
+		var select = 0;
+		for(var i = 0; i < listsCats[selection].length; i++){
+			if(document.getElementById('acylistrow_' + listsCats[selection][i]).style.display == 'none') continue;
+			if(document.getElementById('datalistmail' + listsCats[selection][i]).value == 0){
+				select = 1;
+				break;
 			}
 		}
 
-		var listsCats = new Array();
-
-		<?php
-		foreach($listsPerCategory as $val => $listids){
-			if(empty($val)) $val = '-1';
-			echo "listsCats['".str_replace("'", "\'", $val)."'] = new Array('".implode("','", $listids)."'); ";
+		for(i = 0; i < listsCats[selection].length; i++){
+			if(document.getElementById('acylistrow_' + listsCats[selection][i]).style.display == 'none') continue;
+			toggleList(listsCats[selection][i], select);
 		}
-
-		?>
-		function checkCats(selection){
-			if(!listsCats[selection]) return;
-			var select = 0;
-			for(var i = 0; i < listsCats[selection].length; i++){
-				if(document.getElementById('acylistrow_'+listsCats[selection][i]).style.display == 'none') continue;
-				if(document.getElementById('datalistmail'+listsCats[selection][i]).value == 0){
-					select = 1;
-					break;
-				}
-			}
-
-			for(i = 0; i < listsCats[selection].length; i++){
-				if(document.getElementById('acylistrow_'+listsCats[selection][i]).style.display == 'none') continue;
-				toggleList(listsCats[selection][i], select);
-			}
-		}
-		-->
-	</script>
-<?php
+	}
+	-->
+</script>

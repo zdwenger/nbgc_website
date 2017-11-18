@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -16,12 +16,13 @@ class listClass extends acymailingClass{
 	var $namekey = 'alias';
 	var $type = 'list';
 	var $newlist = false;
+	var $allowedFields = array('name', 'description', 'listid', 'published', 'userid', 'alias', 'color', 'visible', 'welmailid', 'unsubmailid', 'type', 'access_sub', 'access_manage', 'languages', 'startrule', 'category', 'ordering');
 
 	function getLists($index = '', $listids = 'all'){
 		$onlyListids = array();
 		if(strtolower($listids) != 'all'){
 			$onlyListids = explode(',', $listids);
-			JArrayHelper::toInteger($onlyListids);
+			acymailing_arrayToInteger($onlyListids);
 		}
 
 		$query = 'SELECT * FROM '.acymailing_table('list').' WHERE type = \''.$this->type.'\' '.(empty($onlyListids) ? '' : 'AND listid IN ('.implode(',', $onlyListids).')').' ORDER BY ordering ASC';
@@ -41,7 +42,7 @@ class listClass extends acymailingClass{
 			$elements = array($elements);
 		}
 
-		JArrayHelper::toInteger($elements);
+		acymailing_arrayToInteger($elements);
 
 		if(empty($elements)) return 0;
 
@@ -55,19 +56,14 @@ class listClass extends acymailingClass{
 	}
 
 	function getFrontendLists($index = ''){
-		$my = JFactory::getUser();
-		if(empty($my->id)) return array();
+		$userid = acymailing_currentUserId();
+		if(empty($userid)) return array();
 
-		if(!ACYMAILING_J16){
-			$groups = array($my->gid);
-		}else{
-			jimport('joomla.access.access');
-			$groups = JAccess::getGroupsByUser($my->id, false);
-		}
+		$groups = acymailing_getGroupsByUser(acymailing_currentUserId(), false);
 
 		$possibleValues = array();
 		$possibleValues[] = 'access_manage = \'all\'';
-		$possibleValues[] = 'userid = '.intval($my->id);
+		$possibleValues[] = 'userid = '.intval(acymailing_currentUserId());
 		foreach($groups as $oneGroup){
 			$possibleValues[] = 'access_manage LIKE \'%,'.intval($oneGroup).',%\'';
 		}
@@ -78,19 +74,14 @@ class listClass extends acymailingClass{
 	}
 
 	function getFrontendCampaigns($index = ''){
-		$my = JFactory::getUser();
-		if(empty($my->id)) return array();
+		$userid = acymailing_currentUserId();
+		if(empty($userid)) return array();
 
-		if(!ACYMAILING_J16){
-			$groups = array($my->gid);
-		}else{
-			jimport('joomla.access.access');
-			$groups = JAccess::getGroupsByUser($my->id, false);
-		}
+		$groups = acymailing_getGroupsByUser($userid, false);
 
 		$possibleValues = array();
 		$possibleValues[] = 'access_manage = \'all\'';
-		$possibleValues[] = 'userid = '.intval($my->id);
+		$possibleValues[] = 'userid = '.intval($userid);
 		foreach($groups as $oneGroup){
 			$possibleValues[] = 'access_manage LIKE \'%,'.intval($oneGroup).',%\'';
 		}
@@ -107,25 +98,24 @@ class listClass extends acymailingClass{
 	}
 
 	function saveForm(){
-		$app = JFactory::getApplication();
 
 		$list = new stdClass();
 		$list->listid = acymailing_getCID('listid');
 
-		$formData = JRequest::getVar('data', array(), '', 'array');
+		$formData = acymailing_getVar('array', 'data', array(), '');
 
 		if(!empty($formData['list']['category']) && $formData['list']['category'] == -1){
-			$formData['list']['category'] = JRequest::getString('newcategory', '');
+			$formData['list']['category'] = acymailing_getVar('string', 'newcategory', '');
 		}
 
 		foreach($formData['list'] as $column => $value){
-			if($app->isAdmin() || $this->allowedField('list', $column)){
+			if(acymailing_isAdmin() || in_array($column, $this->allowedFields)){
 				acymailing_secureField($column);
 				$list->$column = strip_tags($value);
 			}
 		}
 
-		$list->description = JRequest::getVar('editor_description', '', '', 'string', JREQUEST_ALLOWHTML);
+		$list->description = acymailing_getVar('string', 'editor_description', '', '', JREQUEST_ALLOWHTML);
 		if(isset($list->published) && $list->published != 1) $list->published = 0;
 		$listid = $this->save($list);
 		if(!$listid) return false;
@@ -153,7 +143,7 @@ class listClass extends acymailingClass{
 			$listCampaignClass->save($listid, $affectedLists);
 		}
 
-		JRequest::setVar('listid', $listid);
+		acymailing_setVar('listid', $listid);
 
 		return true;
 	}
@@ -161,37 +151,32 @@ class listClass extends acymailingClass{
 	function save($list){
 		if(empty($list->listid)){
 			if(empty($list->userid)){
-				$user = JFactory::getUser();
-				$list->userid = $user->id;
+				$list->userid = acymailing_currentUserId();
 			}
 			if(empty($list->alias)) $list->alias = $list->name;
 		}
 
 		if(isset($list->alias)){
 			if(empty($list->alias)) $list->alias = $list->name;
-			$jconfig = JFactory::getConfig();
-			$method = $jconfig->get('unicodeslugs', 0) == 1 ? 'stringURLUnicodeSlug' : 'stringURLSafe';
-			$list->alias = JFilterOutput::$method(trim($list->alias));
+			$list->alias = acymailing_cleanSlug($list->alias);
 		}
 
-		JPluginHelper::importPlugin('acymailing');
-		$dispatcher = JDispatcher::getInstance();
+		acymailing_importPlugin('acymailing');
 		if(empty($list->listid)){
-			$dispatcher->trigger('onAcyBeforeListCreate', array(&$list));
-			$status = $this->database->insertObject(acymailing_table('list'), $list);
+			acymailing_trigger('onAcyBeforeListCreate', array(&$list));
+			$status = acymailing_insertObject(acymailing_table('list'), $list);
 		}else{
-			$dispatcher->trigger('onAcyBeforeListModify', array(&$list));
-			$status = $this->database->updateObject(acymailing_table('list'), $list, 'listid');
+			acymailing_trigger('onAcyBeforeListModify', array(&$list));
+			$status = acymailing_updateObject(acymailing_table('list'), $list, 'listid');
 		}
 
 
-		if($status) return empty($list->listid) ? $this->database->insertid() : $list->listid;
+		if($status) return empty($list->listid) ? $status : $list->listid;
 		return false;
 	}
 
 	function onlyCurrentLanguage($lists){
-		$currentLanguage = JFactory::getLanguage();
-		$currentLang = strtolower($currentLanguage->getTag());
+		$currentLang = strtolower(acymailing_getLanguageTag());
 
 		$newLists = array();
 		foreach($lists as $id => $oneList){

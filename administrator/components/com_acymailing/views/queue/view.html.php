@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -22,8 +22,8 @@ class QueueViewQueue extends acymailingView{
 	}
 
 	function preview(){
-		$mailid = JRequest::getInt('mailid');
-		$subid = JRequest::getInt('subid');
+		$mailid = acymailing_getVar('int', 'mailid');
+		$subid = acymailing_getVar('int', 'subid');
 
 		$mailerHelper = acymailing_get('helper.mailer');
 		$mailerHelper->loadedToSend = false;
@@ -31,15 +31,14 @@ class QueueViewQueue extends acymailingView{
 
 		$userClass = acymailing_get('class.subscriber');
 		$receiver = $userClass->get($subid);
-		if(empty($receiver)) die(JText::sprintf('SEND_ERROR_USER', $subid));
+		if(empty($receiver)) die(acymailing_translation_sprintf('SEND_ERROR_USER', $subid));
 		if(empty($mail)) die('Newsletter not found: '.$mailid);
 		$mail->sendHTML = $mail->html && $receiver->html;
 
 		$db = JFactory::getDBO();
-		$db->setQuery('SELECT paramqueue FROM #__acymailing_queue WHERE mailid = '.intval($mailid).' AND subid = '.intval($subid));
-		$receiver->paramqueue = $db->loadResult();
+		$receiver->paramqueue = acymailing_loadResult('SELECT paramqueue FROM #__acymailing_queue WHERE mailid = '.intval($mailid).' AND subid = '.intval($subid));
 
-		$mailerHelper->dispatcher->trigger('acymailing_replaceusertags', array(&$mail, &$receiver, false));
+		acymailing_trigger('acymailing_replaceusertags', array(&$mail, &$receiver, false));
 		if(!empty($mail->altbody)) $mail->altbody = $mailerHelper->textVersion($mail->altbody, false);
 
 		if($mail->html){
@@ -47,9 +46,9 @@ class QueueViewQueue extends acymailingView{
 			$templateClass->displayPreview('newsletter_preview_area', $mail->tempid, $mail->subject);
 		}
 
-		$this->assignRef('mail', $mail);
+		$this->mail = $mail;
 
-		$acyToolbar = acymailing::get('helper.toolbar');
+		$acyToolbar = acymailing_get('helper.toolbar');
 		$acyToolbar->setTitle($this->mail->subject);
 		$acyToolbar->directPrint();
 		$acyToolbar->topfixed = false;
@@ -57,9 +56,6 @@ class QueueViewQueue extends acymailingView{
 	}
 
 	function listing(){
-		JHTML::_('behavior.modal', 'a.modal');
-
-		$app = JFactory::getApplication();
 		$pageInfo = new stdClass();
 		$pageInfo->filter = new stdClass();
 		$pageInfo->filter->order = new stdClass();
@@ -69,16 +65,16 @@ class QueueViewQueue extends acymailingView{
 		$config = acymailing_config();
 
 		$paramBase = ACYMAILING_COMPONENT.'.'.$this->getName();
-		$pageInfo->filter->order->value = $app->getUserStateFromRequest($paramBase.".filter_order", 'filter_order', 'a.senddate', 'cmd');
-		$pageInfo->filter->order->dir = $app->getUserStateFromRequest($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
+		$pageInfo->filter->order->value = acymailing_getUserVar($paramBase.".filter_order", 'filter_order', 'a.senddate', 'cmd');
+		$pageInfo->filter->order->dir = acymailing_getUserVar($paramBase.".filter_order_Dir", 'filter_order_Dir', 'asc', 'word');
 		if(strtolower($pageInfo->filter->order->dir) !== 'desc') $pageInfo->filter->order->dir = 'asc';
-		$pageInfo->search = $app->getUserStateFromRequest($paramBase.".search", 'search', '', 'string');
-		$pageInfo->search = JString::strtolower(trim($pageInfo->search));
+		$pageInfo->search = acymailing_getUserVar($paramBase.".search", 'search', '', 'string');
+		$pageInfo->search = strtolower(trim($pageInfo->search));
 
-		$pageInfo->selectedMail = $app->getUserStateFromRequest($paramBase."filter_mail", 'filter_mail', 0, 'int');
+		$pageInfo->selectedMail = acymailing_getUserVar($paramBase."filter_mail", 'filter_mail', 0, 'int');
 
-		$pageInfo->limit->value = $app->getUserStateFromRequest($paramBase.'.list_limit', 'limit', $app->getCfg('list_limit'), 'int');
-		$pageInfo->limit->start = $app->getUserStateFromRequest($paramBase.'.limitstart', 'limitstart', 0, 'int');
+		$pageInfo->limit->value = acymailing_getUserVar($paramBase.'.list_limit', 'limit', acymailing_getCMSConfig('list_limit'), 'int');
+		$pageInfo->limit->start = acymailing_getUserVar($paramBase.'.limitstart', 'limitstart', 0, 'int');
 
 		$database = JFactory::getDBO();
 
@@ -115,8 +111,7 @@ class QueueViewQueue extends acymailingView{
 			}
 			if(!empty($filters)) $queryCount .= ' WHERE ('.implode(') AND (', $filters).')';
 
-			$database->setQuery($queryCount);
-			$pageInfo->elements->total = $database->loadResult();
+			$pageInfo->elements->total = acymailing_loadResult($queryCount);
 		}
 
 		jimport('joomla.html.pagination');
@@ -127,27 +122,27 @@ class QueueViewQueue extends acymailingView{
 		$filtersType->mail = $mailqueuetype->display('filter_mail', $pageInfo->selectedMail);
 
 
-		$acyToolbar = acymailing::get('helper.toolbar');
+		$acyToolbar = acymailing_get('helper.toolbar');
 		if(acymailing_isAllowed($config->get('acl_queue_process', 'all'))){
-			$acyToolbar->popup('process', JText::_('PROCESS'), "index.php?option=com_acymailing&ctrl=queue&task=process&tmpl=component&mailid=".$pageInfo->selectedMail);
+			$acyToolbar->popup('process', acymailing_translation('PROCESS'), "index.php?option=com_acymailing&ctrl=queue&task=process&tmpl=component&mailid=".$pageInfo->selectedMail);
 		}
 		if(!empty($pageInfo->elements->total) AND acymailing_isAllowed($config->get('acl_queue_delete', 'all'))){
-			$onClick = "if (confirm('".str_replace("'", "\'", JText::sprintf('CONFIRM_DELETE_QUEUE', $pageInfo->elements->total))."')){Joomla.submitbutton('remove');}";
-			$acyToolbar->custom('remove', JText::_('ACY_DELETE'), 'delete', false, $onClick);
+			$onClick = "if (confirm('".str_replace("'", "\'", acymailing_translation_sprintf('CONFIRM_DELETE_QUEUE', $pageInfo->elements->total))."')){Joomla.submitbutton('remove');}";
+			$acyToolbar->custom('remove', acymailing_translation('ACY_DELETE'), 'delete', false, $onClick);
 		}
 
 		$acyToolbar->divider();
 		$acyToolbar->help('queue-listing');
-		$acyToolbar->setTitle(JText::_('QUEUE'), 'queue');
+		$acyToolbar->setTitle(acymailing_translation('QUEUE'), 'queue');
 		$acyToolbar->display();
 
 		$toggleClass = acymailing_get('helper.toggle');
 
-		$this->assignRef('toggleClass', $toggleClass);
-		$this->assignRef('filters', $filtersType);
-		$this->assignRef('rows', $rows);
-		$this->assignRef('pageInfo', $pageInfo);
-		$this->assignRef('pagination', $pagination);
+		$this->toggleClass = $toggleClass;
+		$this->filters = $filtersType;
+		$this->rows = $rows;
+		$this->pageInfo = $pageInfo;
+		$this->pagination = $pagination;
 	}
 
 	function process(){
@@ -159,15 +154,15 @@ class QueueViewQueue extends acymailingView{
 		if(acymailing_level(1)){
 			$scheduleClass = acymailing_get('helper.schedule');
 			$scheduleNewsletter = $scheduleClass->getScheduled();
-			$this->assignRef('schedNews', $scheduleNewsletter);
+			$this->schedNews = $scheduleNewsletter;
 		}
 
-		if(empty($queueStatus) AND empty($scheduleNewsletter)) acymailing_display(JText::_('NO_PROCESS'), 'info');
+		if(empty($queueStatus) AND empty($scheduleNewsletter)) acymailing_display(acymailing_translation('NO_PROCESS'), 'info');
 
 		$infos = new stdClass();
 		$infos->mailid = $mailid;
-		$this->assignRef('queue', $queueStatus);
-		$this->assignRef('nextqueue', $nextqueue);
-		$this->assignRef('infos', $infos);
+		$this->queue = $queueStatus;
+		$this->nextqueue = $nextqueue;
+		$this->infos = $infos;
 	}
 }

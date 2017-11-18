@@ -1,21 +1,21 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
 	<form action="index.php" method="post" name="adminForm" id="adminForm" class="templateManagement" enctype="multipart/form-data">
-		<div class="acyblockoptions" id="sendtest" style="float:none;<?php if(JRequest::getCmd('task') != 'test') echo 'display:none;'; ?>">
-			<span class="acyblocktitle"><?php echo JText::_('SEND_TEST'); ?></span>
+		<div class="acyblockoptions" id="sendtest" style="float:none;<?php if(acymailing_getVar('cmd', 'task') != 'test') echo 'display:none;'; ?>">
+			<span class="acyblocktitle"><?php echo acymailing_translation('SEND_TEST'); ?></span>
 			<table>
 				<tr>
 					<td valign="top">
-						<?php echo JText::_('SEND_TEST_TO'); ?>
+						<?php echo acymailing_translation('SEND_TEST_TO'); ?>
 					</td>
 					<td>
 						<?php echo $this->testreceiverType->display($this->infos->test_selection, $this->infos->test_group, $this->infos->test_emails); ?>
@@ -24,19 +24,19 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td/>
 					<td>
-						<button type="submit" class="btn btn-primary" onclick="var val = document.getElementById('message_receivers').value; if(val != ''){ setUser(val); } submitbutton('test');return false;"><?php echo JText::_('SEND_TEST') ?></button>
+						<button type="submit" class="btn btn-primary" onclick="var val = document.getElementById('message_receivers').value; if(val != ''){ setUser(val); } submitbutton('test');return false;"><?php echo acymailing_translation('SEND_TEST') ?></button>
 					</td>
 				</tr>
 			</table>
 		</div>
 
 		<div class="acyblockoptions">
-			<span class="acyblocktitle"><?php echo JText::_('ACY_TEMPLATE_INFORMATIONS'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_TEMPLATE_INFORMATIONS'); ?></span>
 			<table>
 				<tr>
 					<td>
 						<label for="name">
-							<?php echo JText::_('TEMPLATE_NAME'); ?>
+							<?php echo acymailing_translation('TEMPLATE_NAME'); ?>
 						</label>
 					</td>
 					<td>
@@ -46,28 +46,28 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td>
 						<label for="published">
-							<?php echo JText::_('ACY_PUBLISHED'); ?>
+							<?php echo acymailing_translation('ACY_PUBLISHED'); ?>
 						</label>
 					</td>
 					<td>
-						<?php echo JHTML::_('acyselect.booleanlist', "data[template][published]", '', @$this->template->published); ?>
+						<?php echo acymailing_boolean("data[template][published]", '', @$this->template->published); ?>
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<label for="default">
-							<?php echo JText::_('ACY_DEFAULT'); ?>
+							<?php echo acymailing_translation('ACY_DEFAULT'); ?>
 						</label>
 					</td>
 					<td>
-						<?php echo JHTML::_('acyselect.booleanlist', "data[template][premium]", '', @$this->template->premium); ?>
+						<?php echo acymailing_boolean("data[template][premium]", '', @$this->template->premium); ?>
 					</td>
 				</tr>
 				<?php if(acymailing_level(3)){ ?>
 					<tr>
 						<td>
 							<label for="datatemplatecategory">
-								<?php echo JText::_('ACY_CATEGORY'); ?>
+								<?php echo acymailing_translation('ACY_CATEGORY'); ?>
 							</label>
 						</td>
 						<td>
@@ -79,7 +79,7 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td>
 						<label for="thumb">
-							<?php echo JText::_('ACY_THUMBNAIL'); ?>
+							<?php echo acymailing_translation('ACY_THUMBNAIL'); ?>
 						</label>
 					</td>
 					<td>
@@ -92,7 +92,7 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td valign="top">
 						<label for="description">
-							<?php echo JText::_('ACY_DESCRIPTION'); ?>
+							<?php echo acymailing_translation('ACY_DESCRIPTION'); ?>
 						</label>
 					</td>
 					<td>
@@ -102,16 +102,18 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td>
 						<label for="subject">
-							<?php echo JText::_('JOOMEXT_SUBJECT'); ?>
+							<?php echo acymailing_translation('JOOMEXT_SUBJECT'); ?>
 						</label>
 					</td>
 					<td>
-						<input type="text" id="subject" name="data[template][subject]" class="inputbox" style="width:80%" value="<?php echo $this->escape(@$this->template->subject); ?>"/>
+						<div>
+							<input onClick="zoneToTag='subject';" type="text" id="subject" name="data[template][subject]" class="inputbox" style="width:80%" value="<?php echo $this->escape(@$this->template->subject); ?>"/>
+						</div>
 					</td>
 				</tr>
 				<tr>
 					<td class="paramlist_key">
-						<label for="fromname"><?php echo JText::_('FROM_NAME'); ?></label>
+						<label for="fromname"><?php echo acymailing_translation('FROM_NAME'); ?></label>
 					</td>
 					<td class="paramlist_value">
 						<input class="inputbox" id="fromname" type="text" name="data[template][fromname]" style="width:200px" value="<?php echo $this->escape(@$this->template->fromname); ?>"/>
@@ -119,15 +121,15 @@ defined('_JEXEC') or die('Restricted access');
 				</tr>
 				<tr>
 					<td class="paramlist_key">
-						<label for="fromemail"><?php echo JText::_('FROM_ADDRESS'); ?></label>
+						<label for="fromemail"><?php echo acymailing_translation('FROM_ADDRESS'); ?></label>
 					</td>
 					<td class="paramlist_value">
-						<input onchange="validateEmail(this.value, '<?php echo addslashes(JText::_('FROM_ADDRESS')); ?>')" class="inputbox" id="fromemail" type="text" name="data[template][fromemail]" style="width:200px" value="<?php echo $this->escape(@$this->template->fromemail); ?>"/>
+						<input onchange="validateEmail(this.value, '<?php echo addslashes(acymailing_translation('FROM_ADDRESS')); ?>')" class="inputbox" id="fromemail" type="text" name="data[template][fromemail]" style="width:200px" value="<?php echo $this->escape(@$this->template->fromemail); ?>"/>
 					</td>
 				</tr>
 				<tr>
 					<td class="paramlist_key">
-						<label for="replyname"><?php echo JText::_('REPLYTO_NAME'); ?></label>
+						<label for="replyname"><?php echo acymailing_translation('REPLYTO_NAME'); ?></label>
 					</td>
 					<td class="paramlist_value">
 						<input class="inputbox" id="replyname" type="text" name="data[template][replyname]" style="width:200px" value="<?php echo $this->escape(@$this->template->replyname); ?>"/>
@@ -135,10 +137,10 @@ defined('_JEXEC') or die('Restricted access');
 				</tr>
 				<tr>
 					<td class="paramlist_key">
-						<label for="replyemail"><?php echo JText::_('REPLYTO_ADDRESS'); ?></label>
+						<label for="replyemail"><?php echo acymailing_translation('REPLYTO_ADDRESS'); ?></label>
 					</td>
 					<td class="paramlist_value">
-						<input onchange="validateEmail(this.value, '<?php echo addslashes(JText::_('REPLYTO_ADDRESS')); ?>')" class="inputbox" id="replyemail" type="text" name="data[template][replyemail]" style="width:200px" value="<?php echo $this->escape(@$this->template->replyemail); ?>"/>
+						<input onchange="validateEmail(this.value, '<?php echo addslashes(acymailing_translation('REPLYTO_ADDRESS')); ?>')" class="inputbox" id="replyemail" type="text" name="data[template][replyemail]" style="width:200px" value="<?php echo $this->escape(@$this->template->replyemail); ?>"/>
 					</td>
 				</tr>
 			</table>
@@ -146,10 +148,11 @@ defined('_JEXEC') or die('Restricted access');
 		<?php echo acymailing_getFunctionsEmailCheck(); ?>
 
 		<div class="acyblockoptions">
-			<span class="acyblocktitle"><?php echo JText::_('ACY_STYLES'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_STYLES'); ?></span>
+			<div class="acytabsystem">
 			<?php
 			echo $this->tabs->startPane('template_css');
-			echo $this->tabs->startPanel(JText::_('STYLE_IND'), 'template_css_classes'); ?>
+			echo $this->tabs->startPanel(acymailing_translation('STYLE_IND'), 'template_css_classes'); ?>
 			<br style="font-size:1px"/>
 
 			<table width="100%">
@@ -157,14 +160,14 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td>
 						<label for="bgcolor">
-							<?php echo JText::_('BACKGROUND_COLOUR'); ?>
+							<?php echo acymailing_translation('BACKGROUND_COLOUR'); ?>
 						</label>
 					</td>
 					<td>
 						<?php echo $this->colorBox->displayAll('', 'styles[color_bg]', @$this->template->styles['color_bg']); ?>
 					</td>
 				</tr>
-				<?php $tagList = array('tag_h1' => 'Title h1', 'tag_h2' => 'Title h2', 'tag_h3' => 'Title h3', 'tag_h4' => 'Title h4', 'tag_h5' => 'Title h5', 'tag_h6' => 'Title h6', 'tag_a' => JText::_('ACY_LINK_STYLE'), 'acymailing_unsub' => JText::_('STYLE_UNSUB'), 'acymailing_content' => JText::_('CONTENT_AREA'), 'acymailing_title' => JText::_('CONTENT_HEADER'), 'acymailing_readmore' => JText::_('CONTENT_READMORE'), 'acymailing_online' => JText::_('STYLE_VIEW'));
+				<?php $tagList = array('tag_h1' => 'Title h1', 'tag_h2' => 'Title h2', 'tag_h3' => 'Title h3', 'tag_h4' => 'Title h4', 'tag_h5' => 'Title h5', 'tag_h6' => 'Title h6', 'tag_a' => acymailing_translation('ACY_LINK_STYLE'), 'acymailing_unsub' => acymailing_translation('STYLE_UNSUB'), 'acymailing_content' => acymailing_translation('CONTENT_AREA'), 'acymailing_title' => acymailing_translation('CONTENT_HEADER'), 'acymailing_readmore' => acymailing_translation('CONTENT_READMORE'), 'acymailing_online' => acymailing_translation('STYLE_VIEW'));
 				foreach($tagList as $value => $text){ ?>
 					<tr>
 						<td><span id="name_<?php echo $value; ?>" style="<?php echo str_replace('!important', '', $this->escape(@$this->template->styles[$value])); ?>"><?php echo $text; ?></span></td>
@@ -174,7 +177,7 @@ defined('_JEXEC') or die('Restricted access');
 					if($value == 'acymailing_readmore'){
 						?>
 						<tr>
-							<td><?php echo JText::_('READMORE_PICTURE'); ?></span></td>
+							<td><?php echo acymailing_translation('READMORE_PICTURE'); ?></span></td>
 							<td>
 								<?php echo $uploadfileType->display(true, 'readmore', $this->template->readmore, 'data[template][readmore]'); ?>
 							</td>
@@ -213,8 +216,8 @@ defined('_JEXEC') or die('Restricted access');
 				</tbody>
 			</table>
 
-			<a onclick="addStyle();return false;" href="#"><?php echo JText::_('ADD_STYLE'); ?></a>
-			<?php echo $this->tabs->startPanel(JText::_('TEMPLATE_STYLESHEET'), 'template_css_stylesheet'); ?>
+			<a onclick="addStyle();return false;" href="#"><?php echo acymailing_translation('ADD_STYLE'); ?></a>
+			<?php echo $this->tabs->startPanel(acymailing_translation('TEMPLATE_STYLESHEET'), 'template_css_stylesheet'); ?>
 			<br style="font-size:1px"/>
 			<?php
 			$messages = array();
@@ -236,28 +239,26 @@ defined('_JEXEC') or die('Restricted access');
 			<?php }
 			echo $this->tabs->endPanel();
 			echo $this->tabs->endPane(); ?>
+			</div>
 		</div>
 		<?php if(acymailing_level(3)){
 			$acltype = acymailing_get('type.acl'); ?>
 			<div class="acyblockoptions">
-				<span class="acyblocktitle"><?php echo JText::_('ACCESS_LEVEL'); ?></span>
+				<span class="acyblocktitle"><?php echo acymailing_translation('ACCESS_LEVEL'); ?></span>
 				<?php echo $acltype->display('data[template][access]', $this->template->access); ?>
 			</div>
 		<?php } ?>
 		<div class="acyblockoptions" style="width:90%" id="htmlfieldset">
-			<span class="acyblocktitle"><?php echo JText::_('HTML_VERSION'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('HTML_VERSION'); ?></span>
 			<?php echo $this->editor->display(); ?>
 		</div>
 		<div class="acyblockoptions" style="width:90%;" id="textfieldset">
-			<span class="acyblocktitle"><?php echo JText::_('TEXT_VERSION'); ?></span>
-			<textarea style="width:98%;min-height:250px;" rows="20" name="data[template][altbody]" id="altbody" placeholder="<?php echo JText::_('AUTO_GENERATED_HTML'); ?>"><?php echo @$this->template->altbody; ?></textarea>
+			<span class="acyblocktitle"><?php echo acymailing_translation('TEXT_VERSION'); ?></span>
+			<textarea onClick="zoneToTag='altbody';" style="width:98%;min-height:250px;" rows="20" name="data[template][altbody]" id="altbody" placeholder="<?php echo acymailing_translation('AUTO_GENERATED_HTML'); ?>"><?php echo @$this->template->altbody; ?></textarea>
 		</div>
 		<div class="clr"></div>
 		<input type="hidden" name="cid[]" value="<?php echo @$this->template->tempid; ?>"/>
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value=""/>
-		<input type="hidden" name="ctrl" value="template"/>
-		<?php echo JHTML::_('form.token'); ?>
+		<?php acymailing_formOptions(); ?>
 	</form>
 	<div style="display:none;position:absolute;background-color:transparent;" id="wysija">
 		<?php echo $this->colorBox->displayOne('wysijacolor', "", ""); ?>

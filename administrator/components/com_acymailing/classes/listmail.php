@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -20,13 +20,13 @@ class listmailClass extends acymailingClass{
 	function save($mailid, $listids = array(), $removelists = array()){
 		$mailid = intval($mailid);
 		if(!empty($removelists)){
-			JArrayHelper::toInteger($removelists);
+			acymailing_arrayToInteger($removelists);
 			$query = 'DELETE FROM '.acymailing_table('listmail').' WHERE mailid = '.$mailid.' AND listid IN ('.implode(',', $removelists).')';
 			$this->database->setQuery($query);
 			if(!$this->database->query()) return false;
 		}
 
-		JArrayHelper::toInteger($listids);
+		acymailing_arrayToInteger($listids);
 		if(empty($listids)) return true;
 
 		$query = 'INSERT IGNORE INTO '.acymailing_table('listmail').' (mailid,listid) VALUES ('.$mailid.','.implode('),('.$mailid.',', $listids).')';

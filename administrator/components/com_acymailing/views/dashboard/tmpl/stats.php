@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -19,13 +19,13 @@ defined('_JEXEC') or die('Restricted access');
 						<circle class="bar" r="80" cx="89" cy="89" fill="transparent" stroke-dasharray="502.4" stroke-dashoffset="0"></circle>
 					</svg>
 				</div>
-				<span class="circle_title"><?php echo JText::_('ACY_DASHBOARD_USERS'); ?></span>
+				<span class="circle_title"><?php echo acymailing_translation('ACY_DASHBOARD_USERS'); ?></span>
 				<span class="circle_informations">
-					<span class="stats_blue_point"></span> <?php echo JText::_('ENABLED'); ?>
-					<span class="stats_grey_point"></span> <?php echo JText::_('DISABLED'); ?>
+					<span class="stats_blue_point"></span> <?php echo acymailing_translation('ENABLED'); ?>
+					<span class="stats_grey_point"></span> <?php echo acymailing_translation('DISABLED'); ?>
 				</span>
 				<br/>
-				<button class="acymailing_button"><?php echo JText::sprintf("ACY_MORE_USER_STATISTICS", JText::_('USERS')) ?></button>
+				<button class="acymailing_button"><?php echo acymailing_translation_sprintf("ACY_MORE_USER_STATISTICS", acymailing_translation('USERS')) ?></button>
 			</div>
 
 			<div class="circle stat_lists" onclick="displayDetails('listStatisticDetails');">
@@ -37,13 +37,13 @@ defined('_JEXEC') or die('Restricted access');
 						<circle class="bar" r="80" cx="89" cy="89" fill="transparent" stroke-dasharray="502.4" stroke-dashoffset="0"></circle>
 					</svg>
 				</div>
-				<span class="circle_title"><?php echo JText::_('ACY_DASHBOARD_LISTS'); ?></span>
+				<span class="circle_title"><?php echo acymailing_translation('ACY_DASHBOARD_LISTS'); ?></span>
 				<span class="circle_informations">
-					<span class="stats_green_point"></span> <?php echo JText::_('ACY_ATLEASTONE'); ?>
-					<span class="stats_grey_point"></span> <?php echo JText::_('ACY_NOSUB'); ?>
+					<span class="stats_green_point"></span> <?php echo acymailing_translation('ACY_ATLEASTONE'); ?>
+					<span class="stats_grey_point"></span> <?php echo acymailing_translation('ACY_NOSUB'); ?>
 				</span>
 				<br/>
-				<button class="acymailing_button"><?php echo JText::sprintf("ACY_MORE_LIST_STATISTICS", JText::_('LISTS')) ?></button>
+				<button class="acymailing_button"><?php echo acymailing_translation_sprintf("ACY_MORE_LIST_STATISTICS", acymailing_translation('LISTS')) ?></button>
 
 			</div>
 			<div class="circle stat_newsletters" onclick="displayDetails('newsletterStatisticDetails');">
@@ -54,13 +54,13 @@ defined('_JEXEC') or die('Restricted access');
 						<circle class="bar" r="80" cx="89" cy="89" fill="transparent" stroke-dasharray="502.4" stroke-dashoffset="0"></circle>
 					</svg>
 				</div>
-				<span class="circle_title"><?php echo JText::_('ACY_DASHBOARD_NEWSLETTERS'); ?></span>
+				<span class="circle_title"><?php echo acymailing_translation('ACY_DASHBOARD_NEWSLETTERS'); ?></span>
 				<span class="circle_informations">
-					<span class="stats_darkblue_point"></span> <?php echo JText::_('ACY_PUBLISHED'); ?>
-					<span class="stats_grey_point"></span> <?php echo JText::_('ACY_UNPUBLISHED'); ?>
+					<span class="stats_darkblue_point"></span> <?php echo acymailing_translation('ACY_PUBLISHED'); ?>
+					<span class="stats_grey_point"></span> <?php echo acymailing_translation('ACY_UNPUBLISHED'); ?>
 				</span>
 				<br/>
-				<button class="acymailing_button"><?php echo JText::sprintf("ACY_MORE_NEWSLETTER_STATISTICS", JText::_('NEWSLETTER')) ?></button>
+				<button class="acymailing_button"><?php echo acymailing_translation_sprintf("ACY_MORE_NEWSLETTER_STATISTICS", acymailing_translation('NEWSLETTER')) ?></button>
 			</div>
 		</div>
 		<div class="acygraph">

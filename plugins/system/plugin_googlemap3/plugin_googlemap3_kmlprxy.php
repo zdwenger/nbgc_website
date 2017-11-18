@@ -2,16 +2,13 @@
 /*------------------------------------------------------------------------
 # plugin_googlemap3_proxy.php - Google Maps plugin
 # ------------------------------------------------------------------------
-# author    Mike Reumer
-# copyright Copyright (C) 2011 tech.reumer.net. All Rights Reserved.
-# @license - http://www.gnu.org/copyleft/gpl.html GNU/GPL
-# Websites: http://tech.reumer.net
-# Technical Support: http://tech.reumer.net/Contact-Us/Mike-Reumer.html 
-# Documentation: http://tech.reumer.net/Google-Maps/Documentation-of-plugin-Googlemap/
+# author    mapsplugin.com
+# copyright Copyright (C) 2011 mapsplugin.com. All Rights Reserved.
+# @license - http://www.mapsplugin.com/license.txt
+# Websites: http://www.mapsplugin.com
+# Technical Support: http://www.mapsplugin.com
+# Documentation: http://www.mapsplugin.com/Google-Maps/Documentation-of-plugin-Googlemap/
 --------------------------------------------------------------------------*/
-
-// No protection of Joomla because this php program may be called directly to deliver content
-// defined( '_JEXEC' ) or die( 'Restricted access' );
 
 // No protection of Joomla because this php program may be called directly to deliver content
 // It uses Joomla framework
@@ -35,7 +32,8 @@ if (!defined('DS'))
 if (!defined('JPATH_BASE'))
 {
 	$path = dirname(__FILE__);
-	// Joomla 1.6.x/1.7.x/2.5.x
+
+	// Define the path based on the file and remove the path to the plugin
 	$path = str_replace('/plugins/system/plugin_googlemap3', '', $path);
 	$path = str_replace('\plugins\system\plugin_googlemap3', '', $path);
 	
@@ -151,6 +149,15 @@ class plugin_googlemap3_proxy_kml
 		// Check if it is based on MSID
 		// So maps.google.xxx
 		$googlereg = '/^maps\.google((\.[a-z]{2,3}){1,2})\/maps\/ms\?/';
+		
+		if (preg_match($googlereg, $url)== 1) {
+			$this->protocol = "https://";
+			return true;
+		}
+
+		// Check if it is based on MID
+		// So maps.google.xxx
+		$googlereg = '/^www\.google((\.[a-z]{2,3}){1,2})\/maps\/d\/kml\?/';
 		
 		if (preg_match($googlereg, $url)== 1) {
 			$this->protocol = "https://";

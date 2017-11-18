@@ -1,22 +1,22 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="index.php?option=com_acymailing&amp;ctrl=list" method="post" name="adminForm" id="adminForm" autocomplete="off">
-		<div class="acyblockoptions" style="display:block; float:none;">
-			<span class="acyblocktitle" style="display:block; float:none;"><?php echo JText::_('ACY_LIST_INFORMATIONS'); ?></span>
+	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
+		<div class="<?php echo acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions'; ?>" style="display:block; float:none;">
+			<span class="acyblocktitle" style="display:block; float:none;"><?php echo acymailing_translation('ACY_LIST_INFORMATIONS'); ?></span>
 			<table cellspacing="1" width="100%">
 				<tr>
 					<td class="acykey">
 						<label for="name">
-							<?php echo JText::_('LIST_NAME'); ?>
+							<?php echo acymailing_translation('LIST_NAME'); ?>
 						</label>
 					</td>
 					<td>
@@ -24,17 +24,17 @@ defined('_JEXEC') or die('Restricted access');
 					</td>
 					<td class="acykey">
 						<label for="enabled">
-							<?php echo JText::_('ENABLED'); ?>
+							<?php echo acymailing_translation('ENABLED'); ?>
 						</label>
 					</td>
 					<td>
-						<?php echo JHTML::_('acyselect.booleanlist', "data[list][published]", '', $this->list->published); ?>
+						<?php echo acymailing_boolean("data[list][published]", '', $this->list->published); ?>
 					</td>
 				</tr>
 				<tr>
 					<td class="acykey">
 						<label for="alias">
-							<?php echo JText::_('JOOMEXT_ALIAS'); ?>
+							<?php echo acymailing_translation('JOOMEXT_ALIAS'); ?>
 						</label>
 					</td>
 					<td>
@@ -42,17 +42,17 @@ defined('_JEXEC') or die('Restricted access');
 					</td>
 					<td class="acykey">
 						<label for="visible">
-							<?php echo JText::_('JOOMEXT_VISIBLE'); ?>
+							<?php echo acymailing_translation('JOOMEXT_VISIBLE'); ?>
 						</label>
 					</td>
 					<td>
-						<?php echo JHTML::_('acyselect.booleanlist', "data[list][visible]", '', $this->list->visible); ?>
+						<?php echo acymailing_boolean("data[list][visible]", '', $this->list->visible); ?>
 					</td>
 				</tr>
 				<tr>
 					<td class="acykey">
 						<label for="datalistcategory">
-							<?php echo JText::_('ACY_CATEGORY'); ?>
+							<?php echo acymailing_translation('ACY_CATEGORY'); ?>
 						</label>
 					</td>
 					<td>
@@ -60,33 +60,8 @@ defined('_JEXEC') or die('Restricted access');
 						echo $catType->display('list', 'data[list][category]', $this->list->category); ?>
 					</td>
 					<td class="acykey">
-						<label for="creator">
-							<?php echo JText::_('CREATOR'); ?>
-						</label>
-					</td>
-					<td>
-						<input type="hidden" id="listcreator" name="data[list][userid]" value="<?php echo @$this->list->userid; ?>"/>
-						<?php echo '<span id="creatorname">'.@$this->list->creatorname.'</span>';
-						echo ' <a class="modal" title="'.JText::_('ACY_EDIT', true).'"  href="index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=subscriber&amp;task=choose&amp;onlyreg=1" rel="{handler: \'iframe\', size: {x: 800, y: 500}}"><img class="icon16" src="'.ACYMAILING_IMAGES.'icons/icon-16-edit.png" alt="'.JText::_('ACY_EDIT', true).'"/></a>';
-						?>
-					</td>
-				</tr>
-				<tr>
-					<td class="acykey">
-						<label for="datalistwelmailid">
-							<?php echo JText::_('MSG_WELCOME'); ?>
-						</label>
-					</td>
-					<td>
-						<?php if(acymailing_level(1)){
-							echo $this->welcomeMsg->display(@$this->list->welmailid);
-						}else{
-							echo acymailing_getUpgradeLink('essential');
-						} ?>
-					</td>
-					<td class="acykey">
 						<label for="colorexample">
-							<?php echo JText::_('COLOUR'); ?>
+							<?php echo acymailing_translation('COLOUR'); ?>
 						</label>
 					</td>
 					<td>
@@ -96,18 +71,47 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td class="acykey">
 						<label for="datalistunsubmailid">
-							<?php echo JText::_('MSG_UNSUB'); ?>
+							<?php echo acymailing_translation('MSG_UNSUB'); ?>
+						</label>
+					</td>
+					<td>
+						<?php echo $this->unsubMsg->display(@$this->list->unsubmailid); ?>
+					</td>
+					<td class="acykey">
+						<?php if(acymailing_isAdmin()){ ?>
+							<label for="creator">
+								<?php echo acymailing_translation('CREATOR'); ?>
+							</label>
+						<?php } ?>
+					</td>
+					<td>
+						<?php if(acymailing_isAdmin()) { ?>
+							<input type="hidden" id="listcreator" name="data[list][userid]"
+								   value="<?php echo @$this->list->userid; ?>"/>
+							<?php echo '<span id="creatorname">' . @$this->list->creatorname . '</span>';
+							echo ' '.acymailing_popup('index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=subscriber&amp;task=choose&amp;onlyreg=1', '<img class="icon16" src="' . ACYMAILING_IMAGES . 'icons/icon-16-edit.png" alt="' . acymailing_translation('ACY_EDIT', true) . '"/>');
+						} ?>
+					</td>
+				</tr>
+				<tr>
+					<td class="acykey">
+						<label for="datalistwelmailid">
+							<?php echo acymailing_translation('MSG_WELCOME'); ?>
 						</label>
 					</td>
 					<td colspan="3">
-						<?php echo $this->unsubMsg->display(@$this->list->unsubmailid); ?>
+						<?php if(acymailing_level(1)){
+							echo $this->welcomeMsg->display(@$this->list->welmailid);
+						}elseif(acymailing_isAdmin()){
+							echo acymailing_getUpgradeLink('essential');
+						} ?>
 					</td>
 				</tr>
 			</table>
 		</div>
 
-		<div class="acyblockoptions" style="float:none;display:block;">
-			<span class="acyblocktitle"><?php echo JText::_('ACY_DESCRIPTION'); ?></span>
+		<div class="<?php echo acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions'; ?>" style="float:none;display:block;">
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_DESCRIPTION'); ?></span>
 			<?php echo $this->editor->display(); ?>
 		</div>
 		<?php
@@ -122,9 +126,6 @@ defined('_JEXEC') or die('Restricted access');
 		<div class="clr"></div>
 
 		<input type="hidden" name="cid[]" value="<?php echo @$this->list->listid; ?>"/>
-		<input type="hidden" name="option" value="com_acymailing"/>
-		<input type="hidden" name="task" value=""/>
-		<input type="hidden" name="ctrl" value="list"/>
-		<?php echo JHTML::_('form.token'); ?>
+		<?php acymailing_formOptions(); ?>
 	</form>
 </div>

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -127,7 +127,7 @@ defined('_JEXEC') or die('Restricted access');
 		$num++;
 		?>
 		<div class="templatearea emptytemplate" onclick="applyTemplate(0);">
-			<div class="templatetitle"><?php echo JText::_('ACY_NONE'); ?></div>
+			<div class="templatetitle"><?php echo acymailing_translation('ACY_NONE'); ?></div>
 			<div style="display:none" id="stylesheet_0"></div>
 			<div style="display:none" id="htmlcontent_0"><br/></div>
 			<div style="display:none" id="textcontent_0"></div>
@@ -141,6 +141,7 @@ defined('_JEXEC') or die('Restricted access');
 	}
 	for($i = 0, $a = count($this->rows); $i < $a; $i++){
 		$row =& $this->rows[$i];
+		$row->subject = Emoji::Decode($row->subject);
 		$num++;
 		?>
 		<div class="templatearea" onclick="applyTemplate(<?php echo $row->tempid?>);">
@@ -173,12 +174,6 @@ defined('_JEXEC') or die('Restricted access');
 			</tfoot>
 		</table>
 	<?php } ?>
-	<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-	<input type="hidden" name="task" value="theme"/>
 	<input type="hidden" name="defaulttask" value="theme"/>
-	<input type="hidden" name="ctrl" value="<?php echo JRequest::getCmd('ctrl'); ?>"/>
-	<input type="hidden" name="boxchecked" value="0"/>
-	<input type="hidden" name="filter_order" value="<?php echo $this->pageInfo->filter->order->value; ?>"/>
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->pageInfo->filter->order->dir; ?>"/>
-	<?php echo JHTML::_('form.token'); ?>
+	<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 </form>

@@ -2,13 +2,17 @@
 /*------------------------------------------------------------------------
 # plugin_googlemap3_twitter.php - Google Maps plugin
 # ------------------------------------------------------------------------
-# author    Mike Reumer
-# copyright Copyright (C) 2012 tech.reumer.net. All Rights Reserved.
-# @license - http://www.gnu.org/copyleft/gpl.html GNU/GPL
-# Websites: http://tech.reumer.net
-# Technical Support: http://tech.reumer.net/Contact-Us/Mike-Reumer.html 
-# Documentation: http://tech.reumer.net/Google-Maps/Documentation-of-plugin-Googlemap/
+# author    mapsplugin.com
+# copyright Copyright (C) 2011 mapsplugin.com. All Rights Reserved.
+# @license - http://www.mapsplugin.com/license.txt
+# Websites: http://www.mapsplugin.com
+# Technical Support: http://www.mapsplugin.com
+# Documentation: http://www.mapsplugin.com/Google-Maps/Documentation-of-plugin-Googlemap/
 --------------------------------------------------------------------------*/
+
+// No protection of Joomla because this php program may be called directly to deliver content
+// It uses Joomla framework
+// defined( '_JEXEC' ) or die( 'Restricted access' );
 
 // Restrict access to own domain
 if ($_SERVER['SERVER_PORT'] == 443)
@@ -52,10 +56,11 @@ if (!defined('DS'))
 if (!defined('JPATH_BASE'))
 {
 	$path = dirname(__FILE__);
-	// Joomla 1.6.x/1.7.x/2.5.x
+
+	// Define the path based on the file and remove the path to the plugin
 	$path = str_replace('/plugins/system/plugin_googlemap3', '', $path);
 	$path = str_replace('\plugins\system\plugin_googlemap3', '', $path);
-	
+
 	define('JPATH_BASE', $path);
 }
 

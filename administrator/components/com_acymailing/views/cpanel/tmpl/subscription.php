@@ -1,19 +1,19 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="page-subscription">
 	<div class="onelineblockoptions">
-		<span class="acyblocktitle"><?php echo JText::_('SUBSCRIPTION'); ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('SUBSCRIPTION'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('ALLOW_VISITOR_DESC'), JText::_('ALLOW_VISITOR'), '', JText::_('ALLOW_VISITOR')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('ALLOW_VISITOR_DESC'), acymailing_translation('ALLOW_VISITOR'), '', acymailing_translation('ALLOW_VISITOR')); ?>
 				</td>
 				<td>
 					<?php echo $this->elements->allow_visitor; ?>
@@ -21,7 +21,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REQUIRE_CONFIRM_DESC'), JText::_('REQUIRE_CONFIRM'), '', JText::_('REQUIRE_CONFIRM')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REQUIRE_CONFIRM_DESC'), acymailing_translation('REQUIRE_CONFIRM'), '', acymailing_translation('REQUIRE_CONFIRM')); ?>
 				</td>
 				<td>
 					<?php echo $this->elements->require_confirmation; ?>
@@ -30,18 +30,16 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('AUTO_SUBSCRIBE_DESC'), JText::_('AUTO_SUBSCRIBE'), '', JText::_('AUTO_SUBSCRIBE')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('AUTO_SUBSCRIBE_DESC'), acymailing_translation('AUTO_SUBSCRIBE'), '', acymailing_translation('AUTO_SUBSCRIBE')); ?>
 				</td>
 				<td>
 					<input class="inputbox" id="configautosub" name="config[autosub]" type="text" style="width:100px" value="<?php echo $this->escape($this->config->get('autosub', 'None')); ?>">
-					<a class="modal" id="linkconfigautosub" title="<?php echo JText::_('SELECT_LISTS'); ?>" href="index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=chooselist&amp;task=autosub&amp;values=<?php echo $this->config->get('autosub', 'None'); ?>&amp;control=config" rel="{handler: 'iframe', size: {x: 650, y: 375}}">
-						<button class="acymailing_button_grey" onclick="return false"><?php echo JText::_('SELECT'); ?></button>
-					</a>
+					<?php echo acymailing_popup('index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=chooselist&amp;task=autosub&amp;values='.$this->config->get('autosub', 'None').'&amp;control=config', '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('SELECT').'</button>', '', 650, 375, 'linkconfigautosub'); ?>
 				</td>
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('ALLOW_MODIFICATION_DESC'), JText::_('ALLOW_MODIFICATION'), '', JText::_('ALLOW_MODIFICATION')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('ALLOW_MODIFICATION_DESC'), acymailing_translation('ALLOW_MODIFICATION'), '', acymailing_translation('ALLOW_MODIFICATION')); ?>
 				</td>
 				<td>
 					<?php echo $this->elements->allow_modif; ?>
@@ -50,20 +48,20 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo JText::_('GENERATE_NAME'); ?>
+					<?php echo acymailing_translation('GENERATE_NAME'); ?>
 				</td>
 				<td>
-					<?php echo JHTML::_('acyselect.booleanlist', "config[generate_name]", '', $this->config->get('generate_name', 1)); ?>
+					<?php echo acymailing_boolean("config[generate_name]", '', $this->config->get('generate_name', 1)); ?>
 				</td>
 			</tr>
 		</table>
 	</div>
 	<div class="onelineblockoptions">
-		<span class="acyblocktitle"><?php echo JText::_('NOTIFICATIONS'); ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('NOTIFICATIONS'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_CREATE_DESC'), JText::_('NOTIF_CREATE'), '', JText::_('NOTIF_CREATE')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_CREATE_DESC'), acymailing_translation('NOTIF_CREATE'), '', acymailing_translation('NOTIF_CREATE')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_created]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_created')); ?>">
@@ -72,7 +70,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_UNSUB_DESC'), JText::_('NOTIF_UNSUB'), '', JText::_('NOTIF_UNSUB')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_UNSUB_DESC'), acymailing_translation('NOTIF_UNSUB'), '', acymailing_translation('NOTIF_UNSUB')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_unsub]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_unsub')); ?>">
@@ -81,7 +79,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_UNSUBALL_DESC'), JText::_('NOTIF_UNSUBALL'), '', JText::_('NOTIF_UNSUBALL')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_UNSUBALL_DESC'), acymailing_translation('NOTIF_UNSUBALL'), '', acymailing_translation('NOTIF_UNSUBALL')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_unsuball]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_unsuball')); ?>">
@@ -90,7 +88,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_REFUSE_DESC'), JText::_('NOTIF_REFUSE'), '', JText::_('NOTIF_REFUSE')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_REFUSE_DESC'), acymailing_translation('NOTIF_REFUSE'), '', acymailing_translation('NOTIF_REFUSE')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_refuse]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_refuse')); ?>">
@@ -99,7 +97,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_CONTACT_DESC'), JText::_('NOTIF_CONTACT'), '', JText::_('NOTIF_CONTACT')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_CONTACT_DESC'), acymailing_translation('NOTIF_CONTACT'), '', acymailing_translation('NOTIF_CONTACT')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_contact]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_contact')); ?>">
@@ -108,7 +106,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_CONTACT_MENU_DESC'), JText::_('NOTIF_CONTACT_MENU'), '', JText::_('NOTIF_CONTACT_MENU')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_CONTACT_MENU_DESC'), acymailing_translation('NOTIF_CONTACT_MENU'), '', acymailing_translation('NOTIF_CONTACT_MENU')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_contact_menu]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_contact_menu')); ?>">
@@ -117,7 +115,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('NOTIF_CONFIRM_DESC'), JText::_('NOTIF_CONFIRM'), '', JText::_('NOTIF_CONFIRM')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('NOTIF_CONFIRM_DESC'), acymailing_translation('NOTIF_CONFIRM'), '', acymailing_translation('NOTIF_CONFIRM')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" name="config[notification_confirm]" style="width:200px" value="<?php echo $this->escape($this->config->get('notification_confirm')); ?>">
@@ -127,11 +125,11 @@ defined('_JEXEC') or die('Restricted access');
 		</table>
 	</div>
 	<div class="onelineblockoptions">
-		<span class="acyblocktitle"><?php echo JText::_('REDIRECTIONS'); ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('REDIRECTIONS'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REDIRECTION_SUB_DESC').'<br /><br /><i>'.JText::_('REDIRECTION_NOT_MODULE').'</i>', JText::_('REDIRECTION_SUB'), '', JText::_('REDIRECTION_SUB')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_SUB_DESC').'<br /><br /><i>'.acymailing_translation('REDIRECTION_NOT_MODULE').'</i>', acymailing_translation('REDIRECTION_SUB'), '', acymailing_translation('REDIRECTION_SUB')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="sub_redirect" name="config[sub_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('sub_redirect')); ?>">
@@ -139,7 +137,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REDIRECTION_MODIF_DESC').'<br /><br /><i>'.JText::_('REDIRECTION_NOT_MODULE').'</i>', JText::_('REDIRECTION_MODIF'), '', JText::_('REDIRECTION_MODIF')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_MODIF_DESC').'<br /><br /><i>'.acymailing_translation('REDIRECTION_NOT_MODULE').'</i>', acymailing_translation('REDIRECTION_MODIF'), '', acymailing_translation('REDIRECTION_MODIF')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="modif_redirect" name="config[modif_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('modif_redirect')); ?>">
@@ -147,7 +145,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REDIRECTION_CONFIRM_DESC'), JText::_('REDIRECTION_CONFIRM'), '', JText::_('REDIRECTION_CONFIRM')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_CONFIRM_DESC'), acymailing_translation('REDIRECTION_CONFIRM'), '', acymailing_translation('REDIRECTION_CONFIRM')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="confirm_redirect" name="config[confirm_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('confirm_redirect')); ?>">
@@ -155,7 +153,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REDIRECTION_UNSUB_DESC'), JText::_('REDIRECTION_UNSUB'), '', JText::_('REDIRECTION_UNSUB')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_UNSUB_DESC'), acymailing_translation('REDIRECTION_UNSUB'), '', acymailing_translation('REDIRECTION_UNSUB')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="unsub_redirect" name="config[unsub_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('unsub_redirect')); ?>">
@@ -163,39 +161,41 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('REDIRECTION_MODULE_DESC'), JText::_('REDIRECTION_MODULE'), '', JText::_('REDIRECTION_MODULE')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_MODULE_DESC'), acymailing_translation('REDIRECTION_MODULE'), '', acymailing_translation('REDIRECTION_MODULE')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="module_redirect" name="config[module_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('module_redirect')); ?>">
 				</td>
 			</tr>
+			<tr>
+				<td class="acykey">
+					<?php echo acymailing_translation('ACY_REDIRECT_TAGS'); ?>
+				</td>
+				<td>
+					<?php echo acymailing_boolean("config[redirect_tags]", '', $this->config->get('redirect_tags', 0)); ?>
+				</td>
+			</tr>
 		</table>
 	</div>
 	<div class="onelineblockoptions">
-		<span class="acyblocktitle"><?php echo JText::_('GEOLOCATION'); ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('GEOLOCATION'); ?></span>
 		<script language="JavaScript" type="text/javascript">
 			function testAPI(id, newvalue){
 				window.document.getElementById(id).className = 'onload';
-				try{
-					new Ajax('index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task=' + id + '&value=' + newvalue, {
-						method: 'get', update: $(id), onComplete: function(){
-							window.document.getElementById(id).className = 'loading';
-						}
-					}).request();
-				}catch(err){
-					new Request({
-						url: 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task=' + id + '&value=' + newvalue, method: 'get', onComplete: function(response){
-							$(id).innerHTML = response;
-							window.document.getElementById(id).className = 'loading';
-						}
-					}).send();
-				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task=' + id + '&value=' + newvalue);
+				xhr.onload = function(){
+					window.document.getElementById(id).innerHTML = xhr.responseText;
+					window.document.getElementById(id).className = 'loading';
+				};
+				xhr.send();
 			}
 		</script>
 		<table class="acymailing_table" cellspacing="1">
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(JText::_('GEOLOCATION_TYPE_DESC'), JText::_('GEOLOCATION_TYPE'), '', JText::_('GEOLOCATION_TYPE')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('GEOLOCATION_TYPE_DESC'), acymailing_translation('GEOLOCATION_TYPE'), '', acymailing_translation('GEOLOCATION_TYPE')); ?>
 				</td>
 				<td>
 					<?php echo $this->elements->geolocation; ?>
@@ -204,7 +204,7 @@ defined('_JEXEC') or die('Restricted access');
 			<?php if($this->elements->geoloc_api_key){ ?>
 				<tr>
 					<td class="acykey">
-						<a href="http://ipinfodb.com/register.php" target="_blank"><?php echo acymailing_tooltip(JText::_('GEOLOCATION_API_KEY_DESC'), 'IPInfoDB API key', '', 'IPInfoDB API key'); ?></a>
+						<a href="http://ipinfodb.com/register.php" target="_blank"><?php echo acymailing_tooltip(acymailing_translation('GEOLOCATION_API_KEY_DESC'), 'IPInfoDB API key', '', 'IPInfoDB API key'); ?></a>
 					</td>
 					<td>
 						<?php echo $this->elements->geoloc_api_key; ?>
@@ -215,7 +215,7 @@ defined('_JEXEC') or die('Restricted access');
 
 						<span id="testApiKey" class="acymailing_button_grey">
 							<i class="acyicon-location"></i>
-							<a style="color:#666;text-decoration:none;" href="javascript:void(0);" onclick="testAPI('testApiKey',window.document.getElementById('geoloc_api_key').value)"><?php echo JText::_('GEOLOC_TEST_API_KEY'); ?></a>
+							<a style="color:#666;text-decoration:none;" href="javascript:void(0);" onclick="testAPI('testApiKey',window.document.getElementById('geoloc_api_key').value)"><?php echo acymailing_translation('GEOLOC_TEST_API_KEY'); ?></a>
 						</span>
 					</td>
 				</tr>

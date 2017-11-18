@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -37,15 +37,14 @@ class acyimportHelper{
 
 		$this->db = JFactory::getDBO();
 
-		JPluginHelper::importPlugin('acymailing');
-		$this->dispatcher = JDispatcher::getInstance();
-		jimport('joomla.filesystem.file');
+		acymailing_importPlugin('acymailing');
+
 	}
 
 	private function getImportedLists(){
-		$lists = JRequest::getVar('importlists', array());
+		$lists = acymailing_getVar('array', 'importlists', array());
 
-		$newListName = JRequest::getString('createlist');
+		$newListName = acymailing_getVar('string', 'createlist');
 		if(empty($newListName)) return $lists;
 
 		$newList = new stdClass();
@@ -64,20 +63,20 @@ class acyimportHelper{
 
 	function database($onlyimport = false){
 
-		$this->forceconfirm = JRequest::getInt('import_confirmed_database');
+		$this->forceconfirm = acymailing_getVar('int', 'import_confirmed_database');
 
-		$table = empty($this->tablename) ? trim(JRequest::getString('tablename')) : $this->tablename;
+		$table = empty($this->tablename) ? trim(acymailing_getVar('string', 'tablename')) : $this->tablename;
 
 		if(empty($table)){
 			$listTables = $this->db->getTableList();
-			acymailing_enqueueMessage(JText::sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
+			acymailing_enqueueMessage(acymailing_translation_sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
 			return false;
 		}
 
 		if(empty($this->tablename)){
 			$newConfig = new stdClass();
-			$newConfig->import_db_table = trim(JRequest::getString('tablename'));
-			$newConfig->import_db_fields = serialize(JRequest::getVar('fields', array()));
+			$newConfig->import_db_table = trim(acymailing_getVar('string', 'tablename'));
+			$newConfig->import_db_fields = serialize(acymailing_getVar('array', 'fields', array()));
 
 			$config = acymailing_config();
 			$config->save($newConfig);
@@ -86,15 +85,15 @@ class acyimportHelper{
 		$fields = acymailing_getColumns($table);
 		if(empty($fields)){
 			$listTables = $this->db->getTableList();
-			acymailing_enqueueMessage(JText::sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
+			acymailing_enqueueMessage(acymailing_translation_sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
 			return false;
 		}
 
 		$fields = array_keys($fields);
-		$equivalentFields = empty($this->equFields) ? JRequest::getVar('fields', array()) : $this->equFields;
+		$equivalentFields = empty($this->equFields) ? acymailing_getVar('array', 'fields', array()) : $this->equFields;
 
 		if(empty($equivalentFields['email'])){
-			acymailing_enqueueMessage(JText::_('SPECIFYFIELDEMAIL'), 'notice');
+			acymailing_enqueueMessage(acymailing_translation('SPECIFYFIELDEMAIL'), 'notice');
 			return false;
 		}
 
@@ -103,7 +102,7 @@ class acyimportHelper{
 			$tableField = trim($tableField);
 			if(empty($tableField)) continue;
 			if(!in_array($tableField, $fields)){
-				acymailing_enqueueMessage(JText::sprintf('SPECIFYFIELD', $tableField, implode(' | ', $fields)), 'notice');
+				acymailing_enqueueMessage(acymailing_translation_sprintf('SPECIFYFIELD', $tableField, implode(' | ', $fields)), 'notice');
 				return false;
 			}
 			$select['`'.$acyField.'`'] = '`'.$tableField.'`';
@@ -123,7 +122,7 @@ class acyimportHelper{
 		$this->db->query();
 		$affectedRows = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $affectedRows));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
 
 		if($onlyimport) return true;
 
@@ -138,18 +137,18 @@ class acyimportHelper{
 	}
 
 	function textarea(){
-		$content = JRequest::getString('textareaentries');
+		$content = acymailing_getVar('string', 'textareaentries');
 		$path = $this->_createUploadFolder();
 		$filename = uniqid('import_').'.csv';
 
-		JFile::write($path.$filename, $content);
-		JRequest::setVar('filename', $filename);
+		acymailing_writeFile($path.$filename, $content);
+		acymailing_setVar('filename', $filename);
 
 		return true;
 	}
 
 	private function _createUploadFolder(){
-		$folderPath = JPath::clean(ACYMAILING_ROOT.trim(html_entity_decode('media'.DS.'com_acymailing'.DS.'import'))).DS;
+		$folderPath = acymailing_cleanPath(ACYMAILING_ROOT.trim(html_entity_decode('media'.DS.'com_acymailing'.DS.'import'))).DS;
 		if(!is_dir($folderPath)){
 			acymailing_createDir($folderPath, true, true);
 		}
@@ -157,21 +156,21 @@ class acyimportHelper{
 		if(!is_writable($folderPath)){
 			@chmod($folderPath, '0755');
 			if(!is_writable($folderPath)){
-				acymailing_enqueueMessage(JText::sprintf('WRITABLE_FOLDER', $folderPath), 'notice');
+				acymailing_enqueueMessage(acymailing_translation_sprintf('WRITABLE_FOLDER', $folderPath), 'notice');
 			}
 		}
 		return $folderPath;
 	}
 
 	function file(){
-		$importFile = JRequest::getVar('importfile', array(), 'files', 'array');
+		$importFile = acymailing_getVar('array', 'importfile', array(), 'files');
 
 		if(empty($importFile['name'])){
-			acymailing_enqueueMessage(JText::_('BROWSE_FILE'), 'notice');
+			acymailing_enqueueMessage(acymailing_translation('BROWSE_FILE'), 'notice');
 			return false;
 		}
 
-		$extension = strtolower(JFile::getExt($importFile['name']));
+		$extension = strtolower(acymailing_fileGetExt($importFile['name']));
 		if(in_array($extension, array('xls', 'xlsx'))){
 			acymailing_display('Excel files are not supported.<br />Please convert your file into CSV :<ol><li>Open your file with Excel</li><li>Select File => Save as...</li><li>For the type, select "CSV (separator: semi-colon) (*.csv)"</li></ol>', 'error');
 			return false;
@@ -198,24 +197,24 @@ class acyimportHelper{
 			}
 		}
 
-		$config =& acymailing_config();
+		$config = acymailing_config();
 
 		$uploadPath = $this->_createUploadFolder();
 
 		$attachment = new stdClass();
 		$attachment->filename = uniqid('import_').'.csv';
-		JRequest::setVar('filename', $attachment->filename);
+		acymailing_setVar('filename', $attachment->filename);
 
 		$attachment->size = $importFile['size'];
 
 		if(!preg_match('#\.('.str_replace(array(',', '.'), array('|', '\.'), $config->get('allowedfiles')).')$#Ui', $attachment->filename, $extension) || preg_match('#\.(php.?|.?htm.?|pl|py|jsp|asp|sh|cgi)$#Ui', $attachment->filename)){
-			acymailing_enqueueMessage(JText::sprintf('ACCEPTED_TYPE', htmlspecialchars(substr($attachment->filename, strrpos($attachment->filename, '.') + 1), ENT_COMPAT, 'UTF-8'), $config->get('allowedfiles')), 'notice');
+			acymailing_enqueueMessage(acymailing_translation_sprintf('ACCEPTED_TYPE', htmlspecialchars(substr($attachment->filename, strrpos($attachment->filename, '.') + 1), ENT_COMPAT, 'UTF-8'), $config->get('allowedfiles')), 'notice');
 			return false;
 		}
 
-		if(!JFile::upload($importFile['tmp_name'], $uploadPath.$attachment->filename)){
+		if(!acymailing_uploadFile($importFile['tmp_name'], $uploadPath.$attachment->filename)){
 			if(!move_uploaded_file($importFile['tmp_name'], $uploadPath.$attachment->filename)){
-				acymailing_enqueueMessage(JText::sprintf('FAIL_UPLOAD', '<b><i>'.htmlspecialchars($importFile['tmp_name'], ENT_COMPAT, 'UTF-8').'</i></b>', '<b><i>'.htmlspecialchars($uploadPath.$attachment->filename, ENT_COMPAT, 'UTF-8').'</i></b>'), 'error');
+				acymailing_enqueueMessage(acymailing_translation_sprintf('FAIL_UPLOAD', '<b><i>'.htmlspecialchars($importFile['tmp_name'], ENT_COMPAT, 'UTF-8').'</i></b>', '<b><i>'.htmlspecialchars($uploadPath.$attachment->filename, ENT_COMPAT, 'UTF-8').'</i></b>'), 'error');
 			}
 		}
 		return true;
@@ -224,10 +223,10 @@ class acyimportHelper{
 	function finalizeImport(){
 		$config = acymailing_config();
 
-		$this->forceconfirm = JRequest::getInt('import_confirmed');
-		$this->generatename = JRequest::getInt('generatename');
-		$this->importblocked = JRequest::getInt('importblocked');
-		$this->overwrite = JRequest::getInt('overwriteexisting');
+		$this->forceconfirm = acymailing_getVar('int', 'import_confirmed');
+		$this->generatename = acymailing_getVar('int', 'generatename');
+		$this->importblocked = acymailing_getVar('int', 'importblocked');
+		$this->overwrite = acymailing_getVar('int', 'overwriteexisting');
 
 		$newConfig = new stdClass();
 		$paramTmp = array();
@@ -240,8 +239,8 @@ class acyimportHelper{
 		$newConfig->$importParams = implode(',', $paramTmp);
 		$config->save($newConfig);
 
-		$filename = strtolower(JRequest::getCmd('filename'));
-		$extension = '.'.JFile::getExt($filename);
+		$filename = strtolower(acymailing_getVar('cmd', 'filename'));
+		$extension = '.'.acymailing_fileGetExt($filename);
 		$filename = str_replace(array('.', ' '), '_', substr($filename, 0, strpos($filename, $extension))).$extension;
 		$uploadPath = ACYMAILING_MEDIA.'import'.DS.$filename;
 
@@ -250,7 +249,7 @@ class acyimportHelper{
 			return;
 		}
 
-		$importColumns = JRequest::getString('import_columns');
+		$importColumns = acymailing_getVar('string', 'import_columns');
 		if(empty($importColumns)){
 			acymailing_enqueueMessage('Columns not found', 'error');
 			return false;
@@ -268,28 +267,27 @@ class acyimportHelper{
 			$oneColumn = $checkColumn;
 
 			if(!acymailing_level(3)){ // Make sure we can't create a custom field
-				acymailing_enqueueMessage(JText::_('EXTRA_FIELDS').' '.JText::_('ONLY_FROM_ENTERPRISE'), 'error');
+				acymailing_enqueueMessage(acymailing_translation('EXTRA_FIELDS').' '.acymailing_translation('ONLY_FROM_ENTERPRISE'), 'error');
 				return false;
 			}
 
 			if(empty($ordering)){
-				$db->setQuery('SELECT MAX(ordering) FROM #__acymailing_fields');
-				$ordering = $db->loadResult();
+				$ordering = acymailing_loadResult('SELECT MAX(ordering) FROM #__acymailing_fields');
 			}
 			$ordering++;
 			$db->setQuery('ALTER TABLE `#__acymailing_subscriber` ADD `'.acymailing_secureField(strtolower($oneColumn)).'` VARCHAR ( 250 ) NOT NULL DEFAULT ""');
 			$db->query();
 			$query = "INSERT INTO `#__acymailing_fields` (`fieldname`, `namekey`, `type`, `value`, `published`, `ordering`, `options`, `core`, `required`, `backend`, `frontcomp`, `default`, `listing`, `frontlisting`, `frontform`) VALUES
-			(".$db->quote($oneColumn).", ".$db->quote(strtolower($oneColumn)).", 'text', '', 1, ".intval($ordering).", '', 0, 0, 1, 0, '',0,0,1);";
+			(".acymailing_escapeDB($oneColumn).", ".acymailing_escapeDB(strtolower($oneColumn)).", 'text', '', 1, ".intval($ordering).", '', 0, 0, 1, 0, '',0,0,1);";
 			$db->setQuery($query);
 			$db->query();
 		}
 
 		$contentFile = file_get_contents($uploadPath);
 
-		if(JRequest::getCmd('charsetconvert', '') != ''){
+		if(acymailing_getVar('cmd', 'charsetconvert', '') != ''){
 			$encodingHelper = acymailing_get('helper.encoding');
-			$contentFile = $encodingHelper->change($contentFile, JRequest::getCmd('charsetconvert'), 'UTF-8');
+			$contentFile = $encodingHelper->change($contentFile, acymailing_getVar('cmd', 'charsetconvert'), 'UTF-8');
 		}
 
 		$cutContent = str_replace(array("\r\n", "\r"), "\n", $contentFile);
@@ -320,17 +318,16 @@ class acyimportHelper{
 	}
 
 	public function _cleanImportFolder(){
-		jimport('joomla.filesystem.folder');
-		$files = JFolder::files(ACYMAILING_MEDIA.'import', '.', false, true, array());
+
+		$files = acymailing_getFiles(ACYMAILING_MEDIA.'import', '.', false, true, array());
 		foreach($files as $oneFile){
-			if(JFile::getExt($oneFile) != 'csv') continue;
+			if(acymailing_fileGetExt($oneFile) != 'csv') continue;
 			if(filectime($oneFile) < time() - 86400) unlink($oneFile);
 		}
 	}
 
 	public function _handleContent(&$contentFile){
 		$success = true;
-		$app = JFactory::getApplication();
 
 		$contentFile = str_replace(array("\r\n", "\r"), "\n", $contentFile);
 		$importLines = explode("\n", $contentFile);
@@ -349,9 +346,9 @@ class acyimportHelper{
 		}
 
 		if(!$this->_autoDetectHeader()){
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_HEADER', htmlspecialchars($this->header, ENT_COMPAT, 'UTF-8')), 'error');
-			acymailing_enqueueMessage(JText::_('IMPORT_EMAIL'), 'error');
-			acymailing_enqueueMessage(JText::_('IMPORT_EXAMPLE'), 'error');
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_HEADER', htmlspecialchars($this->header, ENT_COMPAT, 'UTF-8')), 'error');
+			acymailing_enqueueMessage(acymailing_translation('IMPORT_EMAIL'), 'error');
+			acymailing_enqueueMessage(acymailing_translation('IMPORT_EXAMPLE'), 'error');
 			return false;
 		}
 
@@ -365,8 +362,7 @@ class acyimportHelper{
 
 		$errorLines = array();
 
-		$this->db->setQuery('SELECT COUNT(subid) FROM `#__acymailing_subscriber`');
-		$countUsersBeforeImport = $this->db->loadResult();
+		$countUsersBeforeImport = acymailing_loadResult('SELECT COUNT(subid) FROM `#__acymailing_subscriber`');
 
 		$listClass = acymailing_get('class.list');
 		$allLists = $listClass->getLists('name');
@@ -453,11 +449,11 @@ class acyimportHelper{
 				$success = false;
 				static $errorcount = 0;
 				if(empty($errorcount)){
-					acymailing_enqueueMessage(JText::sprintf('IMPORT_ARGUMENTS', $numberColumns), 'error');
+					acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_ARGUMENTS', $numberColumns), 'error');
 				}
 				$errorcount++;
 				if($errorcount < 20){
-					acymailing_enqueueMessage(JText::sprintf('IMPORT_ERRORLINE', '<b><i>'.htmlspecialchars($importLines[$i - 1], ENT_COMPAT, 'UTF-8').'</i></b>'), 'notice');
+					acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_ERRORLINE', '<b><i>'.htmlspecialchars($importLines[$i - 1], ENT_COMPAT, 'UTF-8').'</i></b>'), 'notice');
 				}elseif($errorcount == 20){
 					acymailing_enqueueMessage('...', 'notice');
 				}
@@ -472,14 +468,14 @@ class acyimportHelper{
 
 			$emailKey = array_search('email', $this->columns);
 			$newUser->email = trim(strip_tags($data[$emailKey]), '\'" ');
-			if(version_compare(JVERSION, '3.1.2', '>=')) $newUser->email = JStringPunycode::emailToPunycode($newUser->email);
+			if(!empty($newUser->email)) $newUser->email = acymailing_punycode($newUser->email);
 			$newUser->email = trim(str_replace(array(' ', "\t"), '', $encodingHelper->change($newUser->email, 'UTF-8', 'ISO-8859-1')));
 			if(!$userHelper->validEmail($newUser->email)){
 				$success = false;
 				static $errorcountfail = 0;
 				$errorcountfail++;
 				if($errorcountfail < 10){
-					acymailing_enqueueMessage(JText::sprintf('NOT_VALID_EMAIL', '<b><i>'.htmlspecialchars($newUser->email, ENT_COMPAT | ENT_IGNORE, 'UTF-8').'</i></b>').' | '.($i - 1).' : '.$importLines[$i - 1], 'notice');
+					acymailing_enqueueMessage(acymailing_translation_sprintf('NOT_VALID_EMAIL', '<b><i>'.htmlspecialchars($newUser->email, ENT_COMPAT | ENT_IGNORE, 'UTF-8').'</i></b>').' | '.($i - 1).' : '.$importLines[$i - 1], 'notice');
 				}elseif($errorcountfail == 10){
 					acymailing_enqueueMessage('...', 'notice');
 				}
@@ -543,23 +539,22 @@ class acyimportHelper{
 		}
 
 		if(!empty($errorLines)){
-			$filename = strtolower(JRequest::getCmd('filename', ''));
+			$filename = strtolower(acymailing_getVar('cmd', 'filename', ''));
 			if(!empty($filename)){
-				$extension = '.'.JFile::getExt($filename);
+				$extension = '.'.acymailing_fileGetExt($filename);
 				$filename = str_replace(array('.', ' '), '_', substr($filename, 0, strpos($filename, $extension))).$extension;
 				$errorFile = implode("\n", $errorLines);
-				JFile::write(ACYMAILING_MEDIA.'import'.DS.'error_'.$filename, $errorFile);
-				acymailing_enqueueMessage('<a target="_blank" href="index.php?option=com_acymailing&ctrl='.($app->isAdmin() ? '' : 'front').'data&task=downloadimport&filename=error_'.JFile::stripExt($filename).'" >'.JText::_('ACY_DOWNLOAD_IMPORT_ERRORS').'</a>', 'notice');
+				acymailing_writeFile(ACYMAILING_MEDIA.'import'.DS.'error_'.$filename, $errorFile);
+				acymailing_enqueueMessage('<a target="_blank" href="index.php?option=com_acymailing&ctrl='.(acymailing_isAdmin() ? '' : 'front').'data&task=downloadimport&filename=error_'.preg_replace('#\.[^.]*$#', '', $filename).'" >'.acymailing_translation('ACY_DOWNLOAD_IMPORT_ERRORS').'</a>', 'notice');
 			}
 		}
 		$this->_insertUsers($importUsers);
 
-		$this->db->setQuery('SELECT COUNT(subid) FROM `#__acymailing_subscriber`');
-		$countUsersAfterImport = $this->db->loadResult();
+		$countUsersAfterImport = acymailing_loadResult('SELECT COUNT(subid) FROM `#__acymailing_subscriber`');
 		$this->totalInserted = $countUsersAfterImport - $countUsersBeforeImport;
 
 		if($this->dispresults){
-			acymailing_enqueueMessage(JText::sprintf('ACY_IMPORT_REPORT', $this->totalTry, $this->totalInserted, $this->totalTry - $this->totalValid, $this->totalValid - $this->totalInserted));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('ACY_IMPORT_REPORT', $this->totalTry, $this->totalInserted, $this->totalTry - $this->totalValid, $this->totalValid - $this->totalInserted));
 		}
 
 		$this->_subscribeUsers();
@@ -608,8 +603,7 @@ class acyimportHelper{
 						$query = rtrim($query, ',');
 						if($val == -1){
 							$query .= ' ON DUPLICATE KEY UPDATE status = -1';
-							$this->db->setQuery('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
-							$nbsubscribed = -$this->db->loadResult();
+							$nbsubscribed = -acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
 						}
 						$this->db->setQuery($query);
 						$this->db->query();
@@ -625,8 +619,7 @@ class acyimportHelper{
 				if($val == -1){
 					$query .= ' ON DUPLICATE KEY UPDATE status = -1';
 					if(!empty($currentSubids)){
-						$this->db->setQuery('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
-						$nbsubscribed = -$this->db->loadResult();
+						$nbsubscribed = -acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
 					}
 				}
 				$this->db->setQuery($query);
@@ -677,9 +670,9 @@ class acyimportHelper{
 	function _displaySubscribedResult(){
 		foreach($this->subscribedUsers as $myList){
 			if(empty($myList->status) || $myList->status != -1){
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $myList->nbusers, '<b><i>'.$myList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $myList->nbusers, '<b><i>'.$myList->name.'</i></b>'));
 			}else{
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_UNSUBSCRIBE_CONFIRMATION', $myList->nbusers, '<b><i>'.$myList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_UNSUBSCRIBE_CONFIRMATION', $myList->nbusers, '<b><i>'.$myList->name.'</i></b>'));
 			}
 		}
 	}
@@ -698,15 +691,14 @@ class acyimportHelper{
 		$columns = reset($users);
 		$colNames = array_keys(get_object_vars($columns));
 
-		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('onAcyBeforeUserImport', array(&$users));
+		acymailing_trigger('onAcyBeforeUserImport', array(&$users));
 
 		$query = 'INSERT'.($this->overwrite ? '' : ' IGNORE').' INTO '.acymailing_table('subscriber').' (`'.implode('`,`', $colNames).'`) VALUES (';
 		$values = array();
 		$allemails = array();
 		foreach($users as $a => $oneUser){
 			$value = array();
-			$this->dispatcher->trigger('onAcyBeforeUserImport', array(&$oneUser));
+			acymailing_trigger('onAcyBeforeUserImport', array(&$oneUser));
 			foreach($oneUser as $map => $oneValue){
 				if($map == 'enabled' && !empty($this->importblocked) && $this->importblocked == true){
 					$value[] = 0;
@@ -733,7 +725,7 @@ class acyimportHelper{
 		$this->db->setQuery($query);
 		$this->db->query();
 
-		$dispatcher->trigger('onAcyAfterUserImport', array(&$users));
+		acymailing_trigger('onAcyAfterUserImport', array(&$users));
 
 		$this->db->setQuery('SELECT subid FROM '.acymailing_table('subscriber').' WHERE email IN ('.implode(',', $allemails).')');
 
@@ -799,7 +791,7 @@ class acyimportHelper{
 			$this->columns[$i] = strtolower(trim($oneColumn, '\'" '));
 			if(in_array($this->columns[$i], array('listids', 'listname'))) continue;
 			if(!isset($columns[$this->columns[$i]]) && $this->columns[$i] != 1){
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_ERROR_FIELD', '<b><i>'.htmlspecialchars($this->columns[$i], ENT_COMPAT, 'UTF-8').'</i></b>', implode(' | ', array_diff(array_keys($columns), array('subid', 'userid', 'key')))), 'error');
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_ERROR_FIELD', '<b><i>'.htmlspecialchars($this->columns[$i], ENT_COMPAT, 'UTF-8').'</i></b>', implode(' | ', array_diff(array_keys($columns), array('subid', 'userid', 'key')))), 'error');
 				return false;
 			}
 		}
@@ -820,7 +812,7 @@ class acyimportHelper{
 		$this->db->query();
 		$nbUpdated += $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_UPDATE', $nbUpdated));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_UPDATE', $nbUpdated));
 
 		$query = 'SELECT subid FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table('users', false).' as b on a.userid = b.id WHERE b.id IS NULL AND a.userid > 0';
 		$this->db->setQuery($query);
@@ -833,7 +825,7 @@ class acyimportHelper{
 		if(!empty($deletedSubid)){
 			$userClass = acymailing_get('class.subscriber');
 			$deletedUsers = $userClass->delete($deletedSubid);
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_DELETE', $deletedUsers));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_DELETE', $deletedUsers));
 		}
 
 		$time = time();
@@ -842,7 +834,7 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$lists = $this->getImportedLists();
 		$listsSubscribe = array();
@@ -874,7 +866,7 @@ class acyimportHelper{
 		$this->db->setQuery($query);
 		$this->db->query();
 		$nbsubscribed = $this->db->getAffectedRows();
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIPTION', $nbsubscribed));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIPTION', $nbsubscribed));
 
 		return true;
 	}
@@ -885,9 +877,9 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		if(JRequest::getInt('acajoom_lists', 0) == 1) $this->_importAcajoomLists();
+		if(acymailing_getVar('int', 'acajoom_lists', 0) == 1) $this->_importAcajoomLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('acajoom_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
 		$this->db->setQuery($query);
@@ -902,7 +894,6 @@ class acyimportHelper{
 		$query = 'SELECT `id`, `name`, `description`, `state` as `published` FROM `#__yanc_letters`';
 		$this->db->setQuery($query);
 		$yancLists = $this->db->loadObjectList('id');
-		$user = JFactory::getUser();
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'yanclist'.implode('\',\'yanclist', array_keys($yancLists)).'\')';
 		$this->db->setQuery($query);
@@ -913,7 +904,7 @@ class acyimportHelper{
 
 		foreach($yancLists as $oneList){
 			$oneList->alias = 'yanclist'.$oneList->id;
-			$oneList->userid = $user->id;
+			$oneList->userid = acymailing_currentUserId();
 
 			$yancListId = $oneList->id;
 			if(isset($joomLists[$oneList->alias])){
@@ -921,7 +912,7 @@ class acyimportHelper{
 			}else{
 				unset($oneList->id);
 				$joomListId = $listClass->save($oneList);
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
 			}
 
 			$querySelect = 'SELECT DISTINCT c.subid,'.$joomListId.','.$time.',1 FROM `#__yanc_subscribers` as a ';
@@ -932,7 +923,7 @@ class acyimportHelper{
 			$this->db->setQuery($queryInsert.$querySelect);
 			$this->db->query();
 
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -940,8 +931,8 @@ class acyimportHelper{
 
 	private function _importccNewsletterNews(){
 		$replacements = array();
-		$replacements['[unsubscribe link]'] = '{unsubscribe}'.JText::_('UNSUBSCRIBE').'{/unsubscribe}';
-		$replacements['[view online link]'] = '{readonline}'.JText::_('VIEW_ONLINE').'{/readonline}';
+		$replacements['[unsubscribe link]'] = '{unsubscribe}'.acymailing_translation('UNSUBSCRIBE').'{/unsubscribe}';
+		$replacements['[view online link]'] = '{readonline}'.acymailing_translation('VIEW_ONLINE').'{/readonline}';
 		$replacements['[sitename]'] = '{config:sitename}';
 		$replacements['[name]'] = '{subtag:name}';
 
@@ -980,7 +971,7 @@ class acyimportHelper{
 			$lists[$acyId] = 'ccnewsletterlist'.$ccList;
 		}
 
-		acymailing_enqueueMessage(JText::sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($lists).'</b>'));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($lists).'</b>'));
 
 		$query = 'SELECT listid, alias FROM #__acymailing_list WHERE alias LIKE "ccnewsletterlist%"';
 		$this->db->setQuery($query);
@@ -1019,7 +1010,7 @@ class acyimportHelper{
 			}else{
 				unset($oneList->id);
 				$joomListId = $listClass->save($oneList);
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
 			}
 
 			$querySelect = 'SELECT DISTINCT c.subid,'.$joomListId.',UNIX_TIMESTAMP(b.`sdate`),1 FROM '.acymailing_table('ccnewsletter_g_to_s', false).' as a ';
@@ -1031,7 +1022,7 @@ class acyimportHelper{
 			$this->db->setQuery($queryInsert.$querySelect);
 			$this->db->query();
 
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1039,10 +1030,10 @@ class acyimportHelper{
 
 	private function _importjnewsNews(){
 		$replacements = array();
-		$replacements['#{tag:unsubscribe}#i'] = '{unsubscribe}'.JText::_('UNSUBSCRIBE').'{/unsubscribe}';
-		$replacements['#{tag:subscriptions}#i'] = '{modify}'.JText::_('MODIFY_SUBSCRIPTION').'{/modify}';
-		$replacements['#{tag:viewonline[^}]*}#i'] = '{readonline}'.JText::_('VIEW_ONLINE').'{/readonline}';
-		$replacements['#{tag:confirm}#i'] = '{confirm}'.JText::_('CONFIRM_SUBSCRIPTION').'{/confirm}';
+		$replacements['#{tag:unsubscribe}#i'] = '{unsubscribe}'.acymailing_translation('UNSUBSCRIBE').'{/unsubscribe}';
+		$replacements['#{tag:subscriptions}#i'] = '{modify}'.acymailing_translation('MODIFY_SUBSCRIPTION').'{/modify}';
+		$replacements['#{tag:viewonline[^}]*}#i'] = '{readonline}'.acymailing_translation('VIEW_ONLINE').'{/readonline}';
+		$replacements['#{tag:confirm}#i'] = '{confirm}'.acymailing_translation('CONFIRM_SUBSCRIPTION').'{/confirm}';
 		$replacements['#{tag:firstname}#i'] = '{subtag:name|part:first}';
 		$replacements['#{tag:name}#i'] = '{subtag:name}';
 		$replacements['#{tag:email}#i'] = '{subtag:email}';
@@ -1085,7 +1076,7 @@ class acyimportHelper{
 			$mailids[$jnewsid] = $mailClass->save($oneNewsletter);
 		}
 
-		acymailing_enqueueMessage(JText::sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($mailids).'</b>'));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($mailids).'</b>'));
 
 		$query = 'SELECT listid, alias FROM #__acymailing_list WHERE alias LIKE "jnewslist%"';
 		$this->db->setQuery($query);
@@ -1129,7 +1120,7 @@ class acyimportHelper{
 			}else{
 				unset($oneList->id);
 				$joomListId = $listClass->save($oneList);
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
 			}
 
 			$querySelect = 'SELECT DISTINCT c.subid,'.$joomListId.',a.subdate,a.unsubdate,1-(2*a.unsubscribe) FROM '.acymailing_table('jnews_listssubscribers', false).' as a ';
@@ -1141,7 +1132,7 @@ class acyimportHelper{
 			$this->db->setQuery($queryInsert.$querySelect);
 			$this->db->query();
 
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1167,7 +1158,7 @@ class acyimportHelper{
 			}else{
 				unset($oneList->id);
 				$joomListId = $listClass->save($oneList);
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
 			}
 
 			$querySelect = 'SELECT DISTINCT c.subid,'.$joomListId.','.$time.',1 FROM '.acymailing_table('acajoom_queue', false).' as a ';
@@ -1179,7 +1170,7 @@ class acyimportHelper{
 			$this->db->setQuery($queryInsert.$querySelect);
 			$this->db->query();
 
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1204,7 +1195,7 @@ class acyimportHelper{
 			$this->db->setQuery($query);
 		}
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$this->allSubid = acymailing_loadResultArray($this->db);
 		$this->_subscribeUsers();
@@ -1226,9 +1217,9 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		if(JRequest::getInt('yanc_lists', 0) == 1) $this->_importYancLists();
+		if(acymailing_getVar('int', 'yanc_lists', 0) == 1) $this->_importYancLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('yanc_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
 		$this->db->setQuery($query);
@@ -1247,7 +1238,7 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM `#__vemod_news_mailer_users` as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
 		$this->db->setQuery($query);
@@ -1265,7 +1256,7 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM `#__contact_details` as a JOIN '.acymailing_table('subscriber').' as b on a.email_to = b.email';
 		$this->db->setQuery($query);
@@ -1294,10 +1285,10 @@ class acyimportHelper{
 		$insertedUsers = $this->db->getAffectedRows();
 
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		if(JRequest::getInt('ccNewsletter_lists', 0) == 1) $this->_importccNewsletterLists();
-		if(JRequest::getInt('ccNewsletter_news', 0) == 1) $this->_importccNewsletterNews();
+		if(acymailing_getVar('int', 'ccNewsletter_lists', 0) == 1) $this->_importccNewsletterLists();
+		if(acymailing_getVar('int', 'ccNewsletter_news', 0) == 1) $this->_importccNewsletterNews();
 
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('ccnewsletter_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email WHERE b.subid > 0';
@@ -1316,10 +1307,10 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		if(JRequest::getInt('jnews_lists', 0) == 1) $this->_importjnewsLists();
-		if(JRequest::getInt('jnews_news', 0) == 1) $this->_importjnewsNews();
+		if(acymailing_getVar('int', 'jnews_lists', 0) == 1) $this->_importjnewsLists();
+		if(acymailing_getVar('int', 'jnews_news', 0) == 1) $this->_importjnewsNews();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('jnews_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
 		$this->db->setQuery($query);
@@ -1337,9 +1328,9 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		if(JRequest::getInt('nspro_lists', 0) == 1) $this->_importnsproLists();
+		if(acymailing_getVar('int', 'nspro_lists', 0) == 1) $this->_importnsproLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('nspro_subs', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
 		$this->db->setQuery($query);
@@ -1351,9 +1342,8 @@ class acyimportHelper{
 	}
 
 	private function _importnsproLists(){
-		$my = JFactory::getUser();
 
-		$query = 'SELECT `id`, `lname` as `name`, 1 as `visible`, `notes` as `description`, `published`, '.intval($my->id).' as `userid` FROM '.acymailing_table('nspro_lists', false);
+		$query = 'SELECT `id`, `lname` as `name`, 1 as `visible`, `notes` as `description`, `published`, '.intval(acymailing_currentUserId()).' as `userid` FROM '.acymailing_table('nspro_lists', false);
 		$this->db->setQuery($query);
 		$nsprolists = $this->db->loadObjectList('id');
 
@@ -1371,7 +1361,7 @@ class acyimportHelper{
 			}else{
 				unset($oneList->id);
 				$joomListId = $listClass->save($oneList);
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
+				acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_LIST', '<b><i>'.$oneList->name.'</i></b>'));
 			}
 
 			$querySelect = 'SELECT DISTINCT c.subid,'.$joomListId.',c.created,1 FROM '.acymailing_table('nspro_subs', false).' as a ';
@@ -1382,7 +1372,7 @@ class acyimportHelper{
 			$this->db->setQuery($queryInsert.$querySelect);
 			$this->db->query();
 
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1395,7 +1385,7 @@ class acyimportHelper{
 		$this->db->query();
 		$insertedUsers = $this->db->getAffectedRows();
 
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('communicator_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.subscriber_email = b.email';
 		$this->db->setQuery($query);
@@ -1433,7 +1423,7 @@ class acyimportHelper{
 		$this->setciviprefix();
 
 		$insertedUsers = $this->civi_import();
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $insertedUsers));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM '.$this->civiprefix.'email as a JOIN '.acymailing_table('subscriber').' as b on CONVERT(a.email USING utf8) = b.email';
 		$this->db->setQuery($query);
@@ -1451,19 +1441,19 @@ class acyimportHelper{
 
 		if(!$this->ldap_init()) return false;
 
-		$ldapfields = JRequest::getVar('ldapfield');
+		$ldapfields = acymailing_getVar('none', 'ldapfield');
 		if(empty($ldapfields)){
-			acymailing_enqueueMessage(JText::_('SPECIFYFIELDEMAIL'), 'notice');
+			acymailing_enqueueMessage(acymailing_translation('SPECIFYFIELDEMAIL'), 'notice');
 			return false;
 		}
 
 		$newConfig = new stdClass();
 
 		$this->dispresults = false;
-		$newConfig->ldap_import_confirm = $this->forceconfirm = JRequest::getInt('ldap_import_confirm');
-		$newConfig->ldap_generatename = $this->generatename = JRequest::getInt('ldap_generatename');
-		$newConfig->ldap_overwriteexisting = $this->overwrite = JRequest::getInt('ldap_overwriteexisting');
-		$newConfig->ldap_deletenotexists = $this->ldap_deletenotexists = JRequest::getInt('ldap_deletenotexists');
+		$newConfig->ldap_import_confirm = $this->forceconfirm = acymailing_getVar('int', 'ldap_import_confirm');
+		$newConfig->ldap_generatename = $this->generatename = acymailing_getVar('int', 'ldap_generatename');
+		$newConfig->ldap_overwriteexisting = $this->overwrite = acymailing_getVar('int', 'ldap_overwriteexisting');
+		$newConfig->ldap_deletenotexists = $this->ldap_deletenotexists = acymailing_getVar('int', 'ldap_deletenotexists');
 		if($this->ldap_deletenotexists){
 			$subfields = array_keys(acymailing_getColumns('#__acymailing_subscriber'));
 			if(!in_array('ldapentry', $subfields)){
@@ -1476,10 +1466,10 @@ class acyimportHelper{
 
 			$this->overwrite = 1;
 		}
-		$newConfig->ldap_subfield = $this->ldap_subfield = JRequest::getString('ldap_subfield');
+		$newConfig->ldap_subfield = $this->ldap_subfield = acymailing_getVar('string', 'ldap_subfield');
 		if(!empty($this->ldap_subfield)){
-			$allValues = JRequest::getVar('ldap_subcond');
-			$allLists = JRequest::getVar('ldap_sublists');
+			$allValues = acymailing_getVar('none', 'ldap_subcond');
+			$allLists = acymailing_getVar('none', 'ldap_sublists');
 			$this->ldap_subscribe = array();
 			foreach($allValues as $i => $oneValue){
 				$oneValue = strtolower(trim($oneValue));
@@ -1516,7 +1506,7 @@ class acyimportHelper{
 		$config->save($newConfig);
 
 		if(empty($this->ldap_equivalent['email'])){
-			acymailing_enqueueMessage(JText::_('SPECIFYFIELDEMAIL'), 'notice');
+			acymailing_enqueueMessage(acymailing_translation('SPECIFYFIELDEMAIL'), 'notice');
 			return false;
 		}
 
@@ -1528,14 +1518,14 @@ class acyimportHelper{
 			if(!$this->ldap_import($this->ldap_equivalent['email'].'='.$startChars[$i].'*@*')) $result = false;
 		}
 
-		acymailing_enqueueMessage(JText::sprintf('ACY_IMPORT_REPORT', $this->totalTry, $this->totalInserted, $this->totalTry - $this->totalValid, $this->totalValid - $this->totalInserted));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('ACY_IMPORT_REPORT', $this->totalTry, $this->totalInserted, $this->totalTry - $this->totalValid, $this->totalValid - $this->totalInserted));
 
 		if($this->ldap_deletenotexists){
 			$db->setQuery("SELECT subid FROM #__acymailing_subscriber WHERE ldapentry = 0");
 			$allSubids = acymailing_loadResultArray($db);
 			$subscriberClass = acymailing_get('class.subscriber');
 			$nbAffected = $subscriberClass->delete($allSubids);
-			acymailing_enqueueMessage(JText::sprintf('IMPORT_DELETE', $nbAffected));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_DELETE', $nbAffected));
 			$db->setQuery("ALTER TABLE #__acymailing_subscriber DROP COLUMN ldapentry");
 			$db->query();
 		}
@@ -1592,13 +1582,13 @@ class acyimportHelper{
 	function ldap_init(){
 		$config = acymailing_config();
 		$newConfig = new stdClass();
-		$newConfig->ldap_host = trim(JRequest::getString('ldap_host'));
-		$newConfig->ldap_port = JRequest::getInt('ldap_port');
+		$newConfig->ldap_host = trim(acymailing_getVar('string', 'ldap_host'));
+		$newConfig->ldap_port = acymailing_getVar('int', 'ldap_port');
 		if(empty($newConfig->ldap_port)) $newConfig->ldap_port = 389;
-		$newConfig->ldap_basedn = trim(JRequest::getString('ldap_basedn'));
+		$newConfig->ldap_basedn = trim(acymailing_getVar('string', 'ldap_basedn'));
 		$this->ldap_basedn = $newConfig->ldap_basedn;
-		$newConfig->ldap_username = trim(JRequest::getString('ldap_username'));
-		$newConfig->ldap_password = trim(JRequest::getString('ldap_password'));
+		$newConfig->ldap_username = trim(acymailing_getVar('string', 'ldap_username'));
+		$newConfig->ldap_password = trim(acymailing_getVar('string', 'ldap_password'));
 
 		$config->save($newConfig);
 
@@ -1625,7 +1615,7 @@ class acyimportHelper{
 			return false;
 		}
 
-		acymailing_display('Successfully connected to '.$newConfig->ldap_host.':'.$newConfig->ldap_port, 'success');
+		acymailing_enqueueMessage('Successfully connected to '.$newConfig->ldap_host.':'.$newConfig->ldap_port, 'success');
 
 		return true;
 	}
@@ -1636,7 +1626,7 @@ class acyimportHelper{
 
 		$config = acymailing_config();
 
-		$searchResult = @ldap_search($this->ldap_conn, trim(JRequest::getString('ldap_basedn')), 'mail=*@*', array(), 0, 5);
+		$searchResult = @ldap_search($this->ldap_conn, trim(acymailing_getVar('string', 'ldap_basedn')), 'mail=*@*', array(), 0, 5);
 		if(!$searchResult){
 			acymailing_display('Could not search for elements<br />'.ldap_error($this->ldap_conn), 'warning');
 			return false;
@@ -1668,31 +1658,31 @@ class acyimportHelper{
 			return false;
 		}
 
-		$db = JFactory::getDBO();
 		$subfields = acymailing_getColumns('#__acymailing_subscriber');
 
 		$acyfields = array();
-		$acyfields[] = JHTML::_('select.option', '', ' - - - ');
+		$acyfields[] = acymailing_selectOption('', ' - - - ');
 		foreach($subfields as $oneField => $typefield){
 			if(in_array($oneField, array('subid', 'confirmed', 'enabled', 'key', 'userid', 'accept', 'html', 'created'))) continue;
-			$acyfields[] = JHTML::_('select.option', $oneField, $oneField);
+			$acyfields[] = acymailing_selectOption($oneField, $oneField);
 		}
 
-		echo '<table class="admintable" cellspacing="1">';
+		echo '<div class="onelineblockoptions"><span class="acyblocktitle">'.acymailing_translation('USER_FIELDS').'</span>
+<table class="acymailing_table" cellspacing="1">';
 		foreach($fields as $oneField){
-			echo '<tr><td class="acykey" >'.$oneField.'</td><td>'.JHTML::_('select.genericlist', $acyfields, 'ldapfield['.$oneField.']', 'size="1"', 'value', 'text', $config->get('ldapfield_'.$oneField)).'</td></tr>';
+			echo '<tr><td class="acykey" >'.$oneField.'</td><td>'.acymailing_select($acyfields, 'ldapfield['.$oneField.']', 'size="1"', 'value', 'text', $config->get('ldapfield_'.$oneField)).'</td></tr>';
 		}
-		echo '</table>';
+		echo '</table></div>';
 
-		echo '<fieldset><legend>'.JText::_('SUBSCRIPTION').'</legend>';
-		echo 'Subscribe the user based on the values of the field '.JHTML::_('select.genericlist', $dropdown, 'ldap_subfield', 'size="1"', 'value', 'text', $config->get('ldap_subfield')).':';
+		echo '<div class="onelineblockoptions"><span class="acyblocktitle">'.acymailing_translation('SUBSCRIPTION').'</span>';
+		echo 'Subscribe the user based on the values of the field '.acymailing_select($dropdown, 'ldap_subfield', 'size="1"', 'value', 'text', $config->get('ldap_subfield')).':';
 		$listClass = acymailing_get('class.list');
 		$lists = $listClass->getLists('listid');
 
 		for($i = 0; $i < 5; $i++){
-			echo '<br />Subscribe to list '.JHTML::_('select.genericlist', $lists, 'ldap_sublists['.$i.']', 'class="inputbox" size="1" ', 'listid', 'name', (int)$config->get('ldap_sublists_'.$i)).' if the value is <input type="text" value="'.htmlspecialchars($config->get('ldap_subcond_'.$i), ENT_COMPAT, 'UTF-8').'" name="ldap_subcond['.$i.']" />';
+			echo '<br />Subscribe to list '.acymailing_select($lists, 'ldap_sublists['.$i.']', 'class="inputbox" size="1" style="width: 150px;" ', 'listid', 'name', (int)$config->get('ldap_sublists_'.$i)).' if the value is <input style="width: 150px;" type="text" value="'.htmlspecialchars($config->get('ldap_subcond_'.$i), ENT_COMPAT, 'UTF-8').'" name="ldap_subcond['.$i.']" />';
 		}
-		echo '</fieldset>';
+		echo '</div>';
 
 	}
 
@@ -1701,7 +1691,7 @@ class acyimportHelper{
 		$zohoHelper = acymailing_get('helper.zoho');
 		$subscriberClass = acymailing_get('class.subscriber');
 		$tableInfos = array_keys(acymailing_getColumns('#__acymailing_subscriber'));
-		$config =& acymailing_config();
+		$config = acymailing_config();
 		if(!in_array('zohoid', $tableInfos)){
 			$query = 'ALTER TABLE #__acymailing_subscriber ADD COLUMN zohoid VARCHAR(255)';
 			$db->setQuery($query);
@@ -1726,13 +1716,13 @@ class acyimportHelper{
 			$generateName = $config->get('zoho_generate_name', 'fromemail');
 			$importnew = $config->get('zoho_importnew', 0);
 		}else{
-			$list = JRequest::getVar('zoho_list');
-			$fields = JRequest::getVar('zoho_fields');
-			$zohoHelper->authtoken = $authtoken = JRequest::getVar('zoho_apikey');
-			$zohoHelper->customView = JRequest::getVar('zoho_cv');
-			$overwrite = JRequest::getVar('zoho_overwrite');
-			$confirmedUsers = JRequest::getVar('zoho_confirmed');
-			$delete = JRequest::getVar('zoho_delete');
+			$list = acymailing_getVar('none', 'zoho_list');
+			$fields = acymailing_getVar('none', 'zoho_fields');
+			$zohoHelper->authtoken = $authtoken = acymailing_getVar('none', 'zoho_apikey');
+			$zohoHelper->customView = acymailing_getVar('none', 'zoho_cv');
+			$overwrite = acymailing_getVar('none', 'zoho_overwrite');
+			$confirmedUsers = acymailing_getVar('none', 'zoho_confirmed');
+			$delete = acymailing_getVar('none', 'zoho_delete');
 			$newConfig = new stdClass();
 			$newConfig->zoho_fields = serialize($fields);
 			$newConfig->zoho_list = $list;
@@ -1741,8 +1731,8 @@ class acyimportHelper{
 			$newConfig->zoho_overwrite = $overwrite;
 			$newConfig->zoho_confirmed = $confirmedUsers;
 			$newConfig->zoho_delete = $delete;
-			$newConfig->zoho_generate_name = $generateName = JRequest::getVar('zoho_generate_name', 'fromemail');
-			$newConfig->zoho_importnew = $importnew = JRequest::getVar('zoho_importnew', 0);
+			$newConfig->zoho_generate_name = $generateName = acymailing_getVar('none', 'zoho_generate_name', 'fromemail');
+			$newConfig->zoho_importnew = $importnew = acymailing_getVar('none', 'zoho_importnew', 0);
 			$newConfig->zoho_importdate = date('Y-m-d H:i:s');
 			$config->save($newConfig);
 		}
@@ -1768,7 +1758,7 @@ class acyimportHelper{
 			$res = $zohoHelper->sendInfo($list);
 		}
 		$this->_subscribeUsers();
-		if(JRequest::getInt('zoho_delete') == '1'){
+		if(acymailing_getVar('int', 'zoho_delete') == '1'){
 			$zohoHelper->deleteAddress($this->allSubid, $list);
 		}else{
 			$query = 'SELECT DISTINCT b.subid FROM #__acymailing_subscriber AS a JOIN #__acymailing_subscriber AS b ON a.zohoid = b.zohoid WHERE a.zohoid IS NOT NULL AND b.subid < a.subid';
@@ -1779,14 +1769,14 @@ class acyimportHelper{
 		if(!empty($zohoHelper->conn)) $zohoHelper->close();
 
 		$this->_displaySubscribedResult();
-		if(!empty($zohoHelper->error) && defined('JDEBUG') && JDEBUG) acymailing_enqueueMessage(JText::sprintf($zohoHelper->error), 'notice');
+		if(!empty($zohoHelper->error) && defined('JDEBUG') && JDEBUG) acymailing_enqueueMessage(acymailing_translation_sprintf($zohoHelper->error), 'notice');
 	}
 
 	function sobipro(){
 		$config = acymailing_config();
 		$db = JFactory::getDBO();
 
-		$sobiproImport = JRequest::getVar('config', array(), 'POST', 'array');
+		$sobiproImport = acymailing_getVar('array', 'config', array(), 'POST');
 		$newConfig = new stdClass();
 		$affectedRows = 0;
 		$newConfig->sobipro_import = serialize($sobiproImport);
@@ -1803,9 +1793,139 @@ class acyimportHelper{
 			$db->query();
 			$affectedRows += $db->getAffectedRows();
 		}
-		acymailing_enqueueMessage(JText::sprintf('IMPORT_NEW', $affectedRows));
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
 		$query = 'SELECT b.subid FROM `#__sobipro_field_data` as a JOIN '.acymailing_table('subscriber').' as b on a.baseData = b.email';
 		$this->db->setQuery($query);
+		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->_subscribeUsers();
+		$this->_displaySubscribedResult();
+		return true;
+	}
+
+	function fbleads(){
+		$config = acymailing_config();
+
+		$token = acymailing_getVar('none', 'fbleads_token');
+		$adid = acymailing_getVar('none', 'fbleads_adid');
+		$formid = acymailing_getVar('none', 'fbleads_formid');
+		$mincreated = acymailing_getVar('none', 'fbleads_mincreated');
+		$maxcreated = acymailing_getVar('none', 'fbleads_maxcreated');
+		$emailfield = acymailing_getVar('none', 'fbleads_email');
+		$namefield = acymailing_getVar('none', 'fbleads_name');
+
+		$newConfig = new stdClass();
+		$newConfig->fbleads_token = $token;
+		$newConfig->fbleads_adid = $adid;
+		$newConfig->fbleads_formid = $formid;
+		$newConfig->fbleads_mincreated = $mincreated;
+		$newConfig->fbleads_maxcreated = $maxcreated;
+		$newConfig->fbleads_email = $emailfield;
+		$newConfig->fbleads_name = $namefield;
+
+		$config->save($newConfig);
+
+		if(!function_exists('curl_exec')){
+			acymailing_enqueueMessage('The curl extension must be enabled on your server to be able to use this import option', 'notice');
+			return false;
+		}
+
+		if(empty($token)){
+			acymailing_enqueueMessage(acymailing_translation('ACY_FBLEADS_ENTER_TOKEN'), 'notice');
+			return false;
+		}
+
+		if(empty($adid) && empty($formid)){
+			acymailing_enqueueMessage(acymailing_translation('ACY_FBLEADS_ENTER_ID'), 'notice');
+			return false;
+		}
+
+		if(empty($emailfield)){
+			acymailing_enqueueMessage('You must at least specify the email field\'s code', 'notice');
+			return false;
+		}
+
+		$filtering = array();
+
+		if(!empty($mincreated)){
+			$mincreated = strtotime($mincreated);
+			if(empty($mincreated) || $mincreated == -1){
+				acymailing_enqueueMessage(acymailing_translation_sprintf('FIELD_CONTENT_VALID', '"'.acymailing_translation('ACY_FBLEADS_MINCREATED').'"'), 'notice');
+			}else{
+				$filter = new stdClass();
+				$filter->field = "time_created";
+				$filter->operator = "GREATER_THAN";
+				$filter->value = $mincreated;
+
+				$filtering[] = $filter;
+			}
+		}
+
+		if(!empty($maxcreated)){
+			$maxcreated = strtotime($maxcreated);
+			if(empty($maxcreated) || $maxcreated == -1){
+				acymailing_enqueueMessage(acymailing_translation_sprintf('FIELD_CONTENT_VALID', '"'.acymailing_translation('ACY_FBLEADS_MAXCREATED').'"'), 'notice');
+			}else{
+				$filter = new stdClass();
+				$filter->field = "time_created";
+				$filter->operator = "LESS_THAN";
+				$filter->value = $maxcreated;
+
+				$filtering[] = $filter;
+			}
+		}
+
+		if(empty($formid)) $formid = $adid;
+		$url = 'https://graph.facebook.com/v2.8/'.$formid.'/leads?limit=1000000&access_token='.$token;
+		if(!empty($filtering)) $url .= '&filtering='.urlencode(json_encode($filtering));
+
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL,$url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_COOKIESESSION, true);
+		$return = curl_exec($curl);
+
+		if(!$return){
+			acymailing_enqueueMessage('An unkown error occurred: '.curl_error($curl), 'error');
+			curl_close($curl);
+			return true;
+		}
+
+		curl_close($curl);
+
+		$return = json_decode($return, true);
+
+		if(!empty($return['error']['message'])){
+			acymailing_enqueueMessage($return['error']['message'], 'error');
+			return true;
+		}
+
+		if(empty($return['data'])) {
+			acymailing_enqueueMessage(acymailing_translation('ACY_FBLEADS_NONE'), 'info');
+			return true;
+		}
+
+		$db = JFactory::getDBO();
+		$leads = '';
+		$time = time();
+		foreach($return['data'] as $oneLead){
+			$email = '';
+			$name = '';
+			foreach($oneLead['field_data'] as $oneField){
+				if($oneField['name'] == $emailfield) $email = $oneField['values'][0];
+				if(!empty($namefield) && $oneField['name'] == $namefield) $name = $oneField['values'][0];
+			}
+
+			$leads .= '('.acymailing_escapeDB($email).(empty($namefield) ? '' : ','.acymailing_escapeDB($name)).','.$time.'),';
+			$emails[] = acymailing_escapeDB($email);
+		}
+		$leads = rtrim($leads, ',');
+
+		$db->setQuery('INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`'.(empty($namefield) ? '' : ',`name`').',`created`) VALUES '.$leads);
+		$db->query();
+		$affectedRows = $db->getAffectedRows();
+
+		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
+		$this->db->setQuery('SELECT subid FROM '.acymailing_table('subscriber').' WHERE `created` = '.$time);
 		$this->allSubid = acymailing_loadResultArray($this->db);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();

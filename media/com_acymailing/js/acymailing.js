@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -306,7 +306,8 @@ function checkChangeForm(acceptSpecialChars){
 	};
 
 	var acymailing = {
-		submitFct: null, submitBox: function(data){
+		submitFct: null,
+		submitBox: function(data){
 			var t = this, d = document, w = window;
 			if(t.submitFct){
 				try{
@@ -491,69 +492,6 @@ function checkChangeForm(acceptSpecialChars){
 			var data = window.Oby.getFormData(target);
 			window.Oby.xRequest(elem.getAttribute('href'), {update: target, mode: 'POST', data: data});
 			return false;
-		}, openBox: function(elem, url, jqmodal){
-			var w = window;
-			if(typeof(elem) == "string"){
-				elem = document.getElementById(elem);
-			}
-			if(!elem){
-				return false;
-			}
-			try{
-				if(jqmodal === undefined || typeof(jQuery) == "undefined"){
-					jqmodal = false;
-				}
-				if(!jqmodal && w.SqueezeBox !== undefined){
-					if(url !== undefined){
-						elem.href = url;
-					}
-					if(w.SqueezeBox.open !== undefined){
-						SqueezeBox.open(elem, {parse: 'rel'});
-					}else if(w.SqueezeBox.fromElement !== undefined){
-						SqueezeBox.fromElement(elem);
-					}
-				}else{
-					var id = elem.getAttribute('id');
-					this.currentBox = id;
-
-					try{
-						jQuery('#modal-' + id).modal('show');
-					}catch(e){
-						if(w.SqueezeBox !== undefined){
-							if(url){
-								elem.href = url;
-							}
-							if(w.SqueezeBox.open !== undefined){
-								SqueezeBox.open(elem, {parse: 'rel'});
-							}else if(w.SqueezeBox.fromElement !== undefined){
-								SqueezeBox.fromElement(elem);
-							}
-						}
-					}
-
-					if(url){
-						if(document.getElementById('modal-' + id + '-container')){
-							jQuery('#modal-' + id + '-container').find('iframe').attr('src', url);
-						}else{
-							jQuery('#modal-' + id).find('iframe').attr('src', url);
-						}
-					}
-				}
-			}catch(e){
-			}
-			return false;
-		}, closeBox: function(name){
-			var d = document, w = window;
-			try{
-				if(d.getElementById('sbox-window')){
-					d.getElementById('sbox-window').close();
-				}else if(w.SqueezeBox !== undefined){
-					w.SqueezeBox.close();
-				}else if(name !== undefined && jQuery !== undefined){
-					jQuery('#' + name).modal('hide');
-				}
-			}catch(err){
-			}
 		}, tabSelect: function(m, c, id){
 			var d = document, sub = null;
 			if(typeof m == 'string'){
@@ -577,6 +515,52 @@ function checkChangeForm(acceptSpecialChars){
 				el = el.offsetParent;
 			}
 			return {top: y, left: x};
+		},
+		openpopup: function(url, width, height){
+			if(document.getElementById('acymailingpopupshadow') !== null) return;
+			var shadow = document.createElement('div');
+			shadow.id = 'acymailingpopupshadow';
+			shadow.onclick = function(){ acymailing.closeBox(); };
+			document.getElementsByTagName('body')[0].appendChild(shadow);
+
+			var closecross = document.createElement('div');
+			closecross.id = 'closepop';
+			closecross.onclick = function(){ acymailing.closeBox(); };
+
+			var iframe = document.createElement('iframe');
+			iframe.src = url;
+
+			var container = document.createElement('div');
+			container.id = 'acymailingpopup';
+
+			if(width == 0){
+				container.style.width = '82%';
+				container.style.height = '84%';
+				container.style.left = (window.innerWidth*9/100)+'px';
+				container.style.top = (window.innerHeight*2/25)+'px';
+			}else {
+				container.style.width = width + 'px';
+				container.style.height = height + 'px';
+				container.style.left = ((window.innerWidth - width) / 2)+'px';
+				container.style.top = ((window.innerHeight - height) / 2)+'px';
+			}
+
+			document.getElementsByTagName('body')[0].appendChild(shadow);
+			container.appendChild(closecross);
+			container.appendChild(iframe);
+			document.getElementsByTagName('body')[0].appendChild(container);
+		},
+		closeBox: function(parent) {
+			var d = document;
+			if(parent){
+				d = window.parent.document;
+			}
+			try {
+				var popup = d.getElementById('acymailingpopup');
+				popup.parentNode.removeChild(popup);
+				var shadow = d.getElementById('acymailingpopupshadow');
+				shadow.parentNode.removeChild(shadow);
+			} catch(err) {}
 		}
 	};
 
@@ -586,3 +570,21 @@ function checkChangeForm(acceptSpecialChars){
 	}
 	window.acymailing = acymailing;
 })();
+
+document.addEventListener('DOMContentLoaded', function(){
+	var tooltips = document.querySelectorAll(".acymailingtooltip");
+	for (var i = 0; i < tooltips.length; i++) {
+		tooltips[i].addEventListener("mouseover", function (event) {
+			var tooltiptext = this.getElementsByClassName("acymailingtooltiptext")[0];
+
+			var newTop = event.clientY - tooltiptext.clientHeight - 5;
+			if(newTop < 0) newTop = 0;
+
+			var newleft = event.clientX - tooltiptext.clientWidth/2;
+			if(newleft < 0) newleft = 0;
+
+			tooltiptext.style.top = newTop + "px";
+			tooltiptext.style.left = newleft + "px";
+		});
+	}
+});

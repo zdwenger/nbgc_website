@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -24,7 +24,6 @@ class UserController extends acymailingController{
 		if(acymailing_isRobot()) return false;
 
 		$config = acymailing_config();
-		$app = JFactory::getApplication();
 
 
 		$userClass = acymailing_get('class.subscriber');
@@ -37,8 +36,8 @@ class UserController extends acymailingController{
 		$listRedirection = '';
 		$subscription = $userClass->getSubscriptionStatus($user->subid);
 		foreach($subscription as $i => $onelist){
-			if(!in_array($onelist->status, array(1, 2)) || JText::_('REDIRECTION_CONFIRMATION_'.$i) == 'REDIRECTION_CONFIRMATION_'.$i) continue;
-			$listRedirection = JText::_('REDIRECTION_CONFIRMATION_'.$i);
+			if(!in_array($onelist->status, array(1, 2)) || acymailing_translation('REDIRECTION_CONFIRMATION_'.$i) == 'REDIRECTION_CONFIRMATION_'.$i) continue;
+			$listRedirection = acymailing_translation('REDIRECTION_CONFIRMATION_'.$i);
 			break;
 		}
 
@@ -50,14 +49,14 @@ class UserController extends acymailingController{
 				$replace['{'.$key.'}'] = $val;
 				$replace['{user:'.$key.'}'] = $val;
 			}
-			$redirectUrl = str_replace(array_keys($replace), $replace, $redirectUrl);
+			if($config->get('redirect_tags', 0) == 1) $redirectUrl = str_replace(array_keys($replace), $replace, $redirectUrl);
 			$this->setRedirect($redirectUrl);
 		}
 
 		if($config->get('confirmation_message', 1)){
-			if($user->confirmed && strlen(JText::_('ALREADY_CONFIRMED')) > 0){
-				$app->enqueueMessage(JText::_('ALREADY_CONFIRMED'));
-			}elseif(!$user->confirmed && strlen(JText::_('SUBSCRIPTION_CONFIRMED')) > 0) $app->enqueueMessage(JText::_('SUBSCRIPTION_CONFIRMED'));
+			if($user->confirmed && strlen(acymailing_translation('ALREADY_CONFIRMED')) > 0){
+				acymailing_enqueueMessage(acymailing_translation('ALREADY_CONFIRMED'));
+			}elseif(!$user->confirmed && strlen(acymailing_translation('SUBSCRIPTION_CONFIRMED')) > 0) acymailing_enqueueMessage(acymailing_translation('SUBSCRIPTION_CONFIRMED'));
 		}
 
 		if(!$user->confirmed) $userClass->confirmSubscription($user->subid);
@@ -87,7 +86,7 @@ class UserController extends acymailingController{
 			}
 		}
 
-		JRequest::setVar('layout', 'confirm');
+		acymailing_setVar('layout', 'confirm');
 		return parent::display();
 	}//endfct
 
@@ -98,33 +97,30 @@ class UserController extends acymailingController{
 		$user = $userClass->identify(true);
 		if(empty($user)) return $this->subscribe();
 
-		JRequest::setVar('layout', 'modify');
+		acymailing_setVar('layout', 'modify');
 		return parent::display();
 	}
 
 	function subscribe(){
-
-		$user = JFactory::getUser();
 		$userClass = acymailing_get('class.subscriber');
 		$userClass->geolocRight = true;
 
-		if(!empty($user->id) AND $userClass->identify(true)){
+		$currentUserid = acymailing_currentUserId();
+		if(!empty($currentUserid) AND $userClass->identify(true)){
 			return $this->modify();
 		}
 
 		$config = acymailing_config();
 		$allowvisitor = $config->get('allow_visitor', 1);
 		if(empty($allowvisitor)){
-			$app = JFactory::getApplication();
 			$usercomp = !ACYMAILING_J16 ? 'com_user' : 'com_users';
 			$uri = JFactory::getURI();
 			$url = 'index.php?option='.$usercomp.'&view=login&return='.base64_encode($uri->toString());
-			$app = JFactory::getApplication();
-			$app->redirect($url, JText::_('ONLY_LOGGED'));
+			acymailing_redirect($url, acymailing_translation('ONLY_LOGGED'));
 			return false;
 		}
 
-		JRequest::setVar('layout', 'modify');
+		acymailing_setVar('layout', 'modify');
 		return parent::display();
 	}
 
@@ -138,15 +134,12 @@ class UserController extends acymailingController{
 		$statsClass->countReturn = false;
 		$statsClass->saveStats();
 
-		JRequest::setVar('layout', 'unsub');
+		acymailing_setVar('layout', 'unsub');
 		return parent::display();
 	}
 
 	function saveunsub(){
-
 		acymailing_checkRobots();
-
-		$app = JFactory::getApplication();
 
 		$subscriberClass = acymailing_get('class.subscriber');
 		$subscriberClass->sendConf = false;
@@ -157,7 +150,7 @@ class UserController extends acymailingController{
 
 
 		$subscriber = new stdClass();
-		$subscriber->subid = JRequest::getInt('subid');
+		$subscriber->subid = acymailing_getVar('int', 'subid');
 
 		$user = $subscriberClass->identify();
 		if(!$user || empty($subscriber->subid) || $user->subid != $subscriber->subid){
@@ -165,13 +158,13 @@ class UserController extends acymailingController{
 			exit;
 		}
 
-		$refusemails = JRequest::getInt('refuse');
-		$unsuball = JRequest::getInt('unsuball');
-		$mailid = JRequest::getInt('mailid');
+		$refusemails = acymailing_getVar('int', 'refuse');
+		$unsuball = acymailing_getVar('int', 'unsuball');
+		$mailid = acymailing_getVar('int', 'mailid');
 
 		$oldUser = $subscriberClass->get($subscriber->subid);
 
-		$survey = JRequest::getVar('survey', array(), '', 'array');
+		$survey = acymailing_getVar('array', 'survey', array(), '');
 		$tagSurvey = '';
 		$data = array();
 		if(!empty($survey)){
@@ -184,11 +177,11 @@ class UserController extends acymailingController{
 		}
 
 		$replace = array();
-		$replace['REASON::'] = '<br />'.JText::_('REASON').' : ';
+		$replace['REASON::'] = '<br />'.acymailing_translation('REASON').' : ';
 		$reasons = unserialize($config->get('unsub_reasons'));
 		foreach($reasons as $i => $oneReason){
 			if(preg_match('#^[A-Z_]*$#', $oneReason)){
-				$replace[$oneReason] = JText::_($oneReason);
+				$replace[$oneReason] = acymailing_translation($oneReason);
 			}
 		}
 
@@ -204,7 +197,7 @@ class UserController extends acymailingController{
 
 			if($refusemails){
 				$subscriber->accept = 0;
-				if($config->get('unsubscription_message', 1) && strlen(JText::_('CONFIRM_UNSUB_FULL')) > 0) $app->enqueueMessage(JText::_('CONFIRM_UNSUB_FULL'));
+				if($config->get('unsubscription_message', 1) && strlen(acymailing_translation('CONFIRM_UNSUB_FULL')) > 0) acymailing_enqueueMessage(acymailing_translation('CONFIRM_UNSUB_FULL'));
 				$notifToSend = 'notification_refuse';
 			}elseif($unsuball){
 				$notifToSend = 'notification_unsuball';
@@ -223,10 +216,10 @@ class UserController extends acymailingController{
 
 			if(!empty($updatelists)){
 				$status = $listsubClass->updateSubscription($subscriber->subid, $updatelists);
-				if($config->get('unsubscription_message', 1) && strlen(JText::_('CONFIRM_UNSUB_ALL')) > 0) $app->enqueueMessage(JText::_('CONFIRM_UNSUB_ALL'));
+				if($config->get('unsubscription_message', 1) && strlen(acymailing_translation('CONFIRM_UNSUB_ALL')) > 0) acymailing_enqueueMessage(acymailing_translation('CONFIRM_UNSUB_ALL'));
 				$incrementUnsub = true;
 			}else{
-				if($config->get('unsubscription_message', 1) && strlen(JText::_('ERROR_NOT_SUBSCRIBED')) > 0) $app->enqueueMessage(JText::_('ERROR_NOT_SUBSCRIBED'));
+				if($config->get('unsubscription_message', 1) && strlen(acymailing_translation('ERROR_NOT_SUBSCRIBED')) > 0) acymailing_enqueueMessage(acymailing_translation('ERROR_NOT_SUBSCRIBED'));
 			}
 
 			$subscriber->confirmed = 0;
@@ -250,8 +243,8 @@ class UserController extends acymailingController{
 			}
 
 
-			$otherSubscriptionsBoxes = JRequest::getVar('unsubotherlists', array(), 'post', 'ARRAY');
-			$otherSubscriptionsId = JRequest::getVar('unsubotherlistsid', array(), 'post', 'ARRAY');
+			$otherSubscriptionsBoxes = acymailing_getVar('array', 'unsubotherlists', array(), 'post');
+			$otherSubscriptionsId = acymailing_getVar('array', 'unsubotherlistsid', array(), 'post');
 			$othersubscriptionsToRemove = array();
 			if(!empty($otherSubscriptionsBoxes)){
 				$i = 0;
@@ -303,17 +296,16 @@ class UserController extends acymailingController{
 				$updatelists[-1] = array_keys($unsubList);
 				$listsubClass->survey = $tagSurvey;
 				$status = $listsubClass->updateSubscription($subscriber->subid, $updatelists);
-				if($config->get('unsubscription_message', 1) && strlen(JText::_('CONFIRM_UNSUB_CURRENT')) > 0) $app->enqueueMessage(JText::_('CONFIRM_UNSUB_CURRENT'));
+				if($config->get('unsubscription_message', 1) && strlen(acymailing_translation('CONFIRM_UNSUB_CURRENT')) > 0) acymailing_enqueueMessage(acymailing_translation('CONFIRM_UNSUB_CURRENT'));
 				$incrementUnsub = true;
 			}else{
-				if($config->get('unsubscription_message', 1) && strlen(JText::_('ERROR_NOT_SUBSCRIBED_CURRENT')) > 0) $app->enqueueMessage(JText::_('ERROR_NOT_SUBSCRIBED_CURRENT'));
+				if($config->get('unsubscription_message', 1) && strlen(acymailing_translation('ERROR_NOT_SUBSCRIBED_CURRENT')) > 0) acymailing_enqueueMessage(acymailing_translation('ERROR_NOT_SUBSCRIBED_CURRENT'));
 			}
 		}
 
 		if($incrementUnsub){
 			$db = JFactory::getDBO();
-			$db->setQuery('SELECT subid FROM #__acymailing_history WHERE `action` = "unsubscribed" AND `subid` = '.intval($subscriber->subid).' AND `mailid` = '.intval($mailid).' LIMIT 1,1');
-			$alreadythere = $db->loadResult();
+			$alreadythere = acymailing_loadResult('SELECT subid FROM #__acymailing_history WHERE `action` = "unsubscribed" AND `subid` = '.intval($subscriber->subid).' AND `mailid` = '.intval($mailid).' LIMIT 1,1');
 
 			if(empty($alreadythere)){
 				$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
@@ -354,19 +346,18 @@ class UserController extends acymailingController{
 				$replace['{'.$key.'}'] = $val;
 				$replace['{user:'.$key.'}'] = $val;
 			}
-			$redirectUnsub = str_replace(array_keys($replace), $replace, $redirectUnsub);
+			if($config->get('redirect_tags', 0) == 1) $redirectUnsub = str_replace(array_keys($replace), $replace, $redirectUnsub);
 			$this->setRedirect($redirectUnsub);
 			return;
 		}
 
-		JRequest::setVar('layout', 'saveunsub');
+		acymailing_setVar('layout', 'saveunsub');
 		return parent::display();
 	}
 
 	function savechanges(){
-		JRequest::checkToken() or die('Please make sure your cookies are enabled');
+		acymailing_checkToken();
 		acymailing_checkRobots();
-		$app = JFactory::getApplication();
 
 		$config = acymailing_config();
 		$subscriberClass = acymailing_get('class.subscriber');
@@ -378,22 +369,32 @@ class UserController extends acymailingController{
 		$subscriberClass->sendNotification();
 		if($status){
 			if($subscriberClass->confirmationSent){
-				if($config->get('subscription_message', 1) && strlen(JText::_('CONFIRMATION_SENT')) > 0) $app->enqueueMessage(JText::_('CONFIRMATION_SENT'), 'message');
+				if($config->get('subscription_message', 1) && strlen(acymailing_translation('CONFIRMATION_SENT')) > 0) acymailing_enqueueMessage(acymailing_translation('CONFIRMATION_SENT'), 'message');
 				$redirectlink = $config->get('sub_redirect');
 			}elseif($subscriberClass->newUser){
-				if($config->get('subscription_message', 1) && strlen(JText::_('SUBSCRIPTION_OK')) > 0) $app->enqueueMessage(JText::_('SUBSCRIPTION_OK'), 'message');
+				if($config->get('subscription_message', 1) && strlen(acymailing_translation('SUBSCRIPTION_OK')) > 0) acymailing_enqueueMessage(acymailing_translation('SUBSCRIPTION_OK'), 'message');
 				$redirectlink = $config->get('sub_redirect');
 			}else{
-				if(strlen(JText::_('SUBSCRIPTION_UPDATE_OK')) > 0) $app->enqueueMessage(JText::_('SUBSCRIPTION_UPDATED_OK'), 'message');
+				if(strlen(acymailing_translation('SUBSCRIPTION_UPDATE_OK')) > 0) acymailing_enqueueMessage(acymailing_translation('SUBSCRIPTION_UPDATED_OK'), 'message');
 				$redirectlink = $config->get('modif_redirect');
 			}
 		}elseif($subscriberClass->requireId){
-			if(strlen(JText::_('IDENTIFICATION_SENT')) > 0) $app->enqueueMessage(JText::_('IDENTIFICATION_SENT'), 'notice');
+			if(strlen(acymailing_translation('IDENTIFICATION_SENT')) > 0) acymailing_enqueueMessage(acymailing_translation('IDENTIFICATION_SENT'), 'notice');
 		}else{
-			if(strlen(JText::_('ERROR_SAVING')) > 0) $app->enqueueMessage(JText::_('ERROR_SAVING'), 'error');
+			if(strlen(acymailing_translation('ERROR_SAVING')) > 0) acymailing_enqueueMessage(acymailing_translation('ERROR_SAVING'), 'error');
 		}
 
 		if(!empty($redirectlink)){
+			if($config->get('redirect_tags', false)) {
+				$user = $subscriberClass->identify(true);
+				if(!empty($user->subid)) {
+					$replace = array();
+					foreach ($user as $key => $val) {
+						if(!is_array($val) && !is_object($val)) $replace['{' . $key . '}'] = $val;
+					}
+					$redirectlink = str_replace(array_keys($replace), $replace, $redirectlink);
+				}
+			}
 
 			$this->setRedirect($redirectlink);
 			return;

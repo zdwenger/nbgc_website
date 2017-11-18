@@ -164,11 +164,15 @@ class acymailingEmogrifier{
 		
 		// Special fix for ElasticEmail, they force their users to insert something like this:
 		// <a href="{unsubscribeauto:http://link-to-your-unsubscribe-page}">Unsubscribe</a>
-		// The { and } are obviously urlencoded, we should prevent it as the EE team automatically adds something in the emails otherwise
+		// The { and } are obviously urlencoded, we should prevent it as the EE team automatically adds something ugly in the emails otherwise
 		if(strpos($result, 'href="%7Bunsubscribe') !== false){
-			$result = preg_replace('#href="%7B(unsubscribe[^"]+)%7D([^"]*)"#Uis', 'href="{$1}"', $result);
+			$result = preg_replace_callback('#href="%7B(unsubscribe[^"]+)%7D([^"]*)"#Uis', array($this, 'decodeUnsubscribeTags'), $result);
 		}
 		return $result;
+	}
+	
+	function decodeUnsubscribeTags($matches){
+		return 'href="{'.urldecode($matches[1]).'}'.$matches[2].'"';
 	}
 
 	private static function sortBySelectorPrecedence($a, $b){

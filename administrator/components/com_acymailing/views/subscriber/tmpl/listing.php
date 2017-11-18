@@ -1,15 +1,15 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
-?><div id="acy_content">
+?><div id="acy_content" class="acysubscriberlisting">
 	<div id="iframedoc"></div>
-	<form action="<?php echo JRoute::_('index.php?option=com_acymailing&ctrl='.JRequest::getCmd('ctrl')); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
 		<table width="100%" class="acymailing_table_options">
 			<tr>
 				<td id="subscriberfilter" style="min-width:325px;">
@@ -33,54 +33,54 @@ defined('_JEXEC') or die('Restricted access');
 			<thead>
 			<tr>
 				<th class="title titlenum">
-					<?php echo JText::_('ACY_NUM'); ?>
+					<?php echo acymailing_translation('ACY_NUM'); ?>
 				</th>
 				<th class="title titlebox">
-					<input type="checkbox" name="toggle" value="" onclick="acymailing_js.checkAll(this);"/>
+					<input type="checkbox" name="toggle" value="" onclick="acymailing.checkAll(this);"/>
 				</th>
 				<?php
 				foreach($this->displayFields as $map => $oneField){
 					if($map == 'html') continue; ?>
-					<th class="title" style="text-align: left;">
-						<?php echo JHTML::_('grid.sort', $this->customFields->trans($oneField->fieldname), 'a.'.$map, $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+					<th class="title" style="text-align: left;<?php echo $map == 'name' ? 'width: 200px;' : ''; ?>">
+						<?php echo acymailing_gridSort($this->customFields->trans($oneField->fieldname), 'a.'.$map, $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 				<?php } ?>
-				<?php $app = JFactory::getApplication();
-				if($app->isAdmin()){ ?>
+				<?php
+				if(acymailing_isAdmin()){ ?>
 					<th class="title" style="text-align: left;">
-						<?php echo JText::_('SUBSCRIPTION'); ?>
+						<?php echo acymailing_translation('SUBSCRIPTION'); ?>
 					</th>
 				<?php } ?>
 				<th class="title titledate">
-					<?php echo JHTML::_('grid.sort', JText::_('CREATED_DATE'), 'a.created', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+					<?php echo acymailing_gridSort(acymailing_translation('CREATED_DATE'), 'a.created', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 				</th>
 				<?php
-				if($app->isAdmin()){
+				if(acymailing_isAdmin()){
 					if(!empty($this->displayFields['html'])){ ?>
 						<th class="title titletoggle">
-							<?php echo JHTML::_('grid.sort', JText::_('RECEIVE_HTML'), 'a.html', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+							<?php echo acymailing_gridSort(acymailing_translation('RECEIVE_HTML'), 'a.html', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 						</th>
 					<?php } ?>
 					<?php if($this->config->get('require_confirmation', 1)){ ?>
 						<th class="title titletoggle">
-							<?php echo JHTML::_('grid.sort', JText::_('CONFIRMED'), 'a.confirmed', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+							<?php echo acymailing_gridSort(acymailing_translation('CONFIRMED'), 'a.confirmed', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 						</th>
 					<?php } ?>
 					<th class="title titletoggle">
-						<?php echo JHTML::_('grid.sort', JText::_('ENABLED'), 'a.enabled', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('ENABLED'), 'a.enabled', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title titleid">
-						<?php echo JHTML::_('grid.sort', JText::_('USER_ID'), 'a.userid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('USER_ID'), 'a.userid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 					<th class="title titleid">
-						<?php echo JHTML::_('grid.sort', JText::_('ACY_ID'), 'a.subid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
+						<?php echo acymailing_gridSort(acymailing_translation('ACY_ID'), 'a.subid', $this->pageInfo->filter->order->dir, $this->pageInfo->filter->order->value); ?>
 					</th>
 				<?php } ?>
 			</tr>
 			</thead>
 			<tfoot>
 			<tr>
-				<td colspan="<?php echo $app->isAdmin() ? count($this->displayFields) + 9 : count($this->displayFields) + 3; ?>">
+				<td colspan="<?php echo acymailing_isAdmin() ? count($this->displayFields) + 9 : count($this->displayFields) + 3; ?>">
 					<?php echo $this->pagination->getListFooter();
 					echo $this->pagination->getResultsCounter();
 					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
@@ -101,21 +101,17 @@ defined('_JEXEC') or die('Restricted access');
 						<?php echo $this->pagination->getRowOffset($i); ?>
 					</td>
 					<td align="center" style="text-align:center">
-						<?php echo JHTML::_('grid.id', $i, $row->subid); ?>
+						<?php echo acymailing_gridID($i, $row->subid); ?>
 					</td>
 					<?php
 					$this->customFields->currentUser = $row;
 					foreach($this->displayFields as $map => $oneField){
 						if($map == 'html') continue; ?>
-						<td>
+						<td class="columnclass<?php echo $map; ?>">
 							<?php
 							if($map == 'email'){
-								echo '<a href="'.acymailing_completeLink(JRequest::getCmd('ctrl').'&task=edit&subid='.$row->subid).'">';
-								if(version_compare(JVERSION, '3.1.2', '>=')) {
-									echo JStringPunycode::emailToUTF8($this->customFields->listing($oneField, @$row->$map, $this->pageInfo->search));
-								}else{
-									echo $this->customFields->listing($oneField, @$row->$map, $this->pageInfo->search);
-								}
+								echo '<a href="'.acymailing_completeLink(acymailing_getVar('cmd', 'ctrl').'&task=edit&subid='.$row->subid).'">';
+								echo acymailing_punycode($this->customFields->listing($oneField, @$row->$map, $this->pageInfo->search), 'emailToUTF8');
 								echo '</a>';
 							}else {
 								echo $this->customFields->listing($oneField, @$row->$map, $this->pageInfo->search);
@@ -123,13 +119,13 @@ defined('_JEXEC') or die('Restricted access');
 							?>
 						</td>
 					<?php }
-					if($app->isAdmin()){
+					if(acymailing_isAdmin()){
 						?>
 						<td align="right">
 
 							<?php
 							if(empty($row->accept)){
-								echo '<div class="icon-16-refuse" >'.JHTML::_('tooltip', JText::_('USER_REFUSE', true), '', '', '&nbsp;&nbsp;&nbsp;&nbsp;').'</div>';
+								echo '<div class="icon-16-refuse" >'.acymailing_tooltip(acymailing_translation('USER_REFUSE', true), '', '', '&nbsp;&nbsp;&nbsp;&nbsp;').'</div>';
 							}
 
 							foreach($this->lists as $listid => $list){
@@ -139,14 +135,14 @@ defined('_JEXEC') or die('Restricted access');
 								$extra = array();
 								$extra['color'] = $this->lists[$listid]->color;
 								$extra['tooltiptitle'] = $this->lists[$listid]->name;
-								$extra['tooltip'] = '<b>'.JText::_('LIST_NAME').' : </b>'.$this->lists[$listid]->name.'<br />';
+								$extra['tooltip'] = '<b>'.acymailing_translation('LIST_NAME').' : </b>'.$this->lists[$listid]->name.'<br />';
 								if($row->subscription->$listid->status > 0){
-									$extra['tooltip'] .= '<b>'.JText::_('STATUS').' : </b>';
-									$extra['tooltip'] .= ($row->subscription->$listid->status == '1') ? JText::_('SUBSCRIBED') : JText::_('PENDING_SUBSCRIPTION');
-									$extra['tooltip'] .= '<br /><b>'.JText::_('SUBSCRIPTION_DATE').' : </b>'.acymailing_getDate($row->subscription->$listid->subdate);
+									$extra['tooltip'] .= '<b>'.acymailing_translation('STATUS').' : </b>';
+									$extra['tooltip'] .= ($row->subscription->$listid->status == '1') ? acymailing_translation('SUBSCRIBED') : acymailing_translation('PENDING_SUBSCRIPTION');
+									$extra['tooltip'] .= '<br /><b>'.acymailing_translation('SUBSCRIPTION_DATE').' : </b>'.acymailing_getDate($row->subscription->$listid->subdate);
 								}else{
-									$extra['tooltip'] .= '<b>'.JText::_('STATUS').' : </b>'.JText::_('UNSUBSCRIBED').'<br />';
-									$extra['tooltip'] .= '<b>'.JText::_('UNSUBSCRIPTION_DATE').' : </b>'.acymailing_getDate($row->subscription->$listid->unsubdate);
+									$extra['tooltip'] .= '<b>'.acymailing_translation('STATUS').' : </b>'.acymailing_translation('UNSUBSCRIBED').'<br />';
+									$extra['tooltip'] .= '<b>'.acymailing_translation('UNSUBSCRIPTION_DATE').' : </b>'.acymailing_getDate($row->subscription->$listid->unsubdate);
 								}
 
 								echo $this->toggleClass->toggle($statuslistid, $row->subscription->$listid->status, 'listsub', $extra);
@@ -160,7 +156,7 @@ defined('_JEXEC') or die('Restricted access');
 						<?php echo acymailing_getDate($row->created); ?>
 					</td>
 
-					<?php if($app->isAdmin()){
+					<?php if(acymailing_isAdmin()){
 						if(!empty($this->displayFields['html'])){ ?>
 							<td align="center" style="text-align:center">
 								<span id="<?php echo $htmlid ?>" class="loading"><?php echo $this->toggleClass->toggle($htmlid, $row->html, 'subscriber') ?></span>
@@ -184,8 +180,8 @@ defined('_JEXEC') or die('Restricted access');
 								}else{
 									$editLink = 'index.php?option=com_users&task=user.edit&id=';
 								}
-								$text = JText::_('ACY_USERNAME').' : <b>'.acymailing_dispSearch($row->username, $this->pageInfo->search);
-								$text .= '</b><br />'.JText::_('USER_ID').' : <b>'.acymailing_dispSearch($row->userid, $this->pageInfo->search).'</b>';
+								$text = acymailing_translation('ACY_USERNAME').' : <b>'.acymailing_dispSearch($row->username, $this->pageInfo->search);
+								$text .= '</b><br />'.acymailing_translation('USER_ID').' : <b>'.acymailing_dispSearch($row->userid, $this->pageInfo->search).'</b>';
 								echo acymailing_tooltip($text, acymailing_dispSearch($row->username, $this->pageInfo->search), '', acymailing_dispSearch($row->userid, $this->pageInfo->search), $editLink.$row->userid);
 							} ?>
 						</td>
@@ -202,14 +198,8 @@ defined('_JEXEC') or die('Restricted access');
 			</tbody>
 		</table>
 
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value=""/>
-		<input type="hidden" name="ctrl" value="<?php echo JRequest::getCmd('ctrl'); ?>"/>
-		<input type="hidden" name="boxchecked" value="0"/>
-		<input type="hidden" name="filter_order" value="<?php echo $this->pageInfo->filter->order->value; ?>"/>
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $this->pageInfo->filter->order->dir; ?>"/>
 		<?php if(!empty($this->Itemid)) echo '<input type="hidden" name="Itemid" value="'.$this->Itemid.'" />';
-		echo JHTML::_('form.token'); ?>
+		acymailing_formOptions($this->pageInfo->filter->order); ?>
 	</form>
 	<script type="text/javascript">
 		function hideTooltip(){

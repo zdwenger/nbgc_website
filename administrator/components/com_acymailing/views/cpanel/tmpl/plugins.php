@@ -1,30 +1,30 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="config_plugins">
 
 	<div class="acyblockoptions" style="width: 42%;min-width: 480px;">
-		<span class="acyblocktitle"><?php echo JText::_('PLUG_TAG') ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('PLUG_TAG') ?></span>
 		<table class="acymailing_table" cellpadding="1">
 			<thead>
 			<tr>
 				<th class="title titlenum">
-					<?php echo JText::_('ACY_NUM'); ?>
+					<?php echo acymailing_translation('ACY_NUM'); ?>
 				</th>
 				<th class="title">
-					<?php echo JText::_('ACY_NAME'); ?>
+					<?php echo acymailing_translation('ACY_NAME'); ?>
 				</th>
 				<th class="title titletoggle">
-					<?php echo JText::_('ENABLED'); ?>
+					<?php echo acymailing_translation('ENABLED'); ?>
 				</th>
 				<th class="title titleid">
-					<?php echo JText::_('ACY_ID'); ?>
+					<?php echo acymailing_translation('ACY_ID'); ?>
 				</th>
 			</tr>
 			</thead>
@@ -60,21 +60,21 @@ defined('_JEXEC') or die('Restricted access');
 		</table>
 	</div>
 	<div class="acyblockoptions" style="width: 42%;min-width: 480px;">
-		<span class="acyblocktitle"><?php echo JText::_('PLUG_INTE') ?></span>
+		<span class="acyblocktitle"><?php echo acymailing_translation('PLUG_INTE') ?></span>
 		<table class="acymailing_table" cellpadding="1">
 			<thead>
 			<tr>
 				<th class="title titlenum">
-					<?php echo JText::_('ACY_NUM'); ?>
+					<?php echo acymailing_translation('ACY_NUM'); ?>
 				</th>
 				<th class="title">
-					<?php echo JText::_('ACY_NAME'); ?>
+					<?php echo acymailing_translation('ACY_NAME'); ?>
 				</th>
 				<th class="title titletoggle">
-					<?php echo JText::_('ENABLED'); ?>
+					<?php echo acymailing_translation('ENABLED'); ?>
 				</th>
 				<th class="title titleid">
-					<?php echo JText::_('ACY_ID'); ?>
+					<?php echo acymailing_translation('ACY_ID'); ?>
 				</th>
 			</tr>
 			</thead>
@@ -111,6 +111,6 @@ defined('_JEXEC') or die('Restricted access');
 	</div>
 	<span class="acymailing_button" style="margin:15px;">
 		<i class="acyicon-import"></i>
-		<a style="margin-left:5px;color:#fff;text-decoration: none;" href="https://www.acyba.com/acymailing/plugins.html" target="_blank"><?php echo JText::_('MORE_PLUGINS'); ?></a>
+		<a style="margin-left:5px;color:#fff;text-decoration: none;" href="https://www.acyba.com/acymailing/plugins.html" target="_blank"><?php echo acymailing_translation('MORE_PLUGINS'); ?></a>
 	</span>
 </div>

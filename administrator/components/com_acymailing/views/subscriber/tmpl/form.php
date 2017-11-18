@@ -1,15 +1,15 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
-?><?php $app = JFactory::getApplication();
+?><?php
 $config = acymailing_config();
-$backend = $app->isAdmin(); ?>
+$backend = acymailing_isAdmin(); ?>
 <style type="text/css">
 	.respuserinfo{
 		float: left;
@@ -65,7 +65,7 @@ $backend = $app->isAdmin(); ?>
 				var filter = /\@/i;
 				<?php } ?>
 				if(!filter.test(form.email.value)){
-					alert("<?php echo JText::_('VALID_EMAIL', true); ?>");
+					alert("<?php echo acymailing_translation('VALID_EMAIL', true); ?>");
 					return false;
 				}
 			}
@@ -97,7 +97,7 @@ $backend = $app->isAdmin(); ?>
 			<?php
 			$myData = array();
 			foreach($this->geoloc_city as $key => $city){
-				$toolTipTxt = str_replace("'", "\'", JText::_('GEOLOC_NB_ACTIONS')).': '.$this->geoloc_details[$key]['nbInCity'];
+				$toolTipTxt = str_replace("'", "\'", acymailing_translation('GEOLOC_NB_ACTIONS')).': '.$this->geoloc_details[$key]['nbInCity'];
 				$lineData = "['".str_replace("'", "\'", $this->geoloc_details[$key]['address'])."', 1, ".$this->geoloc_details[$key]['nbInCity'].", '".$toolTipTxt."']";
 				array_push($myData, $lineData);
 			}
@@ -113,21 +113,17 @@ $backend = $app->isAdmin(); ?>
 <div id="acy_content">
 	<div id="iframedoc"></div>
 
-	<form action="<?php echo JRoute::_('index.php?option='.ACYMAILING_COMPONENT.'&ctrl='.JRequest::getCmd('ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(!empty($this->fieldsClass->formoption)) echo $this->fieldsClass->formoption; ?> >
+	<form action="<?php echo acymailing_route('index.php?option='.ACYMAILING_COMPONENT.'&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(!empty($this->fieldsClass->formoption)) echo $this->fieldsClass->formoption; ?> >
 		<input type="hidden" name="cid[]" value="<?php echo @$this->subscriber->subid; ?>"/>
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value=""/>
-		<input type="hidden" name="acy_source" value="<?php $app = JFactory::getApplication();
-		echo $app->isAdmin() ? 'management_back' : 'management_front'; ?>"/>
-		<input type="hidden" name="ctrl" value="<?php echo JRequest::getCmd('ctrl'); ?>"/>
-		<?php $selectedList = JRequest::getInt('filter_lists');
+		<input type="hidden" name="acy_source" value="<?php echo acymailing_isAdmin() ? 'management_back' : 'management_front'; ?>"/>
+		<?php $selectedList = acymailing_getVar('int', 'filter_lists');
 		if(!empty($selectedList)){ ?>
 			<input type="hidden" name="filter_lists" value="<?php echo $selectedList; ?>"/>
 		<?php }
 		if(!empty($this->Itemid)) echo '<input type="hidden" name="Itemid" value="'.$this->Itemid.'" />';
-		echo JHTML::_('form.token'); ?>
+		acymailing_formOptions(); ?>
 		<div class="<?php echo $this->isAdmin ? 'acyblockoptions' : 'onelineblockoptions'; ?>">
-			<span class="acyblocktitle"><?php echo JText::_('USER_INFORMATIONS'); ?></span>
+			<span class="acyblocktitle"><?php echo acymailing_translation('USER_INFORMATIONS'); ?></span>
 
 			<div>
 				<?php if(!acymailing_level(3) || empty($this->extraFields)){
@@ -137,7 +133,7 @@ $backend = $app->isAdmin(); ?>
 					<tr id="trname">
 						<td width="150" class="acykey">
 							<label for="name">
-								<?php echo JText::_('JOOMEXT_NAME'); ?>
+								<?php echo acymailing_translation('JOOMEXT_NAME'); ?>
 							</label>
 						</td>
 						<td>
@@ -153,7 +149,7 @@ $backend = $app->isAdmin(); ?>
 					<tr id="tremail">
 						<td class="acykey">
 							<label for="email">
-								<?php echo JText::_('JOOMEXT_EMAIL'); ?>
+								<?php echo acymailing_translation('JOOMEXT_EMAIL'); ?>
 							</label>
 						</td>
 						<td>
@@ -169,7 +165,7 @@ $backend = $app->isAdmin(); ?>
 					<tr id="trcreated">
 						<td class="acykey">
 							<label for="created">
-								<?php echo JText::_('CREATED_DATE'); ?>
+								<?php echo acymailing_translation('CREATED_DATE'); ?>
 							</label>
 						</td>
 						<td>
@@ -179,7 +175,7 @@ $backend = $app->isAdmin(); ?>
 					<tr id="trip">
 						<td class="acykey">
 							<label for="ip">
-								<?php echo JText::_('IP'); ?>
+								<?php echo acymailing_translation('IP'); ?>
 							</label>
 						</td>
 						<td>
@@ -193,7 +189,7 @@ $backend = $app->isAdmin(); ?>
 						<tr id="trusername">
 							<td class="acykey">
 								<label for="username">
-									<?php echo JText::_('ACY_USERNAME'); ?>
+									<?php echo acymailing_translation('ACY_USERNAME'); ?>
 								</label>
 							</td>
 							<td>
@@ -203,7 +199,7 @@ $backend = $app->isAdmin(); ?>
 						<tr id="truserid">
 							<td class="acykey">
 								<label for="userid">
-									<?php echo JText::_('USER_ID'); ?>
+									<?php echo acymailing_translation('USER_ID'); ?>
 								</label>
 							</td>
 							<td>
@@ -218,41 +214,41 @@ $backend = $app->isAdmin(); ?>
 					<tr id="trhtml">
 						<td class="acykey">
 							<label for="html">
-								<?php echo JText::_('RECEIVE'); ?>
+								<?php echo acymailing_translation('RECEIVE'); ?>
 							</label>
 						</td>
 						<td nowrap="nowrap">
-							<?php echo JHTML::_('acyselect.booleanlist', "data[subscriber][html]", '', $this->subscriber->html, JText::_('HTML'), JText::_('JOOMEXT_TEXT')); ?>
+							<?php echo acymailing_boolean("data[subscriber][html]", '', $this->subscriber->html, acymailing_translation('HTML'), acymailing_translation('JOOMEXT_TEXT')); ?>
 						</td>
 					</tr>
 					<tr id="trconfirmed">
 						<td class="acykey">
 							<label for="confirmed">
-								<?php echo JText::_('CONFIRMED'); ?>
+								<?php echo acymailing_translation('CONFIRMED'); ?>
 							</label>
 						</td>
 						<td>
-							<?php echo JHTML::_('acyselect.booleanlist', "data[subscriber][confirmed]", '', $this->subscriber->confirmed, JText::_('JOOMEXT_YES'), JTEXT::_('JOOMEXT_NO')); ?>
+							<?php echo acymailing_boolean("data[subscriber][confirmed]", '', $this->subscriber->confirmed, acymailing_translation('JOOMEXT_YES'), acymailing_translation('JOOMEXT_NO')); ?>
 						</td>
 					</tr>
 					<tr id="trenabled">
 						<td class="acykey">
 							<label for="block">
-								<?php echo JText::_('ENABLED'); ?>
+								<?php echo acymailing_translation('ENABLED'); ?>
 							</label>
 						</td>
 						<td>
-							<?php echo JHTML::_('acyselect.booleanlist', "data[subscriber][enabled]", '', $this->subscriber->enabled, JText::_('JOOMEXT_YES'), JTEXT::_('JOOMEXT_NO')); ?>
+							<?php echo acymailing_boolean("data[subscriber][enabled]", '', $this->subscriber->enabled, acymailing_translation('JOOMEXT_YES'), acymailing_translation('JOOMEXT_NO')); ?>
 						</td>
 					</tr>
 					<tr id="traccept">
 						<td class="acykey">
 							<label for="accept">
-								<?php echo JText::_('ACCEPT_EMAIL'); ?>
+								<?php echo acymailing_translation('ACCEPT_EMAIL'); ?>
 							</label>
 						</td>
 						<td>
-							<?php echo JHTML::_('acyselect.booleanlist', "data[subscriber][accept]", '', $this->subscriber->accept, JText::_('JOOMEXT_YES'), JTEXT::_('JOOMEXT_NO')); ?>
+							<?php echo acymailing_boolean("data[subscriber][accept]", '', $this->subscriber->accept, acymailing_translation('JOOMEXT_YES'), acymailing_translation('JOOMEXT_NO')); ?>
 						</td>
 					</tr>
 				</table>
@@ -263,7 +259,6 @@ $backend = $app->isAdmin(); ?>
 		</div>
 		<?php
 		if(!empty($this->extraFields)){
-			$app = JFactory::getApplication();
 			$this->fieldsClass->currentUser = $this->subscriber;
 			include(dirname(__FILE__).DS.'extrafields.'.basename(__FILE__));
 		} ?>
@@ -273,7 +268,7 @@ $backend = $app->isAdmin(); ?>
 				$tabs->setOptions(array('useCookie' => true));
 
 				echo $tabs->startPane('user_tabs');
-				echo $tabs->startPanel(JText::_('SUBSCRIPTION'), 'user_subscription');
+				echo $tabs->startPanel(acymailing_translation('SUBSCRIPTION'), 'user_subscription');
 
 				if(count($this->subscription) > 10){ ?>
 					<script language="javascript" type="text/javascript">
@@ -297,28 +292,28 @@ $backend = $app->isAdmin(); ?>
 						<thead>
 						<tr>
 							<th class="title titlenum">
-								<?php echo JText::_('ACY_NUM'); ?>
+								<?php echo acymailing_translation('ACY_NUM'); ?>
 							</th>
 							<th class="title titlecolor">
 							</th>
 							<th class="title" nowrap="nowrap">
-								<?php echo JText::_('LIST_NAME');
+								<?php echo acymailing_translation('LIST_NAME');
 								if(count($this->subscription) > 10){ ?>
-									<input onkeyup="acymailing_searchAList();" type="text" style="width:170px;max-width:100%;margin-left:50px;margin-top:5px;" placeholder="<?php echo JText::_('ACY_SEARCH'); ?>" id="acymailing_searchList">
+									<input onkeyup="acymailing_searchAList();" type="text" style="width:170px;max-width:100%;margin-left:50px;margin-top:5px;" placeholder="<?php echo acymailing_translation('ACY_SEARCH'); ?>" id="acymailing_searchList">
 								<?php } ?>
 							</th>
 							<th class="title" nowrap="nowrap">
-								<?php echo JText::_('STATUS'); ?>
+								<?php echo acymailing_translation('STATUS'); ?>
 								<span class="quickstatuschange" style="display:inline-block;font-style:italic;margin-left:50px"><?php echo $this->filters->statusquick; ?></span>
 							</th>
 							<th class="title titledate">
-								<?php echo JText::_('SUBSCRIPTION_DATE'); ?>
+								<?php echo acymailing_translation('SUBSCRIPTION_DATE'); ?>
 							</th>
 							<th class="title titledate">
-								<?php echo JText::_('UNSUBSCRIPTION_DATE'); ?>
+								<?php echo acymailing_translation('UNSUBSCRIPTION_DATE'); ?>
 							</th>
 							<th class="title titleid">
-								<?php echo JText::_('ACY_ID'); ?>
+								<?php echo acymailing_translation('ACY_ID'); ?>
 							</th>
 						</tr>
 						</thead>
@@ -340,7 +335,7 @@ $backend = $app->isAdmin(); ?>
 									<?php echo acymailing_tooltip($row->description, $row->name, 'tooltip.png', $row->name); ?>
 								</td>
 								<td align="center" style="text-align:center" nowrap="nowrap">
-									<?php echo $this->statusType->display('data[listsub]['.$row->listid.'][status]', (empty($this->subscriber->subid) && JRequest::getInt('filter_lists') == $row->listid) ? 1 : @$row->status); ?>
+									<?php echo $this->statusType->display('data[listsub]['.$row->listid.'][status]', (empty($this->subscriber->subid) && acymailing_getVar('int', 'filter_lists') == $row->listid) ? 1 : @$row->status); ?>
 								</td>
 								<td align="center" style="text-align:center">
 									<?php if(!empty($row->subdate)) echo acymailing_getDate($row->subdate); ?>
@@ -361,7 +356,7 @@ $backend = $app->isAdmin(); ?>
 				</div>
 				<?php echo $tabs->endPanel();
 				if(!empty($this->open)){
-					echo $tabs->startPanel(JText::_('ACY_SENT_EMAILS'), 'user_open');
+					echo $tabs->startPanel(acymailing_translation('ACY_SENT_EMAILS'), 'user_open');
 					?>
 
 					<div>
@@ -369,33 +364,33 @@ $backend = $app->isAdmin(); ?>
 							<thead>
 							<tr>
 								<th class="title titlenum">
-									<?php echo JText::_('ACY_NUM'); ?>
+									<?php echo acymailing_translation('ACY_NUM'); ?>
 								</th>
 								<th class="title titledate">
-									<?php echo JText::_('SEND_DATE'); ?>
+									<?php echo acymailing_translation('SEND_DATE'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('JOOMEXT_SUBJECT'); ?>
+									<?php echo acymailing_translation('JOOMEXT_SUBJECT'); ?>
 								</th>
 								<th class="title titletoggle">
-									<?php echo JText::_('RECEIVED_VERSION'); ?>
+									<?php echo acymailing_translation('RECEIVED_VERSION'); ?>
 								</th>
 								<th class="title titletoggle">
-									<?php echo JText::_('OPEN'); ?>
+									<?php echo acymailing_translation('OPEN'); ?>
 								</th>
 								<th class="title titledate">
-									<?php echo JText::_('OPEN_DATE'); ?>
+									<?php echo acymailing_translation('OPEN_DATE'); ?>
 								</th>
 								<?php if(acymailing_level(3)){ ?>
 									<th class="title titletoggle">
-										<?php echo JText::_('CLICKED_LINK'); ?>
+										<?php echo acymailing_translation('CLICKED_LINK'); ?>
 									</th>
 									<th class="title titletoggle">
-										<?php echo JText::_('BOUNCES'); ?>
+										<?php echo acymailing_translation('BOUNCES'); ?>
 									</th>
 								<?php } ?>
 								<th class="title titletoggle">
-									<?php echo JText::_('ACY_SENT'); ?>
+									<?php echo acymailing_translation('ACY_SENT'); ?>
 								</th>
 							</tr>
 							</thead>
@@ -407,6 +402,7 @@ $backend = $app->isAdmin(); ?>
 
 							for($i = 0, $a = count($this->open); $i < $a; $i++){
 								$row =& $this->open[$i];
+								$row->subject = Emoji::Decode($row->subject);
 								?>
 								<tr class="<?php echo "row$k"; ?>">
 									<td align="center" style="text-align:center">
@@ -417,17 +413,17 @@ $backend = $app->isAdmin(); ?>
 									</td>
 									<td>
 										<?php
-										if($app->isAdmin()){
+										if(acymailing_isAdmin()){
 											$link = acymailing_completeLink('queue&task=preview&mailid='.$row->mailid.'&subid='.$this->subscriber->subid, true);
-											echo '<a class="modal" rel="{handler: \'iframe\', size: {x: '.$width.', y: '.$height.'}}" href="'.$link.'">'.$row->subject.'</a>';
+											echo acymailing_popup($link, $row->subject, '', $width, $height);
 										}else{
-											$text = '<b>'.JText::_('ACY_ID').' : </b>'.$row->mailid;
+											$text = '<b>'.acymailing_translation('ACY_ID').' : </b>'.$row->mailid;
 											echo acymailing_tooltip( $text, $row->subject, '', $row->subject);
 										}
 										?>
 									</td>
 									<td align="center" style="text-align:center">
-										<?php echo $row->html ? JText::_('HTML') : JText::_('JOOMEXT_TEXT'); ?>
+										<?php echo $row->html ? acymailing_translation('HTML') : acymailing_translation('JOOMEXT_TEXT'); ?>
 									</td>
 									<td align="center" style="text-align:center">
 										<?php echo $row->open; ?>
@@ -460,26 +456,26 @@ $backend = $app->isAdmin(); ?>
 				}
 
 				if(!empty($this->clicks)){
-					echo $tabs->startPanel(JText::_('CLICK_STATISTICS'), 'user_clicks'); ?>
+					echo $tabs->startPanel(acymailing_translation('CLICK_STATISTICS'), 'user_clicks'); ?>
 
 					<div>
 						<table class="acymailing_table">
 							<thead>
 							<tr>
 								<th class="title titlenum">
-									<?php echo JText::_('ACY_NUM'); ?>
+									<?php echo acymailing_translation('ACY_NUM'); ?>
 								</th>
 								<th class="title titledate">
-									<?php echo JText::_('CLICK_DATE'); ?>
+									<?php echo acymailing_translation('CLICK_DATE'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('JOOMEXT_SUBJECT'); ?>
+									<?php echo acymailing_translation('JOOMEXT_SUBJECT'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('URL'); ?>
+									<?php echo acymailing_translation('URL'); ?>
 								</th>
 								<th class="title titletoggle">
-									<?php echo JText::_('TOTAL_HITS'); ?>
+									<?php echo acymailing_translation('TOTAL_HITS'); ?>
 								</th>
 							</tr>
 							</thead>
@@ -489,6 +485,7 @@ $backend = $app->isAdmin(); ?>
 
 							for($i = 0, $a = count($this->clicks); $i < $a; $i++){
 								$row =& $this->clicks[$i];
+								$row->subject = Emoji::Decode($row->subject);
 								$id = 'urlclick'.$i;
 								?>
 								<tr class="<?php echo "row$k"; ?>" id="<?php echo $id; ?>">
@@ -500,7 +497,7 @@ $backend = $app->isAdmin(); ?>
 									</td>
 									<td>
 										<?php
-										$text = '<b>'.JText::_('ACY_ID').' : </b>'.$row->mailid;
+										$text = '<b>'.acymailing_translation('ACY_ID').' : </b>'.$row->mailid;
 										echo acymailing_tooltip($text, $row->subject, '', $row->subject);
 										?>
 									</td>
@@ -523,29 +520,29 @@ $backend = $app->isAdmin(); ?>
 				}
 
 				if(!empty($this->queue)){
-					echo $tabs->startPanel(JText::_('QUEUE'), 'user_queue'); ?>
+					echo $tabs->startPanel(acymailing_translation('QUEUE'), 'user_queue'); ?>
 
 					<div>
 						<table class="acymailing_table">
 							<thead>
 							<tr>
 								<th class="title titlenum">
-									<?php echo JText::_('ACY_NUM'); ?>
+									<?php echo acymailing_translation('ACY_NUM'); ?>
 								</th>
 								<th class="title titledate">
-									<?php echo JText::_('SEND_DATE'); ?>
+									<?php echo acymailing_translation('SEND_DATE'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('JOOMEXT_SUBJECT'); ?>
+									<?php echo acymailing_translation('JOOMEXT_SUBJECT'); ?>
 								</th>
 								<th class="title titlenum">
-									<?php echo JText::_('PRIORITY'); ?>
+									<?php echo acymailing_translation('PRIORITY'); ?>
 								</th>
 								<th class="title titlenum">
-									<?php echo JText::_('TRY'); ?>
+									<?php echo acymailing_translation('TRY'); ?>
 								</th>
 								<th class="title titletoggle">
-									<?php echo JText::_('ACY_DELETE'); ?>
+									<?php echo acymailing_translation('ACY_DELETE'); ?>
 								</th>
 							</tr>
 							</thead>
@@ -555,6 +552,7 @@ $backend = $app->isAdmin(); ?>
 
 							for($i = 0, $a = count($this->queue); $i < $a; $i++){
 								$row =& $this->queue[$i];
+								$row->subject = Emoji::Decode($row->subject);
 								$id = 'queue'.$i;
 								?>
 								<tr class="<?php echo "row$k"; ?>" id="<?php echo $id; ?>">
@@ -566,7 +564,7 @@ $backend = $app->isAdmin(); ?>
 									</td>
 									<td>
 										<?php
-										$text = '<b>'.JText::_('ACY_ID').' : </b>'.$row->mailid;
+										$text = '<b>'.acymailing_translation('ACY_ID').' : </b>'.$row->mailid;
 										echo acymailing_tooltip($text, $row->subject, '', $row->subject);
 										?>
 									</td>
@@ -592,7 +590,7 @@ $backend = $app->isAdmin(); ?>
 				}
 
 				if(!empty($this->history)){
-					echo $tabs->startPanel(JText::_('ACY_HISTORY'), 'user_history');
+					echo $tabs->startPanel(acymailing_translation('ACY_HISTORY'), 'user_history');
 					?>
 
 					<div>
@@ -600,22 +598,22 @@ $backend = $app->isAdmin(); ?>
 							<thead>
 							<tr>
 								<th class="title titlenum">
-									<?php echo JText::_('ACY_NUM'); ?>
+									<?php echo acymailing_translation('ACY_NUM'); ?>
 								</th>
 								<th class="title titledate">
-									<?php echo JText::_('FIELD_DATE'); ?>
+									<?php echo acymailing_translation('FIELD_DATE'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('ACY_ACTION'); ?>
+									<?php echo acymailing_translation('ACY_ACTION'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('ACY_DETAILS'); ?>
+									<?php echo acymailing_translation('ACY_DETAILS'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('IP'); ?>
+									<?php echo acymailing_translation('IP'); ?>
 								</th>
 								<th class="title" width="30%">
-									<?php echo JText::_('ACY_SOURCE'); ?>
+									<?php echo acymailing_translation('ACY_SOURCE'); ?>
 								</th>
 							</tr>
 							</thead>
@@ -634,24 +632,24 @@ $backend = $app->isAdmin(); ?>
 										<?php echo acymailing_getDate($row->date); ?>
 									</td>
 									<td valign="top">
-										<?php echo JText::_('ACTION_'.strtoupper($row->action)); ?>
+										<?php echo acymailing_translation('ACTION_'.strtoupper($row->action)); ?>
 									</td>
 									<td valign="top">
 										<?php
 										if(!empty($row->data)){
 											$data = explode("\n", $row->data);
 											$id = 'history_details'.$i;
-											echo '<div style="cursor:pointer;text-align:center" onclick="if(document.getElementById(\''.$id.'\').style.display == \'none\'){document.getElementById(\''.$id.'\').style.display = \'block\'}else{document.getElementById(\''.$id.'\').style.display = \'none\'}">'.JText::_('VIEW_DETAILS').'</div>';
+											echo '<div style="cursor:pointer;text-align:center" onclick="if(document.getElementById(\''.$id.'\').style.display == \'none\'){document.getElementById(\''.$id.'\').style.display = \'block\'}else{document.getElementById(\''.$id.'\').style.display = \'none\'}">'.acymailing_translation('VIEW_DETAILS').'</div>';
 											echo '<div id="'.$id.'" style="display:none">';
-											if(!empty($row->mailid)) echo '<b>'.JText::_('NEWSLETTER').' : </b>'.$this->escape($row->subject).' ( '.JText::_('ACY_ID').' : '.$row->mailid.' )<br />';
+											if(!empty($row->mailid)) echo '<b>'.acymailing_translation('NEWSLETTER').' : </b>'.$this->escape($row->subject).' ( '.acymailing_translation('ACY_ID').' : '.$row->mailid.' )<br />';
 											foreach($data as $value){
 												if(!strpos($value, '::')){
 													echo $value;
 													continue;
 												}
 												list($part1, $part2) = explode("::", $value);
-												if(preg_match('#^[A-Z_]*$#', $part2)) $part2 = JText::_($part2);
-												echo '<b>'.$this->escape(JText::_($part1)).' : </b>'.$this->escape($part2).'<br />';
+												if(preg_match('#^[A-Z_]*$#', $part2)) $part2 = acymailing_translation($part2);
+												echo '<b>'.$this->escape(acymailing_translation($part1)).' : </b>'.$this->escape($part2).'<br />';
 											}
 											echo '</div>';
 										}
@@ -665,7 +663,7 @@ $backend = $app->isAdmin(); ?>
 										if(!empty($row->source)){
 											$id = 'history_source'.$i;
 											$source = explode("\n", $row->source);
-											echo '<div style="cursor:pointer;text-align:center" onclick="if(document.getElementById(\''.$id.'\').style.display == \'none\'){document.getElementById(\''.$id.'\').style.display = \'block\'}else{document.getElementById(\''.$id.'\').style.display = \'none\'}">'.JText::_('VIEW_DETAILS').'</div>';
+											echo '<div style="cursor:pointer;text-align:center" onclick="if(document.getElementById(\''.$id.'\').style.display == \'none\'){document.getElementById(\''.$id.'\').style.display = \'block\'}else{document.getElementById(\''.$id.'\').style.display = \'none\'}">'.acymailing_translation('VIEW_DETAILS').'</div>';
 											echo '<div id="'.$id.'" style="display:none">';
 											foreach($source as $value){
 												if(!strpos($value, '::')) continue;
@@ -689,7 +687,7 @@ $backend = $app->isAdmin(); ?>
 				}
 
 				if(!empty($this->geoloc)){
-					echo $tabs->startPanel('<span onclick="setTimeout(function(){chart.draw(data, mapOptions)},100);setTimeout(function(){chart.draw(data, mapOptions)},2000);">'.JText::_('GEOLOCATION').'</span>', 'geoloc');
+					echo $tabs->startPanel('<span onclick="setTimeout(function(){chart.draw(data, mapOptions)},100);setTimeout(function(){chart.draw(data, mapOptions)},2000);">'.acymailing_translation('GEOLOCATION').'</span>', 'geoloc');
 					?>
 
 
@@ -700,22 +698,22 @@ $backend = $app->isAdmin(); ?>
 								<thead>
 								<tr>
 									<th class="title titledate">
-										<?php echo JText::_('FIELD_DATE'); ?>
+										<?php echo acymailing_translation('FIELD_DATE'); ?>
 									</th>
 									<th class="title">
-										<?php echo JText::_('ACY_ACTION'); ?>
+										<?php echo acymailing_translation('ACY_ACTION'); ?>
 									</th>
 									<th class="title">
-										<?php echo JText::_('COUNTRYCAPTION'); ?>
+										<?php echo acymailing_translation('COUNTRYCAPTION'); ?>
 									</th>
 									<th class="title">
-										<?php echo JText::_('STATECAPTION'); ?>
+										<?php echo acymailing_translation('STATECAPTION'); ?>
 									</th>
 									<th class="title">
-										<?php echo JText::_('CITYCAPTION'); ?>
+										<?php echo acymailing_translation('CITYCAPTION'); ?>
 									</th>
 									<th class="title">
-										<?php echo JText::_('IP'); ?>
+										<?php echo acymailing_translation('IP'); ?>
 									</th>
 								</tr>
 								</thead>
@@ -758,7 +756,7 @@ $backend = $app->isAdmin(); ?>
 				}
 
 				if(!empty($this->neighbours)){
-					echo $tabs->startPanel(JText::_('ACY_NEIGHBOUR'), 'user_neighbour');
+					echo $tabs->startPanel(acymailing_translation('ACY_NEIGHBOUR'), 'user_neighbour');
 					?>
 
 					<div>
@@ -766,16 +764,16 @@ $backend = $app->isAdmin(); ?>
 							<thead>
 							<tr>
 								<th class="title titlenum">
-									<?php echo JText::_('ACY_NUM'); ?>
+									<?php echo acymailing_translation('ACY_NUM'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('JOOMEXT_NAME'); ?>
+									<?php echo acymailing_translation('JOOMEXT_NAME'); ?>
 								</th>
 								<th class="title">
-									<?php echo JText::_('JOOMEXT_EMAIL'); ?>
+									<?php echo acymailing_translation('JOOMEXT_EMAIL'); ?>
 								</th>
 								<th class="title titleid">
-									<?php echo JText::_('ACY_ID'); ?>
+									<?php echo acymailing_translation('ACY_ID'); ?>
 								</th>
 							</tr>
 							</thead>

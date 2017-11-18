@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -12,9 +12,9 @@ defined('_JEXEC') or die('Restricted access');
 class acyhistoryClass extends acymailingClass{
 
 	function insert($subid,$action,$data = array(),$mailid = 0){
-		$user = JFactory::getUser();
-		if(!empty($user->id)){
-			$data[] = 'EXECUTED_BY::'.$user->id.' ( '.$user->username.' )';
+		$currentUserid = acymailing_currentUserId();
+		if(!empty($currentUserid)){
+			$data[] = 'EXECUTED_BY::'.$currentUserid.' ( '.acymailing_currentUserName().' )';
 		}
 		$history = new stdClass();
 		$history->subid = intval($subid);
@@ -34,7 +34,7 @@ class acyhistoryClass extends acymailingClass{
 			$history->source = implode("\n",$source);
 		}
 
-		return $this->database->insertObject(acymailing_table('history'),$history);
+		return acymailing_insertObject(acymailing_table('history'),$history);
 	}
 
 }

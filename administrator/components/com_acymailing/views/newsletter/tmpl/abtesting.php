@@ -1,22 +1,22 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="abTestingPage">
+	<div id="iframedoc"></div>
 	<?php
 	if(empty($this->mailid) && empty($this->validationStatus)){
-		acymailing_display(JText::_('PLEASE_SELECT_NEWSLETTERS'), 'warning');
+		acymailing_display(acymailing_translation('PLEASE_SELECT_NEWSLETTERS'), 'warning');
 		return;
 	}
 	if(!empty($this->missingMail)) return;
 	if($this->validationStatus == 'abTestFinalSend') return; ?>
 
-	<div id="iframedoc"></div>
 	<script type="text/javascript">
 		function updateReceivers(prct){
 			newVal = Math.floor(prct.value *<?php echo $this->nbTotalReceivers; ?> / 100);
@@ -28,14 +28,14 @@ defined('_JEXEC') or die('Restricted access');
 		<input type="hidden" name="tmpl" value="component"/>
 
 		<div class="onelineblockoptions">
-			<?php echo JText::sprintf('ABTESTING_PART_RECEIVER', '<input type="text" id="abTesting_prct" name="abTesting_prct" style="width:20px;" value="'.$this->abTestDetail['prct'].'" oninput="updateReceivers(this)">%'); ?>
+			<?php echo acymailing_translation_sprintf('ABTESTING_PART_RECEIVER', '<input type="text" id="abTesting_prct" name="abTesting_prct" style="width:20px;" value="'.$this->abTestDetail['prct'].'" oninput="updateReceivers(this)">%'); ?>
 			<div class="abtesting_mails">
 				<table class="acymailing_smalltable">
 					<?php
-					echo '<thead><tr><th width="45%">'.JText::_('NEWSLETTER').'</th>';
+					echo '<thead><tr><th width="45%">'.acymailing_translation('NEWSLETTER').'</th>';
 					if(!empty($this->savedValues)){
-						echo '<th>'.JText::_('OPEN').'</th><th>'.JText::_('CLICKED_LINK').'</th><th>'.JText::_('ACY_CLICK_EFFICIENCY').'</th><th>'.JText::_('ACY_SENT_EMAILS').'</th>';
-						if(!empty($this->abTestDetail['status']) && $this->abTestDetail['status'] == 'testSendOver' && $this->validationStatus != 'abTestAdd' && $this->abTestDetail['action'] == 'manual') echo '<th>'.JText::_('SEND').'</th>';
+						echo '<th>'.acymailing_translation('OPEN').'</th><th>'.acymailing_translation('CLICKED_LINK').'</th><th>'.acymailing_translation('ACY_CLICK_EFFICIENCY').'</th><th>'.acymailing_translation('ACY_SENT_EMAILS').'</th>';
+						if(!empty($this->abTestDetail['status']) && $this->abTestDetail['status'] == 'testSendOver' && $this->validationStatus != 'abTestAdd' && $this->abTestDetail['action'] == 'manual') echo '<th>'.acymailing_translation('SEND').'</th>';
 					}
 					echo '</tr></thead>';
 					foreach($this->mailsdetails as $oneMail){
@@ -65,14 +65,14 @@ defined('_JEXEC') or die('Restricted access');
 							echo '<td style="text-align:center">'.$sent.'</td>';
 						}
 						if(!empty($this->abTestDetail['status']) && $this->abTestDetail['status'] == 'testSendOver' && $this->validationStatus != 'abTestAdd' && $this->abTestDetail['action'] == 'manual'){
-							echo '<td><a class="acymailing_button" href="index.php?option=com_acymailing&ctrl=newsletter&task=complete_abtest&tmpl=component&mailToSend='.$oneMail->mailid.'">'.JText::_('SEND').'</a></td>';
+							echo '<td><a class="acymailing_button" href="index.php?option=com_acymailing&ctrl=newsletter&task=complete_abtest&tmpl=component&mailToSend='.$oneMail->mailid.'">'.acymailing_translation('SEND').'</a></td>';
 						}
 						echo '</tr>';
 					} ?>
 				</table>
 			</div>
 			<div>
-				<div class="acyblocktitle"><?php echo JText::_('NEWSLETTER_SENT_TO'); ?></div>
+				<div class="acyblocktitle"><?php echo acymailing_translation('NEWSLETTER_SENT_TO'); ?></div>
 				<table class="acymailing_smalltable">
 					<tbody>
 					<?php if(!empty($this->lists)){
@@ -83,9 +83,9 @@ defined('_JEXEC') or die('Restricted access');
 							<tr class="<?php echo "row$k"; ?>">
 								<td>
 									<?php
-									if(!$row->published) echo '<a href="index.php?option=com_acymailing&ctrl=list&task=edit&listid='.$row->listid.'" title="'.JText::_('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
+									if(!$row->published) echo '<a href="index.php?option=com_acymailing&ctrl=list&task=edit&listid='.$row->listid.'" title="'.acymailing_translation('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
 									echo acymailing_tooltip($row->description, $row->name, '', $row->name);
-									echo ' ( '.JText::sprintf('SELECTED_USERS', $row->nbsub).' )';
+									echo ' ( '.acymailing_translation_sprintf('SELECTED_USERS', $row->nbsub).' )';
 									echo '<div class="roundsubscrib rounddisp" style="background-color:'.$row->color.'"></div>';
 									?>
 								</td>
@@ -95,7 +95,7 @@ defined('_JEXEC') or die('Restricted access');
 					}else{ ?>
 						<tr>
 							<td>
-								<?php echo JText::_('EMAIL_AFFECT'); ?>
+								<?php echo acymailing_translation('EMAIL_AFFECT'); ?>
 							</td>
 						</tr>
 					<?php } ?>
@@ -105,7 +105,7 @@ defined('_JEXEC') or die('Restricted access');
 				if(!empty($this->mailReceiver->filter)){
 					$resultFilters = $this->filterClass->displayFilters($this->mailReceiver->filter);
 					if(!empty($resultFilters)){
-						echo '<br />'.JText::_('RECEIVER_LISTS').'<br />'.JText::_('FILTER_ONLY_IF');
+						echo '<br />'.acymailing_translation('RECEIVER_LISTS').'<br />'.acymailing_translation('FILTER_ONLY_IF');
 						echo '<ul><li>'.implode('</li><li>', $resultFilters).'</li></ul>';
 					}
 				}
@@ -115,20 +115,20 @@ defined('_JEXEC') or die('Restricted access');
 					<div style="text-align:center;font-size:14px;padding-top:10px;margin:10px 30px;border-top: 1px solid #ccc;">
 						<?php
 
-						echo JText::sprintf('ABTESTING_SENTTO_NUMBER', '<span style="font-weight:bold;" id="nbtestreceivers" >'.$this->nbTestReceivers.'</span>', '<span style="font-weight:bold;" id="nbreceivers" >'.$this->nbTotalReceivers.'</span>');
+						echo acymailing_translation_sprintf('ABTESTING_SENTTO_NUMBER', '<span style="font-weight:bold;" id="nbtestreceivers" >'.$this->nbTestReceivers.'</span>', '<span style="font-weight:bold;" id="nbreceivers" >'.$this->nbTotalReceivers.'</span>');
 						?>
 					</div>
 				<?php } ?>
 			</div>
-			<?php echo JText::sprintf('ABTESTING_MODIFY_RECEIVERS', '<a target="_blank" href="'.acymailing_completeLink(($this->app->isAdmin() ? '' : 'front').'newsletter&task=edit&mailid='.$this->mailsdetails[0]->mailid).'">'.$this->mailsdetails[0]->subject.'</a>'); ?>
+			<?php echo acymailing_translation_sprintf('ABTESTING_MODIFY_RECEIVERS', '<a target="_blank" href="'.acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'newsletter&task=edit&mailid='.$this->mailsdetails[0]->mailid).'">'.$this->mailsdetails[0]->subject.'</a>'); ?>
 		</div>
 		<div class="onelineblockoptions">
-			<?php echo JText::sprintf('ABTESTING_DELAY_ACTION', '<input type="text" id="abTesting_delay" name="abTesting_delay" style="width:20px;" value="'.$this->abTestDetail['delay'].'">'); ?>
+			<?php echo acymailing_translation_sprintf('ABTESTING_DELAY_ACTION', '<input type="text" id="abTesting_delay" name="abTesting_delay" style="width:20px;" value="'.$this->abTestDetail['delay'].'">'); ?>
 			<div class="abtesting_actions">
-				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_manual" value="manual" <?php echo ($this->abTestDetail['action'] == 'manual') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_manual" class="radiobtn"><?php echo JText::_('DO_NOTHING'); ?></label></div>
-				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_open" value="open" <?php echo ($this->abTestDetail['action'] == 'open') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_open" class="radiobtn"><?php echo JText::_('ABTESTING_ACTION_GENERATE_OPEN'); ?></label></div>
-				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_click" value="click" <?php echo ($this->abTestDetail['action'] == 'click') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_click" class="radiobtn"><?php echo JText::_('ABTESTING_ACTION_GENERATE_CLICK'); ?></label></div>
-				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_mix" value="mix" <?php echo ($this->abTestDetail['action'] == 'mix') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_mix" class="radiobtn"><?php echo JText::_('ABTESTING_ACTION_GENERATE_MIX'); ?></label></div>
+				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_manual" value="manual" <?php echo ($this->abTestDetail['action'] == 'manual') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_manual" class="radiobtn"><?php echo acymailing_translation('DO_NOTHING'); ?></label></div>
+				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_open" value="open" <?php echo ($this->abTestDetail['action'] == 'open') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_open" class="radiobtn"><?php echo acymailing_translation('ABTESTING_ACTION_GENERATE_OPEN'); ?></label></div>
+				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_click" value="click" <?php echo ($this->abTestDetail['action'] == 'click') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_click" class="radiobtn"><?php echo acymailing_translation('ABTESTING_ACTION_GENERATE_CLICK'); ?></label></div>
+				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_mix" value="mix" <?php echo ($this->abTestDetail['action'] == 'mix') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_mix" class="radiobtn"><?php echo acymailing_translation('ABTESTING_ACTION_GENERATE_MIX'); ?></label></div>
 			</div>
 		</div>
 		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>

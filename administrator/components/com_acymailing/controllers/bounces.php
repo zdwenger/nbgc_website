@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -17,8 +17,8 @@ class BouncesController extends acymailingController{
 
 	function listing(){
 		if(!acymailing_level(3)){
-			$acyToolbar = acymailing::get('helper.toolbar');
-			$acyToolbar->setTitle(JText::_('BOUNCE_HANDLING'), 'bounces');
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->setTitle(acymailing_translation('BOUNCE_HANDLING'), 'bounces');
 			$acyToolbar->help('bounce');
 			$acyToolbar->display();
 			$config = acymailing_config();

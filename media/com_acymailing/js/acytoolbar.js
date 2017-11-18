@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.6.0
+ * @version    5.8.1
  * @author     acyba.com
- * @copyright  (C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -45,7 +45,7 @@
 		}
 	};
 
-	window.addEvent('domready', function(){
+	document.addEventListener("DOMContentLoaded", function(){
 		topMenu = document.getElementById('acymenu_top');
 		leftMenu = document.getElementById('acymenu_leftside');
 		initialTopMenuAcyaffix = topMenu.getBoundingClientRect().top;
@@ -54,7 +54,7 @@
 
 		if(width > 900){
 			affixOption();
-			window.addEvent("scroll", affixOption);
+			window.addEventListener("scroll", function(){ affixOption(); });
 		}
 
 	});

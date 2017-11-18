@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -40,12 +40,12 @@ class ToggleController extends acymailingController{
 	function toggle(){
 		acymailing_checkToken();
 
-		$completeTask = JRequest::getCmd('task');
+		$completeTask = acymailing_getVar('cmd', 'task');
 		$task = substr($completeTask, 0, strpos($completeTask, '_'));
 		$elementId = substr($completeTask, strpos($completeTask, '_') + 1);
 
-		$value = JRequest::getVar('value', '0', '', 'int');
-		$table = JRequest::getVar('table', '', '', 'word');
+		$value = acymailing_getVar('int', 'value', '0', '');
+		$table = acymailing_getVar('word', 'table', '', '');
 
 		if(empty($this->allowedTablesColumn[$table]) || empty($this->allowedTablesColumn[$table][$task])) exit;
 		$pkey = $this->allowedTablesColumn[$table][$task];
@@ -61,13 +61,13 @@ class ToggleController extends acymailingController{
 		}
 
 		$toggleClass = acymailing_get('helper.toggle');
-		$extra = JRequest::getVar('extra', array(), '', 'array');
+		$extra = acymailing_getVar('array', 'extra', array(), '');
 		if(!empty($extra)){
 			foreach($extra as $key => $val){
 				$extra[$key] = urldecode($val);
 			}
 		}
-		echo $toggleClass->toggle(JRequest::getCmd('task', ''), $value, $table, $extra);
+		echo $toggleClass->toggle(acymailing_getVar('cmd', 'task', ''), $value, $table, $extra);
 		exit;
 	}
 
@@ -98,7 +98,7 @@ class ToggleController extends acymailingController{
 	}
 
 	function testApiKey(){
-		$apiKey = JRequest::getString('value', '');
+		$apiKey = acymailing_getVar('string', 'value', '');
 		if(empty($apiKey)){
 			echo '<span style="color:red">No API key</span><br />';
 			exit;
@@ -193,7 +193,7 @@ class ToggleController extends acymailingController{
 		$mailClass = acymailing_get('class.mail');
 		$nbinserted = $mailClass->addFollowUpQueue($mailid, true);
 		if($nbinserted !== false){
-			echo JText::sprintf('ADDED_QUEUE', $nbinserted);
+			echo acymailing_translation_sprintf('ADDED_QUEUE', $nbinserted);
 		}else{
 			echo implode(',', $mailClass->errors);
 		}
@@ -204,7 +204,7 @@ class ToggleController extends acymailingController{
 		$mailClass = acymailing_get('class.mail');
 		$nbinserted = $mailClass->addFollowUpQueue($mailid, false);
 		if($nbinserted !== false){
-			echo JText::sprintf('ADDED_QUEUE', $nbinserted);
+			echo acymailing_translation_sprintf('ADDED_QUEUE', $nbinserted);
 		}else{
 			echo implode(',', $mailClass->errors);
 		}
@@ -240,15 +240,15 @@ class ToggleController extends acymailingController{
 			$campaignHelper->updateUnsubdate($mycampaign->listid, $followup->senddate);
 		}
 
-		echo JText::sprintf('NB_EMAILS_UPDATED', $nbupdated);
+		echo acymailing_translation_sprintf('NB_EMAILS_UPDATED', $nbupdated);
 		exit;
 	}
 
 	function delete(){
-		$value = JRequest::getCmd('value');
+		$value = acymailing_getVar('cmd', 'value');
 		if(strpos($value, '_') === false) exit;
 		list($value1, $value2) = explode('_', $value);
-		$table = JRequest::getVar('table', '', '', 'word');
+		$table = acymailing_getVar('word', 'table', '', '');
 		if(empty($table)) exit;
 
 		$function = 'delete'.$table;
@@ -291,15 +291,14 @@ class ToggleController extends acymailingController{
 		if(empty($mailid)) return false;
 
 		$db = JFactory::getDBO();
-		$db->setQuery('SELECT attach FROM '.acymailing_table('mail').' WHERE mailid = '.$mailid.' LIMIT 1');
-		$attachment = $db->loadResult();
+		$attachment = acymailing_loadResult('SELECT attach FROM '.acymailing_table('mail').' WHERE mailid = '.$mailid.' LIMIT 1');
 		if(empty($attachment)) return;
 		$attach = unserialize($attachment);
 
 		unset($attach[$attachid]);
 		$attachdb = serialize($attach);
 
-		$db->setQuery('UPDATE '.acymailing_table('mail').' SET attach = '.$db->Quote($attachdb).' WHERE mailid = '.$mailid.' LIMIT 1');
+		$db->setQuery('UPDATE '.acymailing_table('mail').' SET attach = '.acymailing_escapeDB($attachdb).' WHERE mailid = '.$mailid.' LIMIT 1');
 
 		return $db->query();
 	}

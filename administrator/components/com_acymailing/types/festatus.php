@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -12,8 +12,8 @@ defined('_JEXEC') or die('Restricted access');
 class festatusType{
 	function __construct(){
 		$this->values = array();
-		$this->values[0] = JHTML::_('select.option', '-1', JText::_('JOOMEXT_NO') );
-		$this->values[1] = JHTML::_('select.option', '1', JText::_('JOOMEXT_YES') );
+		$this->values[0] = acymailing_selectOption('-1', acymailing_translation('JOOMEXT_NO'));
+		$this->values[1] = acymailing_selectOption('1', acymailing_translation('JOOMEXT_YES'));
 		$this->values[0]->class = 'btn-danger';
 		$this->values[1]->class = 'btn-success';
 	}
@@ -22,7 +22,7 @@ class festatusType{
 		static $i = 0;
 		$value = (int) $value;
 		$value = ($value >= 1) ? 1 : -1;
-		return JHTML::_('acyselect.radiolist', $this->values, $map , 'class="radiobox" size="1"', 'value', 'text', (int) $value,'status'.$i++);
+		return acymailing_radio($this->values, $map , 'class="radiobox" size="1"', 'value', 'text', (int) $value,'status'.$i++);
 	}
 
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -16,9 +16,26 @@ class ActionController extends acymailingController{
 	var $aclCat = 'distribution';
 
 	function listing(){
+		$actionColumns = acymailing_getColumns('#__acymailing_action');
+		if(empty($actionColumns['senderfrom'])){
+			$db = JFactory::getDBO();
+			$db->setQuery("ALTER TABLE #__acymailing_action ADD `senderfrom` tinyint NOT NULL DEFAULT 0");
+			$db->query();
+		}
+		if(empty($actionColumns['senderto'])){
+			$db = JFactory::getDBO();
+			$db->setQuery("ALTER TABLE #__acymailing_action ADD `senderto` tinyint NOT NULL DEFAULT 0");
+			$db->query();
+		}
+		if(empty($actionColumns['delete_wrong_emails'])){
+			$db = JFactory::getDBO();
+			$db->setQuery("ALTER TABLE #__acymailing_action ADD `delete_wrong_emails` tinyint NOT NULL DEFAULT 0");
+			$db->query();
+		}
+
 		if(!acymailing_level(3)){
-			$acyToolbar = acymailing::get('helper.toolbar');
-			$acyToolbar->setTitle(JText::_('ACY_DISTRIBUTION'), 'action');
+			$acyToolbar = acymailing_get('helper.toolbar');
+			$acyToolbar->setTitle(acymailing_translation('ACY_DISTRIBUTION'), 'action');
 			$acyToolbar->help('distributionlists#listing');
 			$acyToolbar->display();
 			$config = acymailing_config();

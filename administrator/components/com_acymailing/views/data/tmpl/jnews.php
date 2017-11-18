@@ -1,29 +1,26 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $db = JFactory::getDBO();
-$db->setQuery('SELECT count(id) FROM '.acymailing_table('jnews_subscribers', false));
-$resultUsers = $db->loadResult();
-$db->setQuery('SELECT count(id) FROM '.acymailing_table('jnews_lists', false));
-$resultLists = $db->loadResult();
-$db->setQuery('SELECT count(id) FROM '.acymailing_table('jnews_mailings', false));
-$resultNews = $db->loadResult();
+$resultUsers = acymailing_loadResult('SELECT count(id) FROM '.acymailing_table('jnews_subscribers', false));
+$resultLists = acymailing_loadResult('SELECT count(id) FROM '.acymailing_table('jnews_lists', false));
+$resultNews = acymailing_loadResult('SELECT count(id) FROM '.acymailing_table('jnews_mailings', false));
 
-echo JText::sprintf('USERS_IN_COMP', $resultUsers, 'jNews');
+echo acymailing_translation_sprintf('USERS_IN_COMP', $resultUsers, 'jNews');
 if(!empty($resultLists)){
-	echo '<div class="acyblockoptions"><span class="acyblocktitle">'.JText::sprintf('LISTS_IN_COMP', $resultLists, 'jNews').'</span>';
-	echo JText::sprintf('IMPORT_X_LISTS', $resultLists).'<br />';
-	echo JText::sprintf('IMPORT_LIST_TOO', 'jNews').JHTML::_('acyselect.booleanlist', "jnews_lists");
+	echo '<div class="acyblockoptions"><span class="acyblocktitle">'.acymailing_translation_sprintf('LISTS_IN_COMP', $resultLists, 'jNews').'</span>';
+	echo acymailing_translation_sprintf('IMPORT_X_LISTS', $resultLists).'<br />';
+	echo acymailing_translation_sprintf('IMPORT_LIST_TOO', 'jNews').acymailing_boolean("jnews_lists");
 	echo '</div>';
 }
 if(!empty($resultNews)){
-	echo '<div class="acyblockoptions"><span class="acyblocktitle">'.JText::sprintf('LISTS_IN_COMP', $resultLists, 'jNews').'</span>';
-	echo JText::sprintf('IMPORT_NEWSLETTERS_TOO', 'jNews').JHTML::_('acyselect.booleanlist', "jnews_news");
+	echo '<div class="acyblockoptions"><span class="acyblocktitle">'.acymailing_translation_sprintf('LISTS_IN_COMP', $resultLists, 'jNews').'</span>';
+	echo acymailing_translation_sprintf('IMPORT_NEWSLETTERS_TOO', 'jNews').acymailing_boolean("jnews_news");
 }

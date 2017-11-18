@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -25,8 +25,7 @@ class queueClass extends acymailingClass{
 			$query .= ' JOIN '.acymailing_table('mail').' as c on a.mailid = c.mailid';
 			$query .= ' WHERE ('.implode(') AND (', $filters).')';
 		}else{
-			$this->database->setQuery('SELECT COUNT(*) FROM #__acymailing_queue');
-			$nbRecords = $this->database->loadResult();
+			$nbRecords = acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_queue');
 
 			$query = 'TRUNCATE TABLE '.acymailing_table('queue');
 		}
@@ -39,8 +38,7 @@ class queueClass extends acymailingClass{
 
 	function nbQueue($mailid){
 		$mailid = (int)$mailid;
-		$this->database->setQuery('SELECT count(subid) FROM '.acymailing_table('queue').' WHERE mailid = '.$mailid.' GROUP BY mailid');
-		return $this->database->loadResult();
+		return acymailing_loadResult('SELECT count(subid) FROM '.acymailing_table('queue').' WHERE mailid = '.$mailid.' GROUP BY mailid');
 	}
 
 	function queue($mailid, $time){
@@ -51,7 +49,7 @@ class queueClass extends acymailingClass{
 		$lists = $classLists->getReceivers($mailid, false);
 		if(empty($lists)) return 0;
 
-		JPluginHelper::importPlugin('acymailing');
+		acymailing_importPlugin('acymailing');
 
 		$mailClass = acymailing_get('class.mail');
 		$mail = $mailClass->get($mailid);
@@ -59,10 +57,9 @@ class queueClass extends acymailingClass{
 		$filterClass = acymailing_get('class.filter');
 		$queryClass = new acyQuery();
 		if(!empty($mail->filter['type'])){
-			$dispatcher = JDispatcher::getInstance();
 			foreach($mail->filter['type'] as $num => $oneType){
 				if(empty($oneType)) continue;
-				$dispatcher->trigger('onAcyProcessFilter_'.$oneType, array(&$queryClass, $mail->filter[$num][$oneType], $num));
+				acymailing_trigger('onAcyProcessFilter_'.$oneType, array(&$queryClass, $mail->filter[$num][$oneType], $num));
 			}
 		}
 
@@ -110,8 +107,7 @@ class queueClass extends acymailingClass{
 			$totalinserted = $totalinserted - $this->database->getAffectedRows();
 		}
 
-		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('onAcySendNewsletter', array($mailid));
+		acymailing_trigger('onAcySendNewsletter', array($mailid));
 
 		return $totalinserted;
 	}
@@ -132,8 +128,8 @@ class queueClass extends acymailingClass{
 			}
 		}
 
-		$query = 'SELECT a.* FROM '.acymailing_table('queue').' as a';
-		$query .= ' JOIN '.acymailing_table('mail').' as b on a.`mailid` = b.`mailid` ';
+		$query = 'SELECT a.* FROM '.acymailing_table('queue').' AS a';
+		$query .= ' JOIN '.acymailing_table('mail').' AS b on a.`mailid` = b.`mailid` ';
 		$query .= ' WHERE a.`senddate` <= '.time().' AND b.`published` = 1';
 		if(!empty($this->emailtypes)){
 			foreach($this->emailtypes as &$oneType){
@@ -143,7 +139,7 @@ class queueClass extends acymailingClass{
 		}
 		if(!empty($mailid)) $query .= ' AND a.`mailid` = '.$mailid;
 		$query .= ' ORDER BY a.`priority` ASC, a.`senddate` ASC, '.$order;
-		$query .= ' LIMIT '.JRequest::getInt('startqueue', 0).','.intval($limit);
+		$query .= ' LIMIT '.acymailing_getVar('int', 'startqueue', 0).','.intval($limit);
 		$this->database->setQuery($query);
 		try{
 			$results = $this->database->loadObjectList();

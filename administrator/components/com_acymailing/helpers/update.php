@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.6.0
+ * @version	5.8.1
  * @author	acyba.com
- * @copyright	(C) 2009-2016 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -17,8 +17,8 @@ class acyupdateHelper{
 
 	function __construct(){
 		$this->db = JFactory::getDBO();
-		jimport('joomla.filesystem.folder');
-		jimport('joomla.filesystem.file');
+
+
 	}
 
 	function fixDoubleExtension(){
@@ -53,8 +53,7 @@ class acyupdateHelper{
 
 		if(!ACYMAILING_J16) return;
 
-		$this->db->setQuery("SELECT extension_id FROM #__extensions WHERE type='component' AND element LIKE '%acymailing' LIMIT 1");
-		$extensionid = $this->db->loadResult();
+		$extensionid = acymailing_loadResult("SELECT extension_id FROM #__extensions WHERE type='component' AND element LIKE '%acymailing' LIMIT 1");
 		if(empty($extensionid)) return;
 
 		$this->db->setQuery("UPDATE #__menu SET component_id = ".intval($extensionid).",published = 1 WHERE link LIKE '%com_acymailing%' AND component_id = 0 AND client_id = 1");
@@ -103,8 +102,7 @@ class acyupdateHelper{
 		$this->db->query();
 
 		$query = "SELECT update_site_id FROM #__update_sites WHERE location LIKE '%acymailing%' AND type LIKE 'extension'";
-		$this->db->setQuery($query);
-		$update_site_id = $this->db->loadResult();
+		$update_site_id = acymailing_loadResult($query);
 
 		$object = new stdClass();
 		$object->name = 'AcyMailing';
@@ -114,16 +112,14 @@ class acyupdateHelper{
 		$object->enabled = 1;
 
 		if(empty($update_site_id)){
-			$this->db->insertObject("#__update_sites", $object);
-			$update_site_id = $this->db->insertid();
+			$update_site_id = acymailing_insertObject("#__update_sites", $object);
 		}else{
 			$object->update_site_id = $update_site_id;
-			$this->db->updateObject("#__update_sites", $object, 'update_site_id');
+			acymailing_updateObject("#__update_sites", $object, 'update_site_id');
 		}
 
 		$query = "SELECT extension_id FROM #__extensions WHERE `name` LIKE 'acymailing' AND type LIKE 'component'";
-		$this->db->setQuery($query);
-		$extension_id = $this->db->loadResult();
+		$extension_id = acymailing_loadResult($query);
 		if(empty($update_site_id) OR empty($extension_id)) return false;
 
 		$query = 'INSERT IGNORE INTO #__update_sites_extensions (update_site_id, extension_id) values ('.$update_site_id.','.$extension_id.')';
@@ -167,8 +163,7 @@ class acyupdateHelper{
 			$data[] = "('A user confirmed his subscription : {user:email}', '<p>Hello {subtag:name},</p><p>A user confirmed his subscription : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_confirm', 1,0,NULL)";
 		}
 
-		$this->db->setQuery("SELECT tempid FROM #__acymailing_template WHERE namekey = 'newsletter-4' LIMIT 1");
-		$conftemplate = (int)$this->db->loadResult();
+		$conftemplate = (int)acymailing_loadResult("SELECT tempid FROM #__acymailing_template WHERE namekey = 'newsletter-4' LIMIT 1");
 
 		if(!in_array('confirmation', $notifications)){
 			$bodyNotif = $this->getJoomlaNotification('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', '<h1>Hello {subtag:name|ucfirst},</h1>
@@ -177,8 +172,7 @@ class acyupdateHelper{
 			<p style="text-align:center;"><strong>{confirm}{trans:CONFIRM_SUBSCRIPTION}{/confirm}</strong></p>');
 			$data[] = "('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', ".$this->db->Quote($bodyNotif).", '',1, 'notification', 0, 'confirmation', 1,".$conftemplate.',\'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\')';
 		}else{
-			$this->db->setQuery('SELECT `params` FROM `#__acymailing_mail` WHERE `alias` = \'confirmation\'');
-			$confirmParams = $this->db->loadResult();
+			$confirmParams = acymailing_loadResult('SELECT `params` FROM `#__acymailing_mail` WHERE `alias` = \'confirmation\'');
 			if(empty($confirmParams)){
 				$this->db->setQuery('UPDATE `#__acymailing_mail` SET `params` = \'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\' WHERE `alias` = \'confirmation\'');
 				$this->db->query();
@@ -407,10 +401,10 @@ class acyupdateHelper{
 
 	function installMenu($code = ''){
 		if(empty($code)){
-			$lang = JFactory::getLanguage();
-			$code = $lang->getTag();
+
+			$code = acymailing_getLanguageTag();
 		}
-		$path = JLanguage::getLanguagePath(JPATH_ROOT).DS.$code.DS.$code.'.com_acymailing.ini';
+		$path = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing.ini';
 		if(!file_exists($path)) return;
 		$content = file_get_contents($path);
 		if(empty($content)) return;
@@ -434,14 +428,14 @@ class acyupdateHelper{
 		}else{
 			$menuPath = ACYMAILING_ROOT.'administrator'.DS.'language'.DS.$code.DS.$code.'.com_acymailing.sys.ini';
 		}
-		if(!JFile::write($menuPath, $menuFileContent)){
-			acymailing_enqueueMessage(JText::sprintf('FAIL_SAVE', $menuPath), 'error');
+		if(!acymailing_writeFile($menuPath, $menuFileContent)){
+			acymailing_enqueueMessage(acymailing_translation_sprintf('FAIL_SAVE', $menuPath), 'error');
 		}
 	}
 
 	function installTemplates(){
 		$path = ACYMAILING_TEMPLATE;
-		$dirs = JFolder::folders($path);
+		$dirs = acymailing_getFolders($path);
 
 		$template = array();
 		$order = 0;
@@ -479,7 +473,7 @@ class acyupdateHelper{
 		}
 
 		if(!empty($nbTemplates)){
-			acymailing_enqueueMessage(JText::sprintf('TEMPLATES_INSTALL', $nbTemplates), 'success');
+			acymailing_enqueueMessage(acymailing_translation_sprintf('TEMPLATES_INSTALL', $nbTemplates), 'success');
 
 			$templateClass = acymailing_get('class.template');
 			for($i = $lastId; $i <= $lastId + count($template); $i++){
@@ -499,13 +493,11 @@ class acyupdateHelper{
 		$this->db->setQuery($query);
 		$this->db->query();
 
-		$this->db->setQuery('SELECT COUNT(*) FROM `#__acymailing_list`');
-		$nbLists = $this->db->loadResult();
+		$nbLists = acymailing_loadResult('SELECT COUNT(*) FROM `#__acymailing_list`');
 
 		if(!empty($nbLists)) return true;
 
-		$user = JFactory::getUser();
-		$this->db->setQuery("INSERT INTO `#__acymailing_list` (`name`, `description`, `ordering`, `published`, `alias`, `color`, `visible`, `type`,`userid`) VALUES ('Newsletters','Receive our latest news','1','1','mailing_list','#3366ff','1','list',".(int)$user->id.")");
+		$this->db->setQuery("INSERT INTO `#__acymailing_list` (`name`, `description`, `ordering`, `published`, `alias`, `color`, `visible`, `type`,`userid`) VALUES ('Newsletters','Receive our latest news','1','1','mailing_list','#3366ff','1','list',".(int)acymailing_currentUserId().")");
 		$this->db->query();
 		$listid = $this->db->insertid();
 
@@ -518,8 +510,7 @@ class acyupdateHelper{
 	function installBounceRules(){
 		if(!acymailing_level(3)) return;
 
-		$this->db->setQuery('SELECT COUNT(*) FROM #__acymailing_rules');
-		if($this->db->loadResult() > 0) return;
+		if(acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_rules') > 0) return;
 
 
 		$config = acymailing_config();
@@ -554,10 +545,10 @@ class acyupdateHelper{
 
 	function installExtensions(){
 		$path = ACYMAILING_BACK.'extensions';
-		$dirs = JFolder::folders($path);
+		$dirs = acymailing_getFolders($path);
 
 		if(!ACYMAILING_J16){
-			if(file_exists(ACYMAILING_BACK.'config.xml')) JFile::delete(ACYMAILING_BACK.'config.xml');
+			if(file_exists(ACYMAILING_BACK.'config.xml')) acymailing_deleteFile(ACYMAILING_BACK.'config.xml');
 
 			$query = "SELECT CONCAT(`folder`,`element`) FROM #__plugins WHERE `folder` = 'acymailing' OR `element` LIKE '%acy%'";
 			$query .= " UNION SELECT `module` FROM #__modules WHERE `module` LIKE '%acymailing%'";
@@ -596,9 +587,10 @@ class acyupdateHelper{
 		$extensioninfo['plg_acymailing_plginboxactions'] = array('AcyMailing : Inbox actions', 35, 1);
 		$extensioninfo['plg_system_acymailingclassmail'] = array('Override Joomla mailing system', 1, 0);
 		$extensioninfo['plg_acymailing_calltoaction'] = array('AcyMailing Tag : Call to action', 22, 1);
+		$extensioninfo['plg_system_jceacymailing'] = array('AcyMailing JCE integration', 23, 1);
 
 		$listTables = $this->db->getTableList();
-		$fromVersion = JRequest::getCmd('fromversion');
+		$fromVersion = acymailing_getVar('cmd', 'fromversion');
 
 		foreach($dirs as $oneDir){
 			$arguments = explode('_', $oneDir);
@@ -706,7 +698,7 @@ class acyupdateHelper{
 				$queryExtensions .= '('.$this->db->Quote($oneExt->name).','.$this->db->Quote($oneExt->element).','.$this->db->Quote($oneExt->folder).','.$oneExt->enabled.','.$oneExt->ordering;
 				if(ACYMAILING_J16) $queryExtensions .= ','.$this->db->Quote($oneExt->type).',1,'.$this->db->Quote(!empty($oneExt->additionalInfo) ? $oneExt->additionalInfo : '');
 				$queryExtensions .= '),';
-				if($oneExt->type != 'module') $success[] = JText::sprintf('PLUG_INSTALLED', $oneExt->name);
+				if($oneExt->type != 'module') $success[] = acymailing_translation_sprintf('PLUG_INSTALLED', $oneExt->name);
 			}
 			$queryExtensions = trim($queryExtensions, ',');
 
@@ -730,7 +722,7 @@ class acyupdateHelper{
 				$this->db->setQuery('INSERT IGNORE INTO `#__modules_menu` (`moduleid`,`menuid`) VALUES ('.$moduleId.',0)');
 				$this->db->query();
 
-				$success[] = JText::sprintf('MODULE_INSTALLED', $oneModule->name);
+				$success[] = acymailing_translation_sprintf('MODULE_INSTALLED', $oneModule->name);
 			}
 		}
 
@@ -747,10 +739,10 @@ class acyupdateHelper{
 	function copyFolder($from, $to){
 		$return = true;
 
-		$allFiles = JFolder::files($from);
+		$allFiles = acymailing_getFiles($from);
 		foreach($allFiles as $oneFile){
 			if(file_exists($to.DS.'index.html') AND $oneFile == 'index.html') continue;
-			if(JFile::copy($from.DS.$oneFile, $to.DS.$oneFile) !== true){
+			if(acymailing_copyFile($from.DS.$oneFile, $to.DS.$oneFile) !== true){
 				$this->errors[] = 'Could not copy the file from '.$from.DS.$oneFile.' to '.$to.DS.$oneFile;
 				$return = false;
 			}
@@ -758,11 +750,11 @@ class acyupdateHelper{
 				$data = file_get_contents($to.DS.$oneFile);
 				if(strpos($data, '<install ') !== false){
 					$data = str_replace(array('<install ', '</install>', 'version="1.5"', '<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/plugin-install.dtd">'), array('<extension ', '</extension>', 'version="2.5"', ''), $data);
-					JFile::write($to.DS.$oneFile, $data);
+					acymailing_writeFile($to.DS.$oneFile, $data);
 				}
 			}
 		}
-		$allFolders = JFolder::folders($from);
+		$allFolders = acymailing_getFolders($from);
 		if(!empty($allFolders)){
 			foreach($allFolders as $oneFolder){
 				if(!acymailing_createDir($to.DS.$oneFolder)) continue;
@@ -776,13 +768,12 @@ class acyupdateHelper{
 		if(!ACYMAILING_J16 || !class_exists('JCache')) return;
 
 		$conf = JFactory::getConfig();
-		$dispatcher = JDispatcher::getInstance();
 
 		$options = array('defaultgroup' => 'com_plugins', 'cachebase' => $conf->get('cache_path', JPATH_SITE.'/cache'));
 
 		$cache = JCache::getInstance('callback', $options);
 		$cache->clean();
 
-		$dispatcher->trigger('onContentCleanCache', $options);
+		$resultsTrigger = acymailing_trigger('onContentCleanCache', $options);
 	}
 }

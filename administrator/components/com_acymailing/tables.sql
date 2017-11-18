@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `#__acymailing_filter` (
 	`report` text,
 	`action` text,
 	`filter` text,
+	`daycron` int unsigned,
 	PRIMARY KEY (`filid`)
 ) /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci*/;
 
@@ -54,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `#__acymailing_history` (
 	`data` text,
 	`source` text,
 	`mailid` mediumint unsigned DEFAULT NULL,
-	KEY `subid` (`subid`,`date`),
+	PRIMARY KEY `subid` (`subid`,`date`),
 	KEY `dateindex` (`date`),
 	KEY `actionindex` (`action`,`mailid`)
 ) /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci*/;
@@ -114,6 +115,8 @@ CREATE TABLE IF NOT EXISTS `#__acymailing_mail` (
 	`published` tinyint DEFAULT '1',
 	`senddate` int unsigned DEFAULT NULL,
 	`created` int unsigned DEFAULT NULL,
+	`lastupdate` int unsigned DEFAULT NULL,
+	`userlastupdate` int unsigned DEFAULT NULL,
 	`fromname` varchar(250) DEFAULT NULL,
 	`fromemail` varchar(250) DEFAULT NULL,
 	`replyname` varchar(250) DEFAULT NULL,

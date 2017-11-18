@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access');
 
 
 /**
- * @copyright	Copyright (C) 2009-2016 ACYBA SAS - All rights reserved..
+ * @copyright	Copyright (C) 2009-{__YEAR__} ACYBA SAS - All rights reserved..
  * @license		GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 class acymailingElasticemail {
@@ -109,6 +109,7 @@ class acymailingElasticemail {
 		}
 
 		if(!empty($object->mailid)) $data .= "&channel=".urlencode($object->mailid);
+		if(!empty($object->type) && strpos($object->type, 'notification') !== false) $data .= '&isTransactional=1';
 
 		$header = "POST /mailer/send HTTP/1.0\r\n";
 		$header .= "Host: api.elasticemail.com\r\n";
