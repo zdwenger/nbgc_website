@@ -1,0 +1,263 @@
+
+/**************************************************************************************/
+/*
+/*		Designed by 'AS Designing'
+/*		Web: http://www.asdesigning.com
+/*		Web: http://www.astemplates.com
+/*		License: GNU/GPL
+/*
+/**************************************************************************************/
+
+ul.sf-menu
+{
+	float: right;
+	margin-bottom: 32px;
+	position: relative;
+}
+
+ul.sf-menu > li
+{
+	padding: 0;
+	list-style-image: none;
+}
+
+ul.sf-menu > li.deeper > a::after 
+{
+    background: rgba(0, 0, 0, 0) url("../images/dd.arrow.png") no-repeat scroll left top;
+    content: "";
+    display: inline-block;
+    height: 8px;
+    left: 10px;
+    position: relative;
+    top: -2px;
+    width: 10px;
+}
+
+ul.sf-menu > li.active > a, 
+ul.sf-menu > li.sfHover > a, 
+ul.sf-menu > li.current > a, 
+ul.sf-menu > li.active > span, 
+ul.sf-menu > li.sfHover > span, 
+ul.sf-menu > li.current > span
+{
+	border-bottom: 2px solid #fb3727 !important;
+    color: #fb3727 !important;
+}
+
+ul.sf-menu > li > a, 
+ul.sf-menu > li > span
+{
+	font-size: 14px;
+	line-height: 20px;
+	color: #464646;
+	display: block;
+	margin: 0 15px;
+	padding: 15px 0 5px;
+	font-weight: 500;
+}
+
+.scrolled ul.sf-menu > li > a, 
+.scrolled ul.sf-menu > li > span 
+{
+	font-size: 12px;
+	padding: 0px 25px 0px;
+	margin: 0px 2px 4px 2px;	
+}
+
+ul.sf-menu > li > a:hover, 
+ul.sf-menu > li > span:hover
+{
+	border-bottom: 2px solid #fb3727 !important;
+    color: #fb3727 !important;
+}
+
+ul.sf-menu > li > a:hover > span, 
+ul.sf-menu > li > span:hover > span
+{
+	background-position: center bottom !important;
+}
+
+ul.sf-menu li > ul
+{
+	top: 75px;
+	left: 2px;
+}
+
+.scrolled ul.sf-menu li > ul
+{
+	top: 50px;	
+}
+
+ul.sf-menu ul
+{
+	width: 190px;
+}
+
+ul.sf-menu li li ul,
+ul.sf-menu li li li ul
+{
+    left: 193px;
+    top: -13px;
+}
+
+.scrolled ul.sf-menu li li ul,
+.scrolled ul.sf-menu li li li ul
+{
+  	top: -30px;
+}
+
+ul.sf-menu ul
+{
+	background-color: #fff;
+	border: 1px solid #777777;
+	padding: 12px 0;
+}
+
+ul.sf-menu ul li
+{
+	list-style-image: none;
+}
+
+ul.sf-menu ul li.open > .sub-menu
+{
+	display: block !important;
+}
+
+ul.sf-menu ul li a, 
+ul.sf-menu ul li span
+{
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 20px;
+	color: #464646;
+	display: block;
+	padding: 0.2em 1em 0.2em 1.5em;
+	text-decoration: none;
+	-webkit-transition: all 0.5s ease;
+	-moz-transition: all 0.5s ease;
+	-o-transition: all 0.5s ease;
+	transition: all 0.5s ease;
+}
+
+ul.sf-menu ul li a:hover, 
+ul.sf-menu ul li span:hover
+ul.sf-menu ul li.active > a, 
+ul.sf-menu ul li.sfHover > a, 
+ul.sf-menu ul li.active > span, 
+ul.sf-menu ul li.sfHover > span
+{
+	color: #fb3727;
+}
+
+ul.sf-menu ul li.firstItem
+{
+	border: none;
+}
+
+ul.sf-menu.sf-vertical
+{
+	width: 190px;
+}
+
+ul.sf-menu.sf-vertical li
+{
+	width: 190px;
+	margin-bottom: 1px;
+}
+
+ul.sf-menu.sf-vertical li:hover > ul, 
+ul.sf-menu.sf-vertical li.sfHover > ul
+{
+  	top: -13px;
+}
+
+ul.sf-menu.sf-vertical ul
+{
+	left: 256px;
+}
+
+ul.sf-menu.sf-vertical ul li a, 
+ul.sf-menu.sf-vertical ul li span
+{
+	padding: 9px 12px;
+}
+
+ul.sf-menu.sf-navbar
+{
+	height: 90px;
+	padding-bottom: 90px;
+	margin-bottom: 2px;
+}
+
+ul.sf-menu.sf-navbar li:hover > ul, 
+ul.sf-menu.sf-navbar li.sfHover > ul
+{
+ 	top: 92px;
+	left: 0;
+}
+
+ul.sf-menu.sf-navbar li ul
+{
+	width: auto;
+	padding: 2px 0;
+}
+
+ul.sf-menu.sf-navbar li ul ul.sub-menu
+{
+	width: 254px;
+	top: 90px;
+}
+
+.scrolled ul.sf-menu > li > a, 
+.scrolled ul.sf-menu > li > span
+{
+	line-height: 46px;
+}
+
+.navigation .btn-sf-menu 
+{
+    float: right;
+    font-size: 12px !important;
+    line-height: 16px;
+    padding: 15px 22px;	
+	margin-bottom: 45px
+}
+
+@media (max-width: 767px) 
+{
+	ul.sf-menu 
+	{
+	    margin-bottom: 0px;
+	}
+
+	ul.sf-menu.in
+	{
+		margin-top: 20px;
+		margin-bottom: 10px;
+		padding: 0px 15px;
+		clear: both;
+		display: block;
+		overflow: hidden;	
+	}
+	
+	ul.sf-menu > li > a:hover, 
+	ul.sf-menu > li > span:hover,
+	ul.sf-menu > li.sfHover > a, 
+	ul.sf-menu > li.sfHover > span
+	{
+		border-bottom: none !important;
+	}
+	
+	ul.sf-menu ul
+	{
+		border: none;
+	}
+	
+	ul.sf-menu ul li a, 
+	ul.sf-menu ul li span
+	{
+		font-size: 14px;
+		transition: none;
+	}
+	
+}

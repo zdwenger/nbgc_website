@@ -1,0 +1,38 @@
+
+/**************************************************************************************/
+/*
+/*		Designed by 'AS Designing'
+/*		Web: http://www.asdesigning.com
+/*		Web: http://www.astemplates.com
+/*		License: GNU/GPL
+/*
+/**************************************************************************************/
+
+#as-menu
+{
+	float: right;
+}
+
+#as-menu ul.as-menu > li,
+#as-menu ul.as-menu > li:hover
+{
+	width: auto;
+    padding: 15px 0;
+}
+
+#as-menu ul.as-menu > li.active > a,
+#as-menu ul.as-menu > li.asHover > a,
+#as-menu ul.as-menu > li.current > a,
+#as-menu ul.as-menu > li.active > span,
+#as-menu ul.as-menu > li.asHover > span,
+#as-menu ul.as-menu > li.current > span
+{
+	padding: 0 0 5px;
+	display: block;	
+}
+
+#as-menu ul.as-menu ul li a, 
+#as-menu ul.as-menu ul li span
+{
+	text-align: left;
+}
